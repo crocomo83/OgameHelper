@@ -1,0 +1,24 @@
+# ---- Build ----
+build/
+build-*/
+cmake-build-*/
+*.o
+*.obj
+
+# ---- Qt ----
+*.moc
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+
+# ---- Translations ----
+*.qm
+
+# ---- IDE ----
+*.user
+*.user.*
+*.autosave
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
