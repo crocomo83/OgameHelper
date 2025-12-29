@@ -28,6 +28,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_SOURCES}
         item.ui
         item.h item.cpp
+        researchHandler.h researchHandler.cpp
+        commons.h
+        resources.qrc
 
     )
 # Define target properties for Android with Qt 6 as:

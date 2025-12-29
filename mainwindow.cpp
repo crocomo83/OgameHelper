@@ -1,24 +1,26 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
-#include <QVBoxLayout>
+#include <QTableWidget>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->research->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
-    QVBoxLayout *layout = new QVBoxLayout;
-    QStringList itemNames = {"Ressource A", "Ressource B", "Ressource C"};
+    _researchHandler = new ResearchHandler();
+    int numberOfResearch = _researchHandler->getNumberResearch();
 
-    for (const QString &name : itemNames) {
-        Item *item = new Item(name);
-        layout->addWidget(item);
-        _items.append(item); // pour accéder plus tard
+    for (int i = 0; i < numberOfResearch; ++i) {
+        const ResearchHandler::Research& research = _researchHandler->getResearch(static_cast<ResearchType>(i));
+
+        qDebug() << "item set : " << research.name;
+
+        Item *item = new Item(research.name);
+        ui->research->setCellWidget(i, 0, item);
     }
-
-    ui->common->setLayout(layout);
 }
 
 MainWindow::~MainWindow()

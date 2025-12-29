@@ -4,10 +4,12 @@
 #include <QMessageBox>
 #include <QLocale>
 #include <QTranslator>
+#include <QStyleFactory>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    a.setStyle(QStyleFactory::create("Fusion"));
 
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
