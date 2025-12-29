@@ -26,6 +26,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(Ogame_helper
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        item.ui
+        item.h item.cpp
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Ogame_helper APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

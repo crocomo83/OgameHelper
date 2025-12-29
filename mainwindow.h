@@ -1,5 +1,6 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
+
+#include "item.h"
 
 #include <QMainWindow>
 
@@ -19,5 +20,5 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    QVector<Item*> _items;
 };
-#endif // MAINWINDOW_H
