@@ -1,5 +1,7 @@
 <RCC>
-  <qresource prefix="/">
-    <file>config/researches.json</file>
-  </qresource>
+    <qresource prefix="/">
+        <file>config/buildings.json</file>
+        <file>config/researches.json</file>
+        <file>config/save.json</file>
+    </qresource>
 </RCC>

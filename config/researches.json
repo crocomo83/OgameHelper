@@ -1,0 +1,130 @@
+[
+    {
+        "name": "Energie",
+        "metal": 0,
+        "cristal": 800,
+        "deut": 400,
+        "energie": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Laser",
+        "metal": 200,
+        "cristal": 100,
+        "deut": 0,
+        "energie": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Ion",
+        "metal": 1000,
+        "cristal": 300,
+        "deut": 100,
+        "energie": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Hyperespace",
+        "metal": 0,
+        "cristal": 4000,
+        "deut": 2000,
+        "energie": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Plasma",
+        "metal": 2000,
+        "cristal": 4000,
+        "deut": 1000,
+        "energie": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "PropCombustion",
+        "metal": 400,
+        "cristal": 0,
+        "deut": 600,
+        "energie": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "PropImpulsion",
+        "metal": 2000,
+        "cristal": 4000,
+        "deut": 6000,
+        "energie": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "PropHyperespace",
+        "metal": 10000,
+        "cristal": 20000,
+        "deut": 6000,
+        "energie": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Espionnage",
+        "metal": 200,
+        "cristal": 1000,
+        "deut": 200,
+        "energie": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Ordinateur",
+        "metal": 0,
+        "cristal": 400,
+        "deut": 600,
+        "energie": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Astrophysique",
+        "metal": 4000,
+        "cristal": 8000,
+        "deut": 4000,
+        "energie": 0,
+        "increaseFactor": 1.75
+    },
+    {
+        "name": "Réseau",
+        "metal": 240000,
+        "cristal": 400000,
+        "deut": 160000,
+        "energie": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Graviton",
+        "metal": 0,
+        "cristal": 0,
+        "deut": 0,
+        "energie": 300000,
+        "increaseFactor": 3
+    },
+    {
+        "name": "Armes",
+        "metal": 800,
+        "cristal": 200,
+        "deut": 0,
+        "energie": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Bouclier",
+        "metal": 200,
+        "cristal": 600,
+        "deut": 0,
+        "energie": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Coque",
+        "metal": 1000,
+        "cristal": 0,
+        "deut": 0,
+        "energie": 0,
+        "increaseFactor": 2
+    }
+]

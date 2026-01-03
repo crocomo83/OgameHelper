@@ -1,0 +1,82 @@
+{
+  "universe":[
+      {"label": "Vitesse économique",		"level": 1},
+      {"label": "Boost recherches",		"level": 1}
+  ],
+  "species":[
+      {"label": "Humains",			"level": 0},
+      {"label": "Mecas",			"level": 0},
+      {"label": "Kaeleshs",			"level": 0},
+      {"label": "Roctas",			"level": 0}
+  ],
+  "researches":[
+      {"label": "Energie",			"level": 0},
+      {"label": "Laser",			"level": 0},
+      {"label": "Ion",				"level": 0},
+      {"label": "Hyperespace",			"level": 0},
+      {"label": "Plasma",			"level": 0},
+      {"label": "PropCombustion",		"level": 0},
+      {"label": "PropImpulsion",		"level": 0},
+      {"label": "PropHyperespace",		"level": 0},
+      {"label": "Espionnage",			"level": 0},
+      {"label": "Ordinateur",			"level": 0},
+      {"label": "Astrophysique",		"level": 0},
+      {"label": "Réseau",			"level": 0},
+      {"label": "Graviton",			"level": 0},
+      {"label": "Armes",			"level": 0},
+      {"label": "Bouclier",			"level": 0},
+      {"label": "Coque",			"level": 0}
+  ],
+  "classData":[
+      {"label": "Classe",			"index": 0},
+      {"label": "Classe alli",			"index": 0}
+  ],
+  "officers":[
+      {"label": "Conseil",			"active": false},
+      {"label": "Amiral",			"active": false},
+      {"label": "Inégénieur",			"active": false},
+      {"label": "Géologue",			"active": false},
+      {"label": "Technocrate",			"active": false}
+  ],
+  "merchandsRate":[
+      {"label": "Métal",			"level": 3.0},
+      {"label": "Cristal",			"level": 2.0},
+      {"label": "Deut",                         "level": 1.0}
+  ],
+  "scrapRate":[
+      {"label": "scrapRate",			"level": 35}
+  ],
+  "planets": [
+    {
+	"name": "planète mère",
+	"species": "none",
+	"buildings": [
+	  {"label": "Mine de métal",		"level": 0},
+	  {"label": "Mine de cristal",		"level": 0},
+	  {"label": "Mine de deut",		"level": 0},
+	  {"label": "Centrale solaire",		"level": 0},
+	  {"label": "Centrale fusion",		"level": 0},
+	  {"label": "Hangar métal",		"level": 0},
+	  {"label": "Hangar cristal",		"level": 0},
+	  {"label": "Réservoir deut",		"level": 0},
+	  {"label": "Usine de robots",		"level": 0},
+	  {"label": "Chantier spatial",		"level": 0},
+	  {"label": "Labo de recherche",	"level": 0},
+	  {"label": "Dépôt de ravitaillement",	"level": 0},
+	  {"label": "Silo de missiles",		"level": 0},
+	  {"label": "Usine nanites",		"level": 0},
+	  {"label": "Terraformeur",		"level": 0},
+	  {"label": "Dock spatial",		"level": 0}
+        ],
+	"buildingsHumans": [],
+	"buildingsMechs": [],
+	"buildingsKaelesh": [],
+	"buildingsRoctas": [],
+	"researchHuman": [],
+	"researchMechs": [],
+	"researchKaelesh": [],
+	"researchRoctas": [],
+	"defenses": []
+    }
+  ]
+}

@@ -28,9 +28,20 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_SOURCES}
         item.ui
         item.h item.cpp
-        researchHandler.h researchHandler.cpp
+        techManager.h techManager.cpp
         commons.h
         resources.qrc
+        checkBoxItem.ui
+        checkboxitem.h checkboxitem.cpp
+        comboBoxItem.ui
+        comboboxitem.h comboboxitem.cpp
+        doubleSpinBoxItem.ui
+        doubleSpinBoxItem.h doubleSpinBoxItem.cpp
+
+        playermanager.h playermanager.cpp
+        planet.h planet.cpp
+
+
 
     )
 # Define target properties for Android with Qt 6 as:

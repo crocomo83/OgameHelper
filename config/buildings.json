@@ -1,0 +1,116 @@
+[
+    {
+        "name": "Mine de métal",
+        "metal": 60,
+        "cristal": 15,
+        "deut": 0,
+        "increaseFactor": 1.5
+    },
+    {
+        "name": "Mine de cristal",
+        "metal": 48,
+        "cristal": 24,
+        "deut": 0,
+        "increaseFactor": 1.6
+    },
+    {
+        "name": "Mine de deut",
+        "metal": 225,
+        "cristal": 75,
+        "deut": 0,
+        "increaseFactor": 1.5
+    },
+    {
+        "name": "Centrale solaire",
+        "metal": 75,
+        "cristal": 30,
+        "deut": 0,
+        "increaseFactor": 1.5
+    },
+    {
+        "name": "Centrale fusion",
+        "metal": 900,
+        "cristal": 360,
+        "deut": 180,
+        "increaseFactor": 1.8
+    },
+    {
+        "name": "Hangar métal",
+        "metal": 1000,
+        "cristal": 0,
+        "deut": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Hangar cristal",
+        "metal": 1000,
+        "cristal": 500,
+        "deut": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Réservoir deut",
+        "metal": 1000,
+        "cristal": 1000,
+        "deut": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Usine de robots",
+        "metal": 400,
+        "cristal": 120,
+        "deut": 200,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Chantier spatial",
+        "metal": 400,
+        "cristal": 200,
+        "deut": 100,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Labo de recherche",
+        "metal": 200,
+        "cristal": 400,
+        "deut": 200,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Dépôt de ravitaillement",
+        "metal": 20000,
+        "cristal": 40000,
+        "deut": 0,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Silo de missiles",
+        "metal": 20000,
+        "cristal": 20000,
+        "deut": 1000,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Usine nanites",
+        "metal": 1000000,
+        "cristal": 500000,
+        "deut": 100000,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Terraformeur",
+        "metal": 50000,
+        "cristal": 100000,
+        "deut": 0,
+        "energie": 1000,
+        "increaseFactor": 2
+    },
+    {
+        "name": "Dock spatial",
+        "metal": 200,
+        "cristal": 0,
+        "deut": 50,
+        "energie": 50,
+        "increaseFactor": 5
+    }
+]
