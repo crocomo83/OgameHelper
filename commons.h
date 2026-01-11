@@ -5,17 +5,45 @@
 
 #include <map>
 
-struct Cost{
-    int metal   = 0;
-    int cristal = 0;
-    int deut    = 0;
-    int energy  = 0;
+struct Ressources {
+    float metal   = 0;
+    float cristal = 0;
+    float deut    = 0;
+    float energy  = 0;
+
+    Ressources(float metal_ = 0, float cristal_ = 0, float deut_ = 0, float energy_ = 0)
+        : metal(metal_), cristal(cristal_), deut(deut_), energy(energy_) {}
+
+    Ressources& operator+=(const Ressources& other) {
+        metal   += other.metal;
+        cristal += other.cristal;
+        deut    += other.deut;
+        energy  += other.energy;
+        return *this;
+    }
+
+    Ressources& operator-=(const Ressources& other) {
+        metal   -= other.metal;
+        cristal -= other.cristal;
+        deut    -= other.deut;
+        energy  -= other.energy;
+        return *this;
+    }
+
+    friend Ressources operator+(Ressources lhs, const Ressources& rhs) {
+        lhs += rhs;
+        return lhs;
+    }
+
+    friend Ressources operator-(Ressources lhs, const Ressources& rhs) {
+        lhs -= rhs;
+        return lhs;
+    }
 };
 
 struct CommonTech{
     QString name = "";
-    Cost baseCost;
-    int currentLevel = 0;
+    Ressources baseCost;
     float increaseFactor = 2.0;
 
     bool isValid() const {return name != "";}
@@ -37,7 +65,7 @@ enum class Species
     Roctas,
     Count
 };
-inline static const QStringList speciesToString = {"None", "Humains", "Mecas", "Kaeleshs", "Roctas"};
+inline static const QStringList speciesToString = {"Aucune", "Humains", "Mecas", "Kaeleshs", "Roctas"};
 
 enum class TechType
 {

@@ -3,11 +3,9 @@
 #include <functional>
 
 #include <QWidget>
+#include <QLabel>
 #include <QSpinBox>
-
-namespace Ui {
-class Item;
-}
+#include <QHBoxLayout>
 
 class Item : public QWidget
 {
@@ -15,7 +13,6 @@ class Item : public QWidget
 
 public:
     explicit Item(QString name, QWidget *parent = nullptr);
-    ~Item();
 
     int value() const;
     void setValue(int v);
@@ -28,7 +25,7 @@ private slots:
     void onSpinValueChanged(int value);
 
 private:
-    Ui::Item *ui;
+    QLabel* _label;
     QSpinBox* _spinBox;
     std::function<void(int)> m_onValueChanged;
 };

@@ -10,10 +10,12 @@ class TechManager
 public:
     static TechManager& instance();
 
+    bool loadConfig(TechType techType, QString path);
+
+
+
     int getNumberTechs(TechType techType) const;
     const CommonTech& getTech(TechType techType, int type) const;
-
-    bool loadConfig(TechType techType, QString path);
 
 private:
     TechManager();

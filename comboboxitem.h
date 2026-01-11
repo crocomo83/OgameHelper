@@ -16,6 +16,7 @@ public:
     ~ComboBoxItem();
 
     void setOnValueChanged(std::function<void(int)> callback);
+    int getCurrentIndex() const;
     void setValue(int index);
 
 private slots:

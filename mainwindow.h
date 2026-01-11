@@ -4,6 +4,7 @@
 #include "doubleSpinBoxItem.h"
 #include "checkboxitem.h"
 #include "comboboxitem.h"
+#include "lineEditItem.h"
 
 #include <QMainWindow>
 #include <QVBoxLayout>
@@ -32,16 +33,29 @@ public:
     DoubleSpinBoxItem* addDoubleSpinBoxItem(QTableWidget* tableWidget, QString str, int row, int column, double defaultValue = 0.0, double minValue = 0.0, double maxValue = 99.9);
     CheckBoxItem* addCheckBoxItem(QTableWidget* tableWidget, QString str, int row, int column, bool defaultValue = false);
     ComboBoxItem* addComboBoxItem(QTableWidget* tableWidget, QString str, QStringList names, int row, int column, int defaultValue);
+    LineEditItem* addLineEditItem(QTableWidget* tableWidget, QString str, int row, int column, QString defaultValue);
+
+    void buildResumeOutputs(QTableWidget* tableWidget);
 
     void buildGeneralImputs(QTableWidget* tableWidget, int column);
     void buildResearchImputs(QTableWidget* tableWidget, int column);
     void buildSpecialisationImputs(QTableWidget* tableWidget, int column);
     void buildTradeImputs(QTableWidget* tableWidget, int column);
     void buildPlanetImputs(QTableWidget* tableWidget, int column);
+    void buildNewPlanetImputs(QTableWidget* tableWidget, int column);
+
+private slots:
+    void onPlanetsChanged();
+    void onTechChanged();
+
+signals:
+    void planetsChanged();
+    void techChanged();
 
 private:
     Ui::MainWindow *ui;
     QVector<Item*> _items;
     QTableWidget* _generalTable;
     QTableWidget* _planetTable;
+    QTableWidget* _overviewTable;
 };

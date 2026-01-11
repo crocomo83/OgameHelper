@@ -1,22 +1,26 @@
 #include "item.h"
-#include "ui_item.h"
 
 Item::Item(QString name, QWidget *parent)
     : QWidget(parent)
 {
-    ui = new Ui::Item;
-    ui->setupUi(this);
-    ui->label->setText(name);
+    _label = new QLabel(name, this);
+    _spinBox = new QSpinBox(this);
 
-    _spinBox = ui->spinBox;
+    _label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    _spinBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+
+    auto* layout = new QHBoxLayout(this);
+    layout->addWidget(_label);
+    layout->addWidget(_spinBox);
+
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+
+    setLayout(layout);
+
     _spinBox->setValue(0);
 
     connect(_spinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &Item::onSpinValueChanged);
-}
-
-Item::~Item()
-{
-    delete ui;
 }
 
 int Item::value() const

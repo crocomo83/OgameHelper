@@ -38,7 +38,7 @@ int PlayerManager::getNumberResearch() const
 
 const QString& PlayerManager::getPlanetName(int index) const
 {
-    return _planets.at(index).getName();
+    return _planets.at(index)->getName();
 }
 
 Class PlayerManager::getClass() const
@@ -81,7 +81,7 @@ int PlayerManager::getSpecies(Species species) const
     return _levelSpecies.at(species);
 }
 
-const Planet& PlayerManager::getPlanet(int index) const
+Planet* PlayerManager::getPlanet(int index) const
 {
     return _planets.at(index);
 }
@@ -95,7 +95,13 @@ int PlayerManager::getTechLevel(int indexPlanet, TechType type, int indexTech) c
         return -1;
     }
 
-    return _planets[indexPlanet].getTechLevel(type, indexTech);
+    return _planets[indexPlanet]->getTechLevel(type, indexTech);
+}
+
+Ressources PlayerManager::getPlasmaBonus() const
+{
+    float levelPlasma = (float)getResearchLevel(ResearchType::Plasma);
+    return Ressources(levelPlasma / 100.0f, 0.66f * levelPlasma / 100.0f, 0.33f * levelPlasma / 100.0f);
 }
 
 void PlayerManager::setClass(Class globalClass)
@@ -140,7 +146,7 @@ void PlayerManager::setSpecies(Species species, int level)
 
 void PlayerManager::setTechLevel(int indexPlanet, TechType type, int indexTech, int level)
 {
-    _planets[indexPlanet].setTechLevel(type, indexTech, level);
+    _planets[indexPlanet]->setTechLevel(type, indexTech, level);
 }
 
 bool PlayerManager::loadSave(const QString& path)
@@ -180,6 +186,12 @@ bool PlayerManager::loadSave(const QString& path)
     readPlanetData(root);
 
     return true;
+}
+
+void PlayerManager::addPlanet(QString name, std::array<int, 3> position, int temperature, Species species)
+{
+    Planet* planet = new Planet(name, position, temperature, species);
+    _planets.push_back(planet);
 }
 
 void PlayerManager::readUniverses(const QJsonObject &parent)
@@ -286,15 +298,17 @@ void PlayerManager:: readPlanetData(const QJsonObject& parent)
         QString name = planetObj["name"].toString();
         int species = planetObj["species"].toInt();
 
-        Planet planet(name, static_cast<Species>(species));
+        Planet* planet = new Planet(name, {1, 1, 1}, 0, static_cast<Species>(species));
 
         // Buildings
+        int indexBuilding = 0;
         QJsonArray buildings = planetObj["buildings"].toArray();
         for (const QJsonValue& b : buildings) {
             QJsonObject building = b.toObject();
             int level = building["level"].toInt();
 
-            planet.addTech(TechType::CommonBuilding, level);
+            planet->setTechLevel(TechType::CommonBuilding, indexBuilding, level);
+            indexBuilding++;
         }
 
         _planets.push_back(planet);
@@ -429,18 +443,18 @@ void PlayerManager::writeConversionData(QJsonObject& parent)
 
 void PlayerManager::writePlanetData(QJsonArray &parent, int indexPlanet)
 {
-    const Planet& planet = _planets.at(indexPlanet);
+    Planet* planet = _planets.at(indexPlanet);
 
     QJsonObject planetObj;
-    planetObj["name"] = planet.getName();
-    planetObj["species"] = static_cast<int>(planet.getSpecies());
+    planetObj["name"] = planet->getName();
+    planetObj["species"] = static_cast<int>(planet->getSpecies());
 
     // Buildings
     QJsonArray buildingsArray;
-    for (int i = 0; i < planet.getNumberTech(TechType::CommonBuilding); ++i)
+    for (int i = 0; i < planet->getNumberTech(TechType::CommonBuilding); ++i)
     {
         const CommonTech& tech = TechManager::instance().getTech(TechType::CommonBuilding, i);
-        int level = planet.getTechLevel(TechType::CommonBuilding, i);
+        int level = planet->getTechLevel(TechType::CommonBuilding, i);
 
         QJsonObject obj;
         obj["label"] = tech.name;

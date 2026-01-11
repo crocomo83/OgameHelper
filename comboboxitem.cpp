@@ -24,6 +24,11 @@ void ComboBoxItem::setValue(int index)
     ui->comboBox->setCurrentIndex(index);
 }
 
+int ComboBoxItem::getCurrentIndex() const
+{
+    return ui->comboBox->currentIndex();
+}
+
 void ComboBoxItem::onComboBoxChanged(int index)
 {
     if (m_onValueChanged) {

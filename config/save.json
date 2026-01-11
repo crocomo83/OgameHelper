@@ -49,6 +49,10 @@
   "planets": [
     {
 	"name": "planète mère",
+        "temperature" : 0,
+        "galaxy" : 1,
+        "solarSystem" : 1,
+        "position" : 1,
 	"species": "none",
 	"buildings": [
 	  {"label": "Mine de métal",		"level": 0},

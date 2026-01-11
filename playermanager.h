@@ -19,7 +19,9 @@ public:
     int             getNumberPlanets() const;
     int             getNumberResearch() const;
     const QString&  getPlanetName(int index) const;
-    const Planet&   getPlanet(int index) const;
+    Planet *        getPlanet(int index) const;
+
+    Ressources      getPlasmaBonus() const;
 
     Class           getClass() const;
     AllianceClass   getAllianceClass() const;
@@ -40,6 +42,8 @@ public:
     void            setResearchLevel(ResearchType researchType, int level);
     void            setSpecies(Species species, int level);
     void            setTechLevel(int indexPlanet, TechType type, int indexTech, int level);
+
+    void            addPlanet(QString name, std::array<int, 3> position, int temperature, Species species = Species::None);
 
     bool            saveGameData();
 
@@ -81,5 +85,5 @@ private:
     std::map<ConversionRate, double>                    _conversionRates;
     std::map<ResearchType, int>                         _levelResearch;
     std::map<Species, int>                              _levelSpecies;
-    std::vector<Planet>                                 _planets;
+    std::vector<Planet*>                                _planets;
 };

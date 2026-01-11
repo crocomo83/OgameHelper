@@ -6,6 +6,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
+#include <cmath>
 
 TechManager& TechManager::instance()
 {
@@ -43,7 +44,7 @@ bool TechManager::loadConfig(TechType techType, QString path)
         QJsonObject obj = val.toObject();
         QString name = obj["name"].toString();
 
-        Cost cost;
+        Ressources cost;
         cost.metal   = obj["metal"].toInt(0);
         cost.cristal = obj["cristal"].toInt(0);
         cost.deut    = obj["deut"].toInt(0);
@@ -53,7 +54,6 @@ bool TechManager::loadConfig(TechType techType, QString path)
         research.name = name;
         research.baseCost = cost;
         research.increaseFactor = (float)obj["increaseFactor"].toDouble(2.0);
-        research.currentLevel = 0;
 
         _techs[techType][index++] = research;
     }
