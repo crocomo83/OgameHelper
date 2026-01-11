@@ -281,7 +281,7 @@ void MainWindow::buildPlanetImputs(QTableWidget* tableWidget, int column)
         if (tech.isValid())
         {
             Item* buildingItem = addSpinBoxItem(tableWidget, tech.name, indexBuilding++, column, level);
-            buildingItem->setOnValueChanged([column, i](int value) {
+            buildingItem->setOnValueChanged([this, column, i](int value) {
                 PlayerManager::instance().setTechLevel(column, TechType::CommonBuilding, i, value);
                 emit techChanged();
             });
