@@ -8,7 +8,6 @@ Planet::Planet(const QString& name, const PlanetPosition& position, int temperat
     , _position(position)
     , _temperature(temperature)
     , _species(species)
-    , _bonusProdPositionCoeff(1.0f, 1.0f, 1.0f)
     , _crawlerNumber(0)
 {
     for (int i = 1; i < static_cast<int>(TechType::Count); ++i)
@@ -33,7 +32,6 @@ Planet::Planet(const Planet* planet)
     , _position(planet->getPosition())
     , _temperature(planet->getTemperatureMax())
     , _species(planet->getSpecies())
-    , _bonusProdPositionCoeff(1.0f, 1.0f, 1.0f)
     , _crawlerNumber(planet->getCrawlerNumber())
 {
     for (int i = 1; i < static_cast<int>(TechType::Count); ++i)
@@ -61,6 +59,7 @@ Planet::Planet(const Planet* planet)
 
 void Planet::computeBonusPos()
 {
+    _bonusProdPositionCoeff = Ressources(1.0f, 1.0f, 1.0f);
     switch(_position.position)
     {
         case 1:
