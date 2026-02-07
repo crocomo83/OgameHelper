@@ -76,6 +76,7 @@ public:
     void            setSpecies(Species species, int level);
 
     void            addPlanet(const QString& name, const PlanetPosition& position, int temperature, Species species = Species::None);
+    void            duplicatePlanet();
 
     bool            saveGameData();
 

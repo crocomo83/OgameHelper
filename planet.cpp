@@ -28,6 +28,37 @@ Planet::Planet(const QString& name, const PlanetPosition& position, int temperat
     computeProduction();
 }
 
+Planet::Planet(const Planet* planet)
+    : _name(planet->getName())
+    , _position(planet->getPosition())
+    , _temperature(planet->getTemperatureMax())
+    , _species(planet->getSpecies())
+    , _bonusProdPositionCoeff(1.0f, 1.0f, 1.0f)
+    , _crawlerNumber(planet->getCrawlerNumber())
+{
+    for (int i = 1; i < static_cast<int>(TechType::Count); ++i)
+    {
+        TechType current = static_cast<TechType>(i);
+        if (current != TechType::CommonResearch)
+        {
+            int numberTechs = TechManager::instance().getNumberTechs(current);
+            for (int i = 0; i < numberTechs; ++i)
+            {
+                _techs[current].push_back(planet->getTechLevel(current, i));
+            }
+        }
+    }
+
+    int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
+    for (int i = 0; i < numberLifeFormReseach; i++)
+    {
+        _choicesLifeFormResearch.push_back(planet->getChoiceLifeFormResearch(i));
+    }
+
+    computeBonusPos();
+    computeProduction();
+}
+
 void Planet::computeBonusPos()
 {
     switch(_position.position)

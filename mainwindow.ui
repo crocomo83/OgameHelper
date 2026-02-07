@@ -34,6 +34,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="duplicatePlanet">
+          <property name="text">
+           <string>Duplicate planet</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
@@ -51,7 +58,7 @@
       <item>
        <widget class="QTabWidget" name="tabGeneral">
         <property name="currentIndex">
-         <number>3</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="overview">
          <attribute name="title">

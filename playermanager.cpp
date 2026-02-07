@@ -316,6 +316,12 @@ void PlayerManager::addPlanet(const QString& name, const PlanetPosition& positio
     _planets.push_back(planet);
 }
 
+void PlayerManager::duplicatePlanet()
+{
+    Planet* planet = new Planet(_planets.back());
+    _planets.push_back(planet);
+}
+
 void PlayerManager::readUniverses(const QJsonObject &parent)
 {
     QJsonArray universes = parent["universe"].toArray();

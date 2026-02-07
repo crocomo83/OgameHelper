@@ -17,6 +17,7 @@ public:
     };
 
     Planet(const QString& name, const PlanetPosition& position, int temperature, Species species = Species::None);
+    Planet(const Planet* planet);
 
     void computeBonusPos();
 

@@ -56,6 +56,12 @@ MainWindow::MainWindow(QWidget *parent)
         emit planetsChanged();
     });
 
+    QPushButton* duplicatePlanet = ui->duplicatePlanet;
+    connect(duplicatePlanet, &QPushButton::clicked, this, [this]() {
+        PlayerManager::instance().duplicatePlanet();
+        emit planetsChanged();
+    });
+
     connect(this, &MainWindow::planetsChanged, this, &MainWindow::onPlanetsChanged);
     connect(this, &MainWindow::techChanged, this, &MainWindow::onTechChanged);
 }
