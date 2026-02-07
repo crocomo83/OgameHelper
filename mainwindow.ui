@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
@@ -23,6 +23,13 @@
          <widget class="QPushButton" name="saveButton">
           <property name="text">
            <string>Save</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="addPlanet">
+          <property name="text">
+           <string>Add planet</string>
           </property>
          </widget>
         </item>
@@ -44,7 +51,7 @@
       <item>
        <widget class="QTabWidget" name="tabGeneral">
         <property name="currentIndex">
-         <number>0</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="overview">
          <attribute name="title">
@@ -74,6 +81,59 @@
             <attribute name="verticalHeaderHighlightSections">
              <bool>false</bool>
             </attribute>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <column/>
+            <column/>
+            <column/>
+            <column/>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tab">
+         <attribute name="title">
+          <string>Rentabilité</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QTableWidget" name="renta">
+            <property name="showGrid">
+             <bool>true</bool>
+            </property>
+            <property name="rowCount">
+             <number>20</number>
+            </property>
+            <property name="columnCount">
+             <number>4</number>
+            </property>
+            <attribute name="horizontalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="verticalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="verticalHeaderHighlightSections">
+             <bool>true</bool>
+            </attribute>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
             <row/>
             <row/>
             <row/>
@@ -174,7 +234,7 @@
              <bool>true</bool>
             </property>
             <property name="rowCount">
-             <number>20</number>
+             <number>60</number>
             </property>
             <property name="columnCount">
              <number>4</number>
@@ -188,6 +248,46 @@
             <attribute name="verticalHeaderHighlightSections">
              <bool>false</bool>
             </attribute>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
             <row/>
             <row/>
             <row/>

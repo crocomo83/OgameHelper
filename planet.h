@@ -3,44 +3,61 @@
 #include "commons.h"
 
 #include <QString>
+#include <map>
 
 class Planet
 {
 public:
-    Planet(QString name, std::array<int, 3> position, int temperature, Species species = Species::None);
+    enum ProductionStatPlanet{
+        Base,
+        Mines,
+        CrawlersPercent,
+        BuildingLifeFormPercent,
+        Count
+    };
+
+    Planet(const QString& name, const PlanetPosition& position, int temperature, Species species = Species::None);
 
     void computeBonusPos();
 
-    void addTech(TechType type, int level = 0);
+    const QString&          getName() const;
+    Species                 getSpecies() const;
+    int                     getTemperatureMax() const;
+    int                     getNumberTech(TechType type) const;
+    int                     getTechLevel(TechType type, int index) const;
+    Ressources              getBonusMine() const;
+    PlanetPosition          getPosition() const;
+    int                     getCrawlerNumber() const;
+    int                     getMaxActiveCrawler() const;
+    float                   getCrawlerBonus() const;
+    Ressources              getLifeFormBuildingBonusPercent() const;
+    Ressources              getCrawlerProduction() const;
+    Ressources              getLifeFormBuildingProduction() const;
+    std::vector<TechType>   getAvailableBuildings() const;
+    TechType                getLifeFormBuilding() const;
+    Species                 getChoiceLifeFormResearch(int index) const;
+    int                     getLevelLifeFormResearch(Species species, int index) const;
+    const Ressources&       getProductionStat(ProductionStatPlanet stat) const;
 
-    const QString& getName() const;
-    Species getSpecies() const;
-    int getTemperatureMax() const;
-    int getNumberTech(TechType type) const;
-    int getTechLevel(TechType type, int index) const;
-    Ressources getBaseProduction() const;
-    int getProductionMine(CommonBuildingType buildingType) const;
+    void                    computeProduction();
 
-    int getMaxActiveCrawler() const;
-    float getCrawlerBonus() const;
-    Ressources getCrawlerProduction() const;
-
-    void computeBaseProduction();
-    void computeProductionMine();
-
-    void setName(QString name);
-    void setSpecies(Species species);
-    void setTechLevel(TechType type, int index, int level);
-    void setCrawlerNumber(int crawlers);
+    void                    setName(QString name);
+    void                    setSpecies(Species species);
+    void                    setTechLevel(TechType type, int index, int level);
+    void                    setCrawlerNumber(int crawlers);
+    void                    setPosition(const PlanetPosition& planetPosition);
+    void                    setChoiceLifeFormResearch(int index, Species species);
+    void                    setLevelLifeFormResearch(Species species, int index, int level);
 
 private:
-    QString                                 _name;
-    std::array<int, 3>                      _position;
-    int                                     _temperature;
-    Species                                 _species;
-    std::map<TechType, std::vector<int>>    _techs;
-    std::array<float, 3>                    _bonusProdPositionCoeff;
-    int                                     _crawlerNumber;
-    Ressources                              _baseProd;
-    std::map<CommonBuildingType, int>       _minesProduction;
+    QString                                     _name;
+    PlanetPosition                              _position;
+    int                                         _temperature;
+    Species                                     _species;
+    std::map<TechType, std::vector<int>>        _techs;
+    std::vector<Species>                        _choicesLifeFormResearch;
+    Ressources                                  _bonusProdPositionCoeff;
+    int                                         _crawlerNumber;
+
+    std::map<ProductionStatPlanet, Ressources>  _productionStats;
 };

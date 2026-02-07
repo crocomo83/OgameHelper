@@ -1,31 +1,37 @@
 #include "checkboxitem.h"
-#include "ui_checkboxitem.h"
+
+#include <QHBoxLayout>
 
 CheckBoxItem::CheckBoxItem(QString name, QWidget *parent)
     : QWidget(parent)
 {
-    ui = new Ui::CheckBoxItem;
-    ui->setupUi(this);
-    ui->label->setText(name);
+    _label = new QLabel(name, this);
+    _checkBox = new QCheckBox(this);
 
-    _checkBox = ui->checkBox;
+    _label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    _checkBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+    _checkBox->setChecked(false);
+
+    auto* layout = new QHBoxLayout(this);
+    layout->addWidget(_label);
+    layout->addWidget(_checkBox);
+
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+
+    setLayout(layout);
 
     connect(_checkBox, QOverload<bool>::of(&QCheckBox::toggled), this, &CheckBoxItem::onCheckBoxChanged);
 }
 
-CheckBoxItem::~CheckBoxItem()
-{
-    delete ui;
-}
-
 bool CheckBoxItem::value() const
 {
-    return ui->checkBox->isChecked();
+    return _checkBox->isChecked();
 }
 
 void CheckBoxItem::setValue(bool value)
 {
-    ui->checkBox->setChecked(value);
+    _checkBox->setChecked(value);
 }
 
 void CheckBoxItem::onCheckBoxChanged(bool value)

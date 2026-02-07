@@ -3,9 +3,12 @@
 
 #include "techManager.h"
 #include "playerManager.h"
+#include "rentabilityManager.h"
 
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QLineEdit>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -18,31 +21,39 @@ MainWindow::MainWindow(QWidget *parent)
     Q_ASSERT(ui->planetsTab);
 
     _overviewTable = ui->overviewTab;
+    _rentaTable = ui->renta;
     _generalTable = ui->commonTab;
     _planetTable = ui->planetsTab;
 
     initTable(_overviewTable);
     initTable(_generalTable);
 
-    onPlanetsChanged();
-
     _planetTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     _planetTable->horizontalHeader()->setStretchLastSection(false);
-    _planetTable->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    _planetTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    _planetTable->verticalHeader()->setStretchLastSection(false);
     _planetTable->setFrameShape(QFrame::NoFrame);
     _planetTable->setSelectionMode(QAbstractItemView::NoSelection);
     _planetTable->setFocusPolicy(Qt::NoFocus);
 
     buildResumeOutputs(_overviewTable);
-
+    buildRentaOutputs(_rentaTable);
     buildGeneralImputs(_generalTable, 0);
     buildResearchImputs(_generalTable, 1);
     buildSpecialisationImputs(_generalTable, 2);
     buildTradeImputs(_generalTable, 3);
 
+    onPlanetsChanged();
+
     QPushButton* saveButton = ui->saveButton;
     connect(saveButton, &QPushButton::clicked, this, []() {
         PlayerManager::instance().saveGameData();
+    });
+
+    QPushButton* addPlanet = ui->addPlanet;
+    connect(addPlanet, &QPushButton::clicked, this, [this]() {
+        PlayerManager::instance().addPlanet("Colonie", {1, 1, 1}, 0, Species::None);
+        emit planetsChanged();
     });
 
     connect(this, &MainWindow::planetsChanged, this, &MainWindow::onPlanetsChanged);
@@ -73,9 +84,9 @@ void MainWindow::addLabel(QTableWidget* tableWidget, QString str, int row, int c
 Item* MainWindow::addSpinBoxItem(QTableWidget* tableWidget, QString str, int row, int column, int defaultValue, int minValue, int maxValue)
 {
     Item *item = new Item(str);
-    item->setValue(defaultValue);
     item->setMinValue(minValue);
     item->setMaxValue(maxValue);
+    item->setValue(defaultValue);
     tableWidget->setCellWidget(row, column, item);
     return item;
 }
@@ -106,60 +117,71 @@ ComboBoxItem* MainWindow::addComboBoxItem(QTableWidget* tableWidget, QString str
     return comboBoxItem;
 }
 
-LineEditItem* MainWindow::addLineEditItem(QTableWidget* tableWidget, QString str, int row, int column, QString defaultValue)
+PositionItem* MainWindow::addPositionItem(QTableWidget* tableWidget, int row, int column, const PlanetPosition& planetPosition)
 {
-    LineEditItem* lineEditItem = new LineEditItem(str, tableWidget);
-    lineEditItem->setValue(defaultValue);
-    tableWidget->setCellWidget(row, column, lineEditItem);
-    return lineEditItem;
+    PositionItem* positionItem = new PositionItem(this);
+    positionItem->setValue(planetPosition.galaxy, planetPosition.solarSystem, planetPosition.position);
+    tableWidget->setCellWidget(row, column, positionItem);
+    return positionItem;
+}
+
+LifeFormSelectItem* MainWindow::addLifeFormSelectItem(QTableWidget* tableWidget, int row, int column, Species species, int level)
+{
+    LifeFormSelectItem* lifeFormItem = new LifeFormSelectItem(speciesToString, this);
+    lifeFormItem->setIndex(static_cast<int>(species));
+    lifeFormItem->setLevel(level);
+    lifeFormItem->setEnabled(species != Species::None);
+    tableWidget->setCellWidget(row, column, lifeFormItem);
+    return lifeFormItem;
 }
 
 void MainWindow::buildResumeOutputs(QTableWidget* tableWidget)
 {
     tableWidget->clear();
+    int index = 0;
 
-    addLabel(tableWidget, "Productions", 0, 0);
-    addLabel(tableWidget, "Métal", 0, 1);
-    addLabel(tableWidget, "Cristal", 0, 2);
-    addLabel(tableWidget, "Deuterium", 0, 3);
+    addLabel(tableWidget, "Productions", index, 0);
+    addLabel(tableWidget, "Métal", index, 1);
+    addLabel(tableWidget, "Cristal", index, 2);
+    addLabel(tableWidget, "Deuterium", index, 3);
+    index++;
 
-    int numberPlanet = PlayerManager::instance().getNumberPlanets();
-    Ressources base, prodMines, prodCrawler;
-    for (int i = 0; i < numberPlanet; ++i)
+    for (int i = 0; i < static_cast<int>(PlayerManager::ProductionStat::Count); i++)
     {
-        Planet* planet = PlayerManager::instance().getPlanet(i);
-
-        base += planet->getBaseProduction();
-
-        int prodMetal = planet->getProductionMine(CommonBuildingType::MineMetal);
-        int prodCristal = planet->getProductionMine(CommonBuildingType::MineCristal);
-        int prodDeut = planet->getProductionMine(CommonBuildingType::MineDeut);
-        Ressources planetMines(prodMetal, prodCristal, prodDeut);
-        prodMines += planetMines;
-
-        prodCrawler += planet->getCrawlerProduction();
+        PlayerManager::ProductionStat stat = static_cast<PlayerManager::ProductionStat>(i);
+        Ressources base = PlayerManager::instance().getProduction(stat);
+        addLabel(tableWidget, PlayerManager::instance().getProductionStr(stat), index, 0);
+        addLabel(tableWidget, QString::number((int)base.metal), index, 1);
+        addLabel(tableWidget, QString::number((int)base.cristal), index, 2);
+        addLabel(tableWidget, QString::number((int)base.deut), index, 3);
+        index++;
     }
+}
 
-    addLabel(tableWidget, "Base prod", 1, 0);
-    addLabel(tableWidget, QString::number(base.metal), 1, 1);
-    addLabel(tableWidget, QString::number(base.cristal), 1, 2);
-    addLabel(tableWidget, QString::number(base.deut), 1, 3);
+void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
+{
+    addLabel(tableWidget, "A augmenter", 0, 0);
 
-    addLabel(tableWidget, "Mines", 2, 0);
-    addLabel(tableWidget, QString::number(prodMines.metal), 2, 1);
-    addLabel(tableWidget, QString::number(prodMines.cristal), 2, 2);
-    addLabel(tableWidget, QString::number(prodMines.deut), 2, 3);
+    addLabel(tableWidget, "Planète", 0, 1);
+    addLabel(tableWidget, "Temps de recouvrement", 0, 2);
 
-    Ressources bonusPlasma = PlayerManager::instance().getPlasmaBonus();
-    addLabel(tableWidget, "Plasma", 3, 0);
-    addLabel(tableWidget, QString::number((int)(bonusPlasma.metal * prodMines.metal)), 3, 1);
-    addLabel(tableWidget, QString::number((int)(bonusPlasma.cristal * prodMines.cristal)), 3, 2);
-    addLabel(tableWidget, QString::number((int)(bonusPlasma.deut * prodMines.deut)), 3, 3);
+    int nb = RentabilityManager::instance().refresh();
+    for (int i = 0; i < std::min(10, nb); ++i)
+    {
+        const RentabilityManager::LevelUp& levelUp = RentabilityManager::instance().getLevelUp(i);
 
-    addLabel(tableWidget, "Foreuses", 4, 0);
-    addLabel(tableWidget, QString::number((int)(prodCrawler.metal)), 4, 1);
-    addLabel(tableWidget, QString::number((int)(prodCrawler.cristal)), 4, 2);
-    addLabel(tableWidget, QString::number((int)(prodCrawler.deut)), 4, 3);
+        QString planetName = "";
+        if (levelUp.indexPlanet >= 0)
+        {
+            Planet* planet = PlayerManager::instance().getPlanet(levelUp.indexPlanet);
+            planetName = planet->getName();
+        }
+
+        const QString& name = RentabilityManager::instance().levelUpToString(levelUp.type);
+        addLabel(tableWidget, name + " : " + QString::number(levelUp.levelToUpdate), i+1, 0);
+        addLabel(tableWidget, planetName, i+1, 1);
+        addLabel(tableWidget, levelUp.timeToRecoverStr, i+1, 2);
+    }
 }
 
 void MainWindow::buildGeneralImputs(QTableWidget* tableWidget, int column)
@@ -180,10 +202,11 @@ void MainWindow::buildGeneralImputs(QTableWidget* tableWidget, int column)
 
     addLabel(tableWidget, "Niveaux races : ", 4, column);
     for (int i = 1; i < static_cast<int>(Species::Count); ++i) {
-        int levelRace = PlayerManager::instance().getSpecies(static_cast<Species>(i-1));
+        int levelRace = PlayerManager::instance().getSpecies(static_cast<Species>(i));
         Item* speciesLevel = addSpinBoxItem(tableWidget, "Niveau " + speciesToString[i], i+5, column, levelRace, 0, 100);
-        speciesLevel->setOnValueChanged([i](int value) {
+        speciesLevel->setOnValueChanged([this, i](int value) {
             PlayerManager::instance().setSpecies(static_cast<Species>(i), value);
+            emit techChanged();
         });
     }
 }
@@ -195,14 +218,15 @@ void MainWindow::buildResearchImputs(QTableWidget* tableWidget, int column)
     int numberOfResearch = TechManager::instance().getNumberTechs(TechType::CommonResearch);
 
     for (int i = 0; i < numberOfResearch; ++i) {
-        const CommonTech& research = TechManager::instance().getTech(TechType::CommonResearch, i);
+        const CommonTech* research = TechManager::instance().getTech(TechType::CommonResearch, i);
 
         ResearchType type = static_cast<ResearchType>(i);
 
         int level = PlayerManager::instance().getResearchLevel(type);
-        Item* researchItem = addSpinBoxItem(tableWidget, research.name, i+1, column, level);
-        researchItem->setOnValueChanged([column, i, type](int value) {
+        Item* researchItem = addSpinBoxItem(tableWidget, research->name, i+1, column, level);
+        researchItem->setOnValueChanged([this, column, i, type](int value) {
             PlayerManager::instance().setResearchLevel(type, value);
+            emit techChanged();
         });
     }
 }
@@ -213,14 +237,16 @@ void MainWindow::buildSpecialisationImputs(QTableWidget* tableWidget, int column
 
     int indexClass = static_cast<int>(PlayerManager::instance().getClass());
     ComboBoxItem* classBox = addComboBoxItem(tableWidget, "Classe", classToString, 1, column, indexClass);
-    classBox->setOnValueChanged([](int index) {
+    classBox->setOnValueChanged([this](int index) {
         PlayerManager::instance().setClass(static_cast<Class>(index));
+        emit techChanged();
     });
 
     int indexAllianceClass = static_cast<int>(PlayerManager::instance().getAllianceClass());
     ComboBoxItem* alliClassBox = addComboBoxItem(tableWidget, "Classe alli", allianceClassToString, 2, column, indexAllianceClass);
-    alliClassBox->setOnValueChanged([](int index) {
+    alliClassBox->setOnValueChanged([this](int index) {
         PlayerManager::instance().setAllianceClass(static_cast<AllianceClass>(index));
+        emit techChanged();
     });
 
     addLabel(tableWidget, "Officiers : ", 4, column);
@@ -230,8 +256,9 @@ void MainWindow::buildSpecialisationImputs(QTableWidget* tableWidget, int column
         Officers officer = static_cast<Officers>(i);
         bool initValue = PlayerManager::instance().getOfficerValue(officer);
         CheckBoxItem* officerCheckBox = addCheckBoxItem(tableWidget, officerToString[i], i+5, column, initValue);
-        officerCheckBox->setOnValueChanged([officer](bool value) {
+        officerCheckBox->setOnValueChanged([this, officer](bool value) {
             PlayerManager::instance().setOfficerActivated(officer, value);
+            emit techChanged();
         });
     }
 }
@@ -240,92 +267,124 @@ void MainWindow::buildTradeImputs(QTableWidget* tableWidget, int column)
 {
     addLabel(tableWidget, "Taux de conversion : ", 0, column);
 
-    double metalRateValue = PlayerManager::instance().getConversionRate(ConversionRate::Metal);
+    double metalRateValue = PlayerManager::instance().getConversionRate().metal;
     DoubleSpinBoxItem* metalRate = addDoubleSpinBoxItem(tableWidget, "Métal", 1, column, metalRateValue, 1.0);
-    metalRate->setOnValueChanged([](double value) {
-        PlayerManager::instance().setConversionRate(ConversionRate::Metal, value);
+    metalRate->setOnValueChanged([this](double value) {
+        PlayerManager::instance().setConversionRateAt(RessourceType::Metal, value);
+        emit techChanged();
     });
 
-    double cristalRateValue = PlayerManager::instance().getConversionRate(ConversionRate::Cristal);
+    double cristalRateValue = PlayerManager::instance().getConversionRate().cristal;
     DoubleSpinBoxItem* cristalRate = addDoubleSpinBoxItem(tableWidget, "Cristal", 2, column, cristalRateValue, 1.0);
-    cristalRate->setOnValueChanged([](double value) {
-        PlayerManager::instance().setConversionRate(ConversionRate::Cristal, value);
+    cristalRate->setOnValueChanged([this](double value) {
+        PlayerManager::instance().setConversionRateAt(RessourceType::Cristal, value);
+        emit techChanged();
     });
 
-    double deutRateValue = PlayerManager::instance().getConversionRate(ConversionRate::Deut);
+    double deutRateValue = PlayerManager::instance().getConversionRate().deut;
     DoubleSpinBoxItem* deutRate = addDoubleSpinBoxItem(tableWidget, "Deut", 3, column, deutRateValue, 1.0);
-    deutRate->setOnValueChanged([](double value) {
-        PlayerManager::instance().setConversionRate(ConversionRate::Deut, value);
+    deutRate->setOnValueChanged([this](double value) {
+        PlayerManager::instance().setConversionRateAt(RessourceType::Deut, value);
+        emit techChanged();
     });
 
     int rate = PlayerManager::instance().getScrapRate();
     Item* scrapRate = addSpinBoxItem(tableWidget, "Taux ferraille (%)", 5, column, rate, 35, 100);
-    scrapRate->setOnValueChanged([](int value) {
+    scrapRate->setOnValueChanged([this](int value) {
         PlayerManager::instance().setScrapRate(value);
+        emit techChanged();
     });
 }
 
 void MainWindow::buildPlanetImputs(QTableWidget* tableWidget, int column)
 {
+    int currentRow = 0;
     Planet* planet = PlayerManager::instance().getPlanet(column);
-    addLabel(tableWidget, planet->getName(), 0, column);
 
-    addLabel(tableWidget, "Buildings : ", 1, column);
+    // Name
+    QLineEdit* lineEdit = new QLineEdit(planet->getName(), tableWidget);
+    connect(lineEdit, &QLineEdit::textChanged, this,
+            [planet](const QString &text) {
+                planet->setName(text);
+    });
+    tableWidget->setCellWidget(currentRow++, column, lineEdit);
 
-    int indexBuilding = 2;
-    int numberBuilding = TechManager::instance().getNumberTechs(TechType::CommonBuilding);
-    for (int i = 0; i < numberBuilding; ++i)
+    // Position
+    PositionItem* positionItem = addPositionItem(tableWidget, currentRow++, column, planet->getPosition());
+    positionItem->setOnValueChanged([this, planet](int g, int s, int p) {
+        planet->setPosition(PlanetPosition(g, s, p));
+        emit techChanged();
+    });
+
+    // Life form
+    currentRow++;
+    addLabel(tableWidget, "Forme de vie", currentRow++, column);
+    int speciesIndex = static_cast<int>(planet->getSpecies());
+    ComboBoxItem* speciesItem = addComboBoxItem(tableWidget, "Choix : ", speciesToString, currentRow++, column, speciesIndex);
+    speciesItem->setOnValueChanged([this, planet](int value) {
+        planet->setSpecies(static_cast<Species>(value));
+        emit techChanged();
+        emit planetsChanged();
+    });
+
+    currentRow++; //blank
+
+    // Buildings
+    std::vector<TechType> techTypes = planet->getAvailableBuildings();
+    for (TechType techType : techTypes)
     {
-        int level = PlayerManager::instance().getTechLevel(column, TechType::CommonBuilding, i);
-        const CommonTech& tech = TechManager::instance().getTech(TechType::CommonBuilding, i);
-        if (tech.isValid())
+        if (techType == TechType::None) { continue;}
+
+        addLabel(tableWidget, techTypeToString[static_cast<int>(techType)] + " : ", currentRow++, column);
+
+        int numberTechs = TechManager::instance().getNumberTechs(techType);
+        for (int i = 0; i < numberTechs; ++i)
         {
-            Item* buildingItem = addSpinBoxItem(tableWidget, tech.name, indexBuilding++, column, level);
-            buildingItem->setOnValueChanged([this, column, i](int value) {
-                PlayerManager::instance().setTechLevel(column, TechType::CommonBuilding, i, value);
-                emit techChanged();
-            });
+            int level = planet->getTechLevel(techType, i);
+            const CommonTech* tech = TechManager::instance().getTech(techType, i);
+            if (tech->isValid())
+            {
+                Item* buildingItem = addSpinBoxItem(tableWidget, tech->name, currentRow++, column, level);
+                buildingItem->setOnValueChanged([this, techType, planet, i](int value) {
+                    planet->setTechLevel(techType, i, value);
+                    emit techChanged();
+                });
+            }
+            else
+            {
+                qWarning() << "Tech not found : " << i;
+            }
         }
-        else
-        {
-            qWarning() << "Tech not found : " << i;
-        }
+        currentRow++; // blank
+    }
+
+    // Life form research
+    int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
+    for (int i = 0; i < numberLifeFormReseach; ++i)
+    {
+        Species speciesChoice = planet->getChoiceLifeFormResearch(i);
+        int levelInit = planet->getLevelLifeFormResearch(speciesChoice, i);
+        LifeFormSelectItem* item = addLifeFormSelectItem(tableWidget, currentRow++, column, speciesChoice, levelInit);
+        item->setOnIndexChanged([this, planet, i, item](int value) {
+            Species speciesSelected = static_cast<Species>(value);
+            planet->setChoiceLifeFormResearch(i, speciesSelected);
+            item->setEnabled(speciesSelected != Species::None);
+            item->setLevel(speciesSelected != Species::None ? planet->getLevelLifeFormResearch(speciesSelected, i) : 0);
+            emit techChanged();
+        });
+        item->setOnLevelChanged([this, planet, i](int level) {
+            Species speciesSelected = planet->getChoiceLifeFormResearch(i);
+            planet->setLevelLifeFormResearch(speciesSelected, i, level);
+            emit techChanged();
+        });
     }
 
     QString label = "Foreuses (max=" + QString::number(planet->getMaxActiveCrawler()) + ")";
-    Item* crawlerItem = addSpinBoxItem(tableWidget, label, indexBuilding++, column, 0, 0, 9999);
+    Item* crawlerItem = addSpinBoxItem(tableWidget, label, currentRow++, column, planet->getCrawlerNumber(), 0, 9999);
     crawlerItem->setOnValueChanged([this, planet](int value) {
         planet->setCrawlerNumber(value);
         emit techChanged();
     });
-}
-
-void MainWindow::buildNewPlanetImputs(QTableWidget* tableWidget, int column)
-{
-    addLabel(tableWidget, "Nouvelle planète : ", 0, column);
-
-    LineEditItem* planetNameItem = addLineEditItem(tableWidget, "Nom : ", 1, column, "Colonie");
-
-    Item* galaxy = addSpinBoxItem(tableWidget, "Galaxie : ", 2, column, 1, 1, 5);
-    Item* solarSytem = addSpinBoxItem(tableWidget, "System solaire : ", 3, column, 1, 1, 499);
-    Item* position = addSpinBoxItem(tableWidget, "Position : ", 4, column, 1, 1, 15);
-    Item* temperature = addSpinBoxItem(tableWidget, "Temprature max : ", 5, column, 0, -100, 100);
-
-    ComboBoxItem* species = addComboBoxItem(tableWidget, "Forme de vie", speciesToString, 6, column, 0);
-
-    QPushButton* addPlanet = new QPushButton("Ajouter planète", this);
-    connect(addPlanet, &QPushButton::clicked, this, [this, planetNameItem, galaxy, solarSytem, position, temperature, species]() {
-        qDebug() << "add planet";
-        QString name = planetNameItem->getValue();
-        int galaxyNumber = galaxy->value();
-        int solarSytemNumber = solarSytem->value();
-        int positionNumber = position->value();
-        int temperatureValue = temperature->value();
-        Species speciesIndex = static_cast<Species>(species->getCurrentIndex());
-        PlayerManager::instance().addPlanet(name, {galaxyNumber, solarSytemNumber, positionNumber}, temperatureValue, speciesIndex);
-        emit planetsChanged();
-    });
-    tableWidget->setCellWidget(7, column, addPlanet);
 }
 
 void MainWindow::onPlanetsChanged()
@@ -333,20 +392,30 @@ void MainWindow::onPlanetsChanged()
     _planetTable->clear();
 
     int numberPlanet = PlayerManager::instance().getNumberPlanets();
-    _planetTable->setColumnCount(numberPlanet + 1);
+    _planetTable->setColumnCount(numberPlanet);
 
     for (int i = 0; i < numberPlanet; ++i)
     {
         buildPlanetImputs(_planetTable, i);
     }
-    buildNewPlanetImputs(_planetTable, numberPlanet);
 
     for (int col = 0; col < _planetTable->columnCount(); ++col) {
-        _planetTable->setColumnWidth(col, 150); // largeur fixe en pixels
+        _planetTable->setColumnWidth(col, 160); // width in pixel
     }
 }
 
 void MainWindow::onTechChanged()
 {
+    int numberPlanet = PlayerManager::instance().getNumberPlanets();
+    for (int i = 0; i < numberPlanet; ++i)
+    {
+        Planet* planet = PlayerManager::instance().getPlanet(i);
+        planet->computeBonusPos();
+        planet->computeProduction();
+    }
+
+    PlayerManager::instance().computeProduction();
+
     buildResumeOutputs(_overviewTable);
+    buildRentaOutputs(_rentaTable);
 }

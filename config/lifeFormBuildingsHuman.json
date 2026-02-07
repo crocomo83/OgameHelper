@@ -1,0 +1,98 @@
+[
+	{
+		"name": "Residential Sector",
+		"metal": 7,
+		"cristal": 2,
+		"deut": 0,
+		"energie": 0,
+		"increaseFactor": 1.2
+	},
+	{
+		"name": "Biosphere Farm",
+		"metal": 5,
+		"cristal": 2,
+		"deut": 0,
+		"energie": 8,
+		"increaseFactor": 1.23
+	},
+	{
+		"name": "Research Centre",
+		"metal": 20000,
+		"cristal": 25000,
+		"deut": 10000,
+		"energie": 10,
+		"increaseFactor": 1.7
+	},
+	{
+		"name": "Academy of Sciences",
+		"metal": 5000,
+		"cristal": 3200,
+		"deut": 1500,
+		"energie": 15,
+		"increaseFactor": 1.7
+	},
+	{
+		"name": "Neuro-Calibration Centre",
+		"metal": 50000,
+		"cristal": 40000,
+		"deut": 50000,
+		"energie": 30,
+		"increaseFactor": 1.7
+	},
+	{
+		"name": "High Energy Smelting",
+		"metal": 9000,
+		"cristal": 6000,
+		"deut": 3000,
+		"energie": 40,
+		"increaseFactor": 1.5
+	},
+	{
+		"name": "Food Silo",
+		"metal": 25000,
+		"cristal": 13000,
+		"deut": 7000,
+		"energie": 0,
+		"increaseFactor": 1.09
+	},
+	{
+		"name": "Fusion-Powered Production",
+		"metal": 50000,
+		"cristal": 25000,
+		"deut": 15000,
+		"energie": 80,
+		"increaseFactor": 1.5
+	},
+	{
+		"name": "Skyscraper",
+		"metal": 75000,
+		"cristal": 20000,
+		"deut": 25000,
+		"energie": 0,
+		"increaseFactor": 2
+	},
+	{
+		"name": "Biotech Lab",
+		"metal": 150000,
+		"cristal": 30000,
+		"deut": 15000,
+		"energie": 60,
+		"increaseFactor": 1.12
+	},
+	{
+		"name": "Metropolis",
+		"metal": 80000,
+		"cristal": 35000,
+		"deut": 60000,
+		"energie": 90,
+		"increaseFactor": 1.5
+	},
+	{
+		"name": "Planetary Shield",
+		"metal": 250000,
+		"cristal": 125000,
+		"deut": 125000,
+		"energie": 100,
+		"increaseFactor": 1.2
+	}
+]

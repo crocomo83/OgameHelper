@@ -1,0 +1,98 @@
+[
+	{
+		"name": "Assembly Line",
+		"metal": 6,
+		"cristal": 2,
+		"deut": 0,
+		"energie": 0,
+		"increaseFactor": 1.21
+	},
+	{
+		"name": "Fusion Cell Factory",
+		"metal": 5,
+		"cristal": 2,
+		"deut": 0,
+		"energie": 8,
+		"increaseFactor": 1.18
+	},
+	{
+		"name": "Robotics Research Centre",
+		"metal": 30000,
+		"cristal": 20000,
+		"deut": 10000,
+		"energie": 13,
+		"increaseFactor": 1.3
+	},
+	{
+		"name": "Update Network",
+		"metal": 5000,
+		"cristal": 3800,
+		"deut": 1000,
+		"energie": 10,
+		"increaseFactor": 1.8
+	},
+	{
+		"name": "Quantum Computer Centre",
+		"metal": 50000,
+		"cristal": 40000,
+		"deut": 50000,
+		"energie": 40,
+		"increaseFactor": 1.8
+	},
+	{
+		"name": "Automatised Assembly Centre",
+		"metal": 7500,
+		"cristal": 7000,
+		"deut": 1000,
+		"energie": 0,
+		"increaseFactor": 1.3
+	},
+	{
+		"name": "High-Performance Transformer",
+		"metal": 35000,
+		"cristal": 15000,
+		"deut": 10000,
+		"energie": 40,
+		"increaseFactor": 1.5
+	},
+	{
+		"name": "Microchip Assembly Line",
+		"metal": 50000,
+		"cristal": 20000,
+		"deut": 30000,
+		"energie": 40,
+		"increaseFactor": 1.07
+	},
+	{
+		"name": "Production Assembly Hall",
+		"metal": 100000,
+		"cristal": 10000,
+		"deut": 3000,
+		"energie": 80,
+		"increaseFactor": 1.14
+	},
+	{
+		"name": "High-Performance Synthesiser",
+		"metal": 100000,
+		"cristal": 40000,
+		"deut": 20000,
+		"energie": 60,
+		"increaseFactor": 1.5
+	},
+	{
+		"name": "Chip Mass Production",
+		"metal": 55000,
+		"cristal": 50000,
+		"deut": 30000,
+		"energie": 70,
+		"increaseFactor": 1.5
+	},
+	{
+		"name": "Nano Repair Bots",
+		"metal": 250000,
+		"cristal": 125000,
+		"deut": 125000,
+		"energie": 100,
+		"increaseFactor": 1.4
+	}
+]

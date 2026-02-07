@@ -32,17 +32,21 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         techManager.h techManager.cpp
         commons.h
         resources.qrc
-        checkBoxItem.ui
+
         checkboxitem.h checkboxitem.cpp
-        comboBoxItem.ui
+
         comboboxitem.h comboboxitem.cpp
-        doubleSpinBoxItem.ui
+
         doubleSpinBoxItem.h doubleSpinBoxItem.cpp
 
         playermanager.h playermanager.cpp
         planet.h planet.cpp
         lineEditItem.h lineEditItem.cpp
         item.h item.cpp
+        rentabilityManager.h rentabilityManager.h
+        rentabilityManager.cpp
+        positionitem.h positionitem.cpp
+        lifeFormSelectItem.h lifeFormSelectItem.cpp
 
 
 

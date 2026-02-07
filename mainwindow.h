@@ -1,10 +1,13 @@
 #pragma once
 
+#include "commons.h"
 #include "item.h"
 #include "doubleSpinBoxItem.h"
 #include "checkboxitem.h"
 #include "comboboxitem.h"
 #include "lineEditItem.h"
+#include "positionitem.h"
+#include "lifeFormSelectItem.h"
 
 #include <QMainWindow>
 #include <QVBoxLayout>
@@ -33,16 +36,16 @@ public:
     DoubleSpinBoxItem* addDoubleSpinBoxItem(QTableWidget* tableWidget, QString str, int row, int column, double defaultValue = 0.0, double minValue = 0.0, double maxValue = 99.9);
     CheckBoxItem* addCheckBoxItem(QTableWidget* tableWidget, QString str, int row, int column, bool defaultValue = false);
     ComboBoxItem* addComboBoxItem(QTableWidget* tableWidget, QString str, QStringList names, int row, int column, int defaultValue);
-    LineEditItem* addLineEditItem(QTableWidget* tableWidget, QString str, int row, int column, QString defaultValue);
+    PositionItem* addPositionItem(QTableWidget* tableWidget, int row, int column, const PlanetPosition &planetPosition);
+    LifeFormSelectItem* addLifeFormSelectItem(QTableWidget* tableWidget, int row, int column, Species species, int level);
 
     void buildResumeOutputs(QTableWidget* tableWidget);
-
+    void buildRentaOutputs(QTableWidget* tableWidget);
     void buildGeneralImputs(QTableWidget* tableWidget, int column);
     void buildResearchImputs(QTableWidget* tableWidget, int column);
     void buildSpecialisationImputs(QTableWidget* tableWidget, int column);
     void buildTradeImputs(QTableWidget* tableWidget, int column);
     void buildPlanetImputs(QTableWidget* tableWidget, int column);
-    void buildNewPlanetImputs(QTableWidget* tableWidget, int column);
 
 private slots:
     void onPlanetsChanged();
@@ -56,6 +59,7 @@ private:
     Ui::MainWindow *ui;
     QVector<Item*> _items;
     QTableWidget* _generalTable;
+    QTableWidget* _rentaTable;
     QTableWidget* _planetTable;
     QTableWidget* _overviewTable;
 };

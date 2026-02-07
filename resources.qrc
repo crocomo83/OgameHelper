@@ -2,6 +2,14 @@
     <qresource prefix="/">
         <file>config/buildings.json</file>
         <file>config/researches.json</file>
-        <file>config/save.json</file>
+		<file>config/units.json</file>
+		<file>config/lifeFormBuildingsHuman.json</file>
+		<file>config/lifeFormBuildingsMech.json</file>
+		<file>config/lifeFormBuildingsKaelesh.json</file>
+		<file>config/lifeFormBuildingsRoctas.json</file>
+		<file>config/lifeFormResearchesHuman.json</file>
+		<file>config/lifeFormResearchesMech.json</file>
+		<file>config/lifeFormResearchesKaelesh.json</file>
+		<file>config/lifeFormResearchesRoctas.json</file>
     </qresource>
 </RCC>

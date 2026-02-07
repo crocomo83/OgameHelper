@@ -1,11 +1,8 @@
 #pragma once
 
+#include <QLabel>
 #include <QWidget>
 #include <QComboBox>
-
-namespace Ui {
-class ComboBoxItem;
-}
 
 class ComboBoxItem : public QWidget
 {
@@ -13,7 +10,6 @@ class ComboBoxItem : public QWidget
 
 public:
     explicit ComboBoxItem(QString str, QStringList names, QWidget *parent = nullptr);
-    ~ComboBoxItem();
 
     void setOnValueChanged(std::function<void(int)> callback);
     int getCurrentIndex() const;
@@ -23,7 +19,7 @@ private slots:
     void onComboBoxChanged(int index);
 
 private:
-    Ui::ComboBoxItem *ui;
+    QLabel* _label;
     QComboBox* _comboBox;
     std::function<void(int)> m_onValueChanged;
 };

@@ -1,41 +1,46 @@
 #include "doubleSpinBoxItem.h"
-#include "ui_doubleSpinBoxItem.h"
+
+#include <QHBoxLayout>
 
 DoubleSpinBoxItem::DoubleSpinBoxItem(QString name, QWidget *parent)
     : QWidget(parent)
 {
-    ui = new Ui::DoubleSpinBoxItem;
-    ui->setupUi(this);
-    ui->label->setText(name);
-    this->updateGeometry();
+    _label = new QLabel(name, this);
+    _doubleSpinBox = new QDoubleSpinBox(this);
 
-    _doubleSpinBox = ui->doubleSpinBox;
-    _doubleSpinBox->setValue(0.0);
+    _label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    _doubleSpinBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+
+    auto* layout = new QHBoxLayout(this);
+    layout->addWidget(_label);
+    layout->addWidget(_doubleSpinBox);
+
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+
+    setLayout(layout);
+
+    _doubleSpinBox->setValue(0);
 
     connect(_doubleSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &DoubleSpinBoxItem::onSpinValueChanged);
 }
 
-DoubleSpinBoxItem::~DoubleSpinBoxItem()
-{
-    delete ui;
-}
-
 double DoubleSpinBoxItem::value() const
 {
-    return ui->doubleSpinBox->value();
+    return _doubleSpinBox->value();
 }
 
 void DoubleSpinBoxItem::setValue(double value)
 {
-    ui->doubleSpinBox->setValue(value);
+    _doubleSpinBox->setValue(value);
     this->updateGeometry();
 }
 
 void DoubleSpinBoxItem::setMinValue(double min)
 {
-    ui->doubleSpinBox->setMinimum(min);
+    _doubleSpinBox->setMinimum(min);
 
-    double value = ui->doubleSpinBox->value();
+    double value = _doubleSpinBox->value();
     if (value < min)
     {
         setValue(min);
@@ -44,9 +49,9 @@ void DoubleSpinBoxItem::setMinValue(double min)
 
 void DoubleSpinBoxItem::setMaxValue(double max)
 {
-    ui->doubleSpinBox->setMaximum(max);
+    _doubleSpinBox->setMaximum(max);
 
-    double value = ui->doubleSpinBox->value();
+    double value = _doubleSpinBox->value();
     if (value > max)
     {
         setValue(max);

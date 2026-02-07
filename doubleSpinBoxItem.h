@@ -1,11 +1,8 @@
 #pragma once
 
+#include <QLabel>
 #include <QWidget>
 #include <QDoubleSpinBox>
-
-namespace Ui {
-class DoubleSpinBoxItem;
-}
 
 class DoubleSpinBoxItem : public QWidget
 {
@@ -13,7 +10,6 @@ class DoubleSpinBoxItem : public QWidget
 
 public:
     explicit DoubleSpinBoxItem(QString name, QWidget *parent = nullptr);
-    ~DoubleSpinBoxItem();
 
     double value() const;
     void setValue(double v);
@@ -26,7 +22,7 @@ private slots:
     void onSpinValueChanged(double value);
 
 private:
-    Ui::DoubleSpinBoxItem *ui;
+    QLabel* _label;
     QDoubleSpinBox* _doubleSpinBox;
     std::function<void(double)> m_onValueChanged;
 };

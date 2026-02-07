@@ -1,11 +1,8 @@
 #pragma once
 
+#include <QLabel>
 #include <QWidget>
 #include <QCheckBox>
-
-namespace Ui {
-class CheckBoxItem;
-}
 
 class CheckBoxItem : public QWidget
 {
@@ -13,7 +10,6 @@ class CheckBoxItem : public QWidget
 
 public:
     explicit CheckBoxItem(QString name, QWidget *parent = nullptr);
-    ~CheckBoxItem();
 
     bool value() const;
     void setValue(bool b);
@@ -24,7 +20,7 @@ private slots:
     void onCheckBoxChanged(bool value);
 
 private:
-    Ui::CheckBoxItem *ui;
+    QLabel* _label;
     QCheckBox* _checkBox;
     std::function<void(bool)> m_onValueChanged;
 };
