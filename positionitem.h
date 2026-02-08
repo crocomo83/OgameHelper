@@ -15,6 +15,7 @@ public:
 
     void setValue(int g, int s, int p);
     void setOnValueChanged(std::function<void(int, int, int)> callback);
+    virtual bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
     void onValueChanged(int value);

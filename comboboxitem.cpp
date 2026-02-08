@@ -1,6 +1,7 @@
 #include "comboboxitem.h"
 
 #include <QHBoxLayout>
+#include <QEvent>
 
 ComboBoxItem::ComboBoxItem(QString str, QStringList names, QWidget *parent)
     : QWidget(parent)
@@ -22,6 +23,7 @@ ComboBoxItem::ComboBoxItem(QString str, QStringList names, QWidget *parent)
     setLayout(layout);
 
     _comboBox->setCurrentIndex(0);
+    _comboBox->installEventFilter(this);
 
     connect(_comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ComboBoxItem::onComboBoxChanged);
 }
@@ -46,4 +48,18 @@ void ComboBoxItem::onComboBoxChanged(int index)
 void ComboBoxItem::setOnValueChanged(std::function<void(int)> callback)
 {
     m_onValueChanged = std::move(callback);
+}
+
+bool ComboBoxItem::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::Wheel)
+    {
+        auto *w = qobject_cast<QWidget*>(obj);
+        if (w)
+        {
+            event->ignore();
+            return true;
+        }
+    }
+    return QWidget::eventFilter(obj, event);
 }

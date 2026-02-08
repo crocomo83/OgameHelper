@@ -21,6 +21,8 @@ CheckBoxItem::CheckBoxItem(QString name, QWidget *parent)
 
     setLayout(layout);
 
+    _checkBox->installEventFilter(this);
+
     connect(_checkBox, QOverload<bool>::of(&QCheckBox::toggled), this, &CheckBoxItem::onCheckBoxChanged);
 }
 

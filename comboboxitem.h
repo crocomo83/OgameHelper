@@ -14,6 +14,7 @@ public:
     void setOnValueChanged(std::function<void(int)> callback);
     int getCurrentIndex() const;
     void setValue(int index);
+    virtual bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
     void onComboBoxChanged(int index);

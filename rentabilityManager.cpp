@@ -16,7 +16,7 @@ int RentabilityManager::refresh()
     int nbPlanet = PlayerManager::instance().getNumberPlanets();
     for (int i = 0; i < nbPlanet; ++i)
     {
-        Planet* planet = PlayerManager::instance().getPlanet(i);
+        const Planet* planet = PlayerManager::instance().getPlanet(i);
         addMinesRentability(planet, i);
     }
 
@@ -43,6 +43,12 @@ QString RentabilityManager::levelUpToString(LevelUpType levelUp)
             return QStringLiteral("Mine de cristal");
         case LevelUpType::DeutMine:
             return QStringLiteral("Mine de deut");
+        case LevelUpType::BatBonusMetal:
+            return QStringLiteral("Bâtiment bonus métal");
+        case LevelUpType::BatBonusCristal:
+            return QStringLiteral("Bâtiment bonus cristal");
+        case LevelUpType::BatBonusDeut:
+            return QStringLiteral("Bâtiment bonus deut");
         case LevelUpType::Crawlers:
             return QStringLiteral("Foreuses");
         case LevelUpType::Plasma:
@@ -52,7 +58,7 @@ QString RentabilityManager::levelUpToString(LevelUpType levelUp)
     return QStringLiteral("Inconnu");
 }
 
-void RentabilityManager::addMinesRentability(Planet* planet, int indexPlanet)
+void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlanet)
 {
     int temperatureMax = planet->getTemperatureMax();
     Ressources bonus = planet->getBonusMine();
@@ -65,18 +71,31 @@ void RentabilityManager::addMinesRentability(Planet* planet, int indexPlanet)
     int levelCristal = planet->getTechLevel(TechType::CommonBuilding, indexCristal) + 1;
     int levelDeut = planet->getTechLevel(TechType::CommonBuilding, indexDeut) + 1;
 
-    int rentaMetal = TechManager::instance().getProductionMine(CommonBuildingType::MineMetal, levelMetal, bonus.metal)
-                     - TechManager::instance().getProductionMine(CommonBuildingType::MineMetal, levelMetal - 1, bonus.metal);
-    int rentaCristal = TechManager::instance().getProductionMine(CommonBuildingType::MineCristal, levelCristal, bonus.cristal)
-                       - TechManager::instance().getProductionMine(CommonBuildingType::MineCristal, levelCristal - 1, bonus.cristal);
-    int rentaDeut = TechManager::instance().getProductionMine(CommonBuildingType::MineDeut, levelDeut, bonus.deut, temperatureMax)
-                    - TechManager::instance().getProductionMine(CommonBuildingType::MineDeut, levelDeut - 1, bonus.deut, temperatureMax);
+    Ressources prodMinesLevelUp;
+
+    prodMinesLevelUp.metal = TechManager::instance().getProductionMine(CommonBuildingType::MineMetal, levelMetal, bonus.metal)
+        - TechManager::instance().getProductionMine(CommonBuildingType::MineMetal, levelMetal - 1, bonus.metal);
+    prodMinesLevelUp.cristal = TechManager::instance().getProductionMine(CommonBuildingType::MineCristal, levelCristal, bonus.cristal)
+        - TechManager::instance().getProductionMine(CommonBuildingType::MineCristal, levelCristal - 1, bonus.cristal);
+    prodMinesLevelUp.deut = TechManager::instance().getProductionMine(CommonBuildingType::MineDeut, levelDeut, bonus.deut, temperatureMax)
+        - TechManager::instance().getProductionMine(CommonBuildingType::MineDeut, levelDeut - 1, bonus.deut, temperatureMax);
+
+    Ressources bonusPercent;
+    bonusPercent += planet->getProductionStat(Planet::ProductionStatPlanet::BuildingLifeFormPercent);
+    bonusPercent += planet->getProductionStat(Planet::ProductionStatPlanet::CrawlersPercent);
+    bonusPercent += PlayerManager::instance().getProduction(PlayerManager::ProductionStat::PlasmaPercent);
+    bonusPercent += PlayerManager::instance().getProduction(PlayerManager::ProductionStat::LifeFormBonusPercent);
+    bonusPercent += PlayerManager::instance().getProduction(PlayerManager::ProductionStat::GeologPercent);
+    bonusPercent += PlayerManager::instance().getProduction(PlayerManager::ProductionStat::ClassBonusPercent);
+    bonusPercent += PlayerManager::instance().getProduction(PlayerManager::ProductionStat::AllianceBonusPercent);
+
+    prodMinesLevelUp += prodMinesLevelUp * bonusPercent * 0.01f;
 
     LevelUp levelUpMetal;
     levelUpMetal.type = LevelUpType::MetalMine;
     levelUpMetal.indexPlanet = indexPlanet;
     levelUpMetal.levelToUpdate = levelMetal;
-    levelUpMetal.rentaPerHour = Ressources(rentaMetal, 0, 0);
+    levelUpMetal.rentaPerHour = Ressources(prodMinesLevelUp.metal, 0, 0);
     levelUpMetal.cost = TechManager::instance().getCost(TechType::CommonBuilding, indexMetal, levelMetal);
     levelUpMetal.computeRenta(PlayerManager::instance().getConversionRate());
     levelUpMetal.timeToRecoverStr = rentaToString(levelUpMetal.timeToRecover);
@@ -86,7 +105,7 @@ void RentabilityManager::addMinesRentability(Planet* planet, int indexPlanet)
     levelUpCristal.type = LevelUpType::CristalMine;
     levelUpCristal.indexPlanet = indexPlanet;
     levelUpCristal.levelToUpdate = levelCristal;
-    levelUpCristal.rentaPerHour = Ressources(0, rentaCristal, 0);
+    levelUpCristal.rentaPerHour = Ressources(0, prodMinesLevelUp.cristal, 0);
     levelUpCristal.cost = TechManager::instance().getCost(TechType::CommonBuilding, indexCristal, levelCristal);
     levelUpCristal.computeRenta(PlayerManager::instance().getConversionRate());
     levelUpCristal.timeToRecoverStr = rentaToString(levelUpCristal.timeToRecover);
@@ -96,11 +115,21 @@ void RentabilityManager::addMinesRentability(Planet* planet, int indexPlanet)
     levelUpDeut.type = LevelUpType::DeutMine;
     levelUpDeut.indexPlanet = indexPlanet;
     levelUpDeut.levelToUpdate = levelDeut;
-    levelUpDeut.rentaPerHour = Ressources(0, 0, rentaDeut);
+    levelUpDeut.rentaPerHour = Ressources(0, 0, prodMinesLevelUp.deut);
     levelUpDeut.cost = TechManager::instance().getCost(TechType::CommonBuilding, indexDeut, levelDeut);
     levelUpDeut.computeRenta(PlayerManager::instance().getConversionRate());
     levelUpDeut.timeToRecoverStr = rentaToString(levelUpDeut.timeToRecover);
     rentaLevelUp.push_back(levelUpDeut);
+}
+
+void RentabilityManager::addLifeFormBuilding(const Planet *planet, int indexPlanet)
+{
+    Ressources prodMines = planet->getProductionStat(Planet::ProductionStatPlanet::Mines);
+
+    Species species = planet->getSpecies();
+    TechType buildingTech = TechManager::instance().getBuildingTech(species);
+
+    Ressources bonusBuilding = planet->getProductionStat(Planet::ProductionStatPlanet::BuildingLifeFormPercent);
 }
 
 QString RentabilityManager::rentaToString(float timeToRecover) const
@@ -113,11 +142,11 @@ QString RentabilityManager::rentaToString(float timeToRecover) const
     {
         return QString::number(timeToRecover / 24.0f) + "j";
     }
-    else if (timeToRecover < 24.0f * 7.0f * 30.0f)
+    else if (timeToRecover < 24.0f * 30.0f)
     {
         return QString::number(timeToRecover / 24.0f / 7.0f) + "s";
     }
-    else if (timeToRecover < 24.0f * 7.0f * 30.0f * 12.0f)
+    else if (timeToRecover < 24.0f * 30.0f * 12.0f)
     {
         return QString::number(timeToRecover / 24.0f / 30.0f) + "m";
     }

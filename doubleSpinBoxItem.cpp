@@ -1,6 +1,7 @@
 #include "doubleSpinBoxItem.h"
 
 #include <QHBoxLayout>
+#include <QEvent>
 
 DoubleSpinBoxItem::DoubleSpinBoxItem(QString name, QWidget *parent)
     : QWidget(parent)
@@ -21,6 +22,7 @@ DoubleSpinBoxItem::DoubleSpinBoxItem(QString name, QWidget *parent)
     setLayout(layout);
 
     _doubleSpinBox->setValue(0);
+    _doubleSpinBox->installEventFilter(this);
 
     connect(_doubleSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &DoubleSpinBoxItem::onSpinValueChanged);
 }
@@ -68,4 +70,18 @@ void DoubleSpinBoxItem::onSpinValueChanged(double value)
 void DoubleSpinBoxItem::setOnValueChanged(std::function<void(double)> callback)
 {
     m_onValueChanged = std::move(callback);
+}
+
+bool DoubleSpinBoxItem::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::Wheel)
+    {
+        auto *w = qobject_cast<QWidget*>(obj);
+        if (w)
+        {
+            event->ignore();
+            return true;
+        }
+    }
+    return QWidget::eventFilter(obj, event);
 }

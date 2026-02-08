@@ -17,7 +17,15 @@ public:
     const CommonTech* getTech(TechType techType, int type) const;
     int getProductionMine(CommonBuildingType mineType, int level, float bonus, int temperatureMax = 0) const;
     Ressources getCost(TechType techType, int indexTech, int level);
+    bool isLifeFormBuilding(TechType techType) const;
     bool isLifeFormResearch(TechType techType) const;
+    Species getAssociatedSpecies(TechType techType) const;
+    TechType getBuildingTech(Species species) const;
+    TechType getResearchTech(Species species) const;
+    Ressources getBonusLvlUpLifeFormBuilding() const;
+
+
+    std::map<BonusLifeFormBuilding, double> extractBonusesBuilding(const QJsonObject& obj) const;
     std::map<BonusLifeForm, double> extractBonuses(const QJsonObject& obj) const;
 
 private:

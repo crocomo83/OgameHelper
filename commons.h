@@ -116,6 +116,39 @@ struct Ressources {
 };
 inline static const QStringList ressourceToString = {"Métal", "Cristal", "Deut"};
 
+enum class Species
+{
+    None,
+    Humans,
+    Mechs,
+    Kaeleshs,
+    Roctas,
+    Count
+};
+inline static const QStringList speciesToString = {"Aucune", "Humains", "Mecas", "Kaeleshs", "Roctas"};
+
+enum class BonusLifeFormBuilding{
+    Metal,
+    Cristal,
+    Deut,
+    Energy,
+    ReducMineCostPercent,
+    ReducLifeFormBuildingCostPercent,
+    ReducLifeFormBuildingDurationPercent,
+    Count
+};
+
+inline static const std::map<BonusLifeFormBuilding, QString> bonusLifeFormBuildingStr =
+{
+    {BonusLifeFormBuilding::Metal, "metalBonus"},
+    {BonusLifeFormBuilding::Cristal, "cristalBonus"},
+    {BonusLifeFormBuilding::Deut, "deutBonus"},
+    {BonusLifeFormBuilding::Energy, "energy"},
+    {BonusLifeFormBuilding::ReducMineCostPercent, "reducMineCostPercent"},
+    {BonusLifeFormBuilding::ReducLifeFormBuildingCostPercent, "reducLifeFormBuildingCostPercent"},
+    {BonusLifeFormBuilding::ReducLifeFormBuildingDurationPercent, "reducLifeFormBuildingDurationPercent"}
+};
+
 struct CommonTech{
     QString name = "";
     Ressources baseCost;
@@ -233,7 +266,13 @@ inline static const std::map<BonusLifeForm, QString> bonusLifeFormStr =
     {BonusLifeForm::GeneralClass,"generalClass"}
 };
 
+struct LifeFormBuilding : public CommonTech{
+    Species species;
+    std::map<BonusLifeFormBuilding, double> bonuses;
+};
+
 struct LifeFormTech : public CommonTech{
+    Species species;
     std::map<BonusLifeForm, double> bonuses;
 };
 
@@ -244,17 +283,6 @@ enum class UniverseSpecifics
     Count
 };
 inline static const QStringList universeSpecificsToString = {"Vitesse économique", "Boost recherches"};
-
-enum class Species
-{
-    None,
-    Humans,
-    Mechs,
-    Kaeleshs,
-    Roctas,
-    Count
-};
-inline static const QStringList speciesToString = {"Aucune", "Humains", "Mecas", "Kaeleshs", "Roctas"};
 
 enum class TechType
 {
@@ -280,6 +308,15 @@ inline static const std::map<Species, TechType> speciesToTechLifeForm =
         {Species::Mechs,    TechType::MechResearch},
         {Species::Kaeleshs, TechType::KaeleshResearch},
         {Species::Roctas,   TechType::RoctasResearch}
+};
+
+inline static const std::map<Species, TechType> speciesToBuildingLifeForm =
+    {
+        {Species::None,     TechType::None},
+        {Species::Humans,   TechType::HumanBuilding},
+        {Species::Mechs,    TechType::MechBuilding},
+        {Species::Kaeleshs, TechType::KaeleshBuilding},
+        {Species::Roctas,   TechType::RoctasBuilding}
 };
 
 enum class CommonBuildingType

@@ -22,10 +22,15 @@ public:
         BuildingLifeFormTotal,
         CrawlersTotal,
         Plasma,
+        PlasmaPercent,
         LifeFormBonus,
+        LifeFormBonusPercent,
         Geolog,
+        GeologPercent,
         ClassBonus,
+        ClassBonusPercent,
         AllianceBonus,
+        AllianceBonusPercent,
         Count
     };
 
@@ -35,10 +40,15 @@ public:
         "Building life form",
         "Crawlers",
         "Plasma",
+        "Plasma percent",
         "Research life form",
+        "Research life form percent",
         "Geolog",
+        "Geolog percent",
         "Class bonus",
-        "Alliance bonus"
+        "Class bonus percent",
+        "Alliance bonus",
+        "Alliance bonus percent"
     };
 
     int             getNumberPlanets() const;
@@ -61,6 +71,7 @@ public:
     int             getResearchLevel(ResearchType researchType) const;
     int             getSpecies(Species species) const;
 
+    void            computeLifeFormResearch();
     void            computeProduction();
     const Ressources&   getProduction(ProductionStat stat) const;
     const QString& getProductionStr(ProductionStat stat) const;

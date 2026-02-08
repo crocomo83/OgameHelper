@@ -17,6 +17,7 @@ public:
     void setMaxValue(double max);
 
     void setOnValueChanged(std::function<void(double)> callback);
+    virtual bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
     void onSpinValueChanged(double value);

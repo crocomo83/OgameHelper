@@ -25,6 +25,7 @@ PlayerManager::PlayerManager()
         loadInitSave();
     }
 
+    computeLifeFormResearch();
     computeProduction();
 }
 
@@ -101,6 +102,7 @@ Ressources PlayerManager::getLifeFormProdBonus() const
     float deutBonus     = _lifeFormBonuses.at(BonusLifeForm::Deuterium);
     return Ressources(metalBonus, cristalBonus, deutBonus);
 }
+
 Ressources PlayerManager::getGeologBonus() const
 {
     if (_officers.at(Officers::Concil))
@@ -139,7 +141,7 @@ Ressources PlayerManager::getAllianceClassBonus() const
     }
 }
 
-void PlayerManager::computeProduction()
+void PlayerManager::computeLifeFormResearch()
 {
     _lifeFormBonuses.clear();
     for (int i = 0; i < static_cast<int>(BonusLifeForm::Count); i++)
@@ -148,17 +150,12 @@ void PlayerManager::computeProduction()
     }
 
     int numberPlanet = getNumberPlanets();
-    Ressources base, prodMines, prodCrawler, prodBuildingLifeForm;
     for (int i = 0; i < numberPlanet; ++i)
     {
-        Planet* planet = getPlanet(i);
+        const Planet* planet = getPlanet(i);
 
-        base += planet->getProductionStat(Planet::ProductionStatPlanet::Base);
-        prodMines += planet->getProductionStat(Planet::ProductionStatPlanet::Mines);
-        prodBuildingLifeForm += planet->getLifeFormBuildingProduction();
-        prodCrawler += planet->getCrawlerProduction();
-
-        for (int j = 0; j < 18; j++)
+        int lifeFormBuildingNumber = TechManager::instance().getNumberTechs(TechType::HumanResearch);
+        for (int j = 0; j < lifeFormBuildingNumber; j++)
         {
             Species choice = planet->getChoiceLifeFormResearch(j);
             if (choice != Species::None)
@@ -169,16 +166,37 @@ void PlayerManager::computeProduction()
                 const LifeFormTech* lifeFormTech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(lifeFormReasearch, j));
                 for (auto itr = lifeFormTech->bonuses.begin(); itr != lifeFormTech->bonuses.end(); ++itr)
                 {
-                    _lifeFormBonuses[itr->first] += level * itr->second;
+                    float bonusLevelSpecies = 1.0f + (float)_levelSpecies[lifeFormTech->species] * 0.001f;
+                    _lifeFormBonuses[itr->first] += level * itr->second * bonusLevelSpecies;
                 }
             }
         }
+    }
+}
+
+void PlayerManager::computeProduction()
+{
+    int numberPlanet = getNumberPlanets();
+    Ressources base, prodMines, prodCrawler, prodBuildingLifeForm;
+    for (int i = 0; i < numberPlanet; ++i)
+    {
+        const Planet* planet = getPlanet(i);
+
+        base += planet->getProductionStat(Planet::ProductionStatPlanet::Base);
+        prodMines += planet->getProductionStat(Planet::ProductionStatPlanet::Mines);
+        prodBuildingLifeForm += planet->getLifeFormBuildingProduction();
+        prodCrawler += planet->getCrawlerProduction();
     }
 
     _productionStats[Base]                  = base;
     _productionStats[Mines]                 = prodMines;
     _productionStats[BuildingLifeFormTotal] = prodBuildingLifeForm;
     _productionStats[CrawlersTotal]         = prodCrawler;
+    _productionStats[PlasmaPercent]         = getPlasmaBonus();
+    _productionStats[LifeFormBonusPercent]  = getLifeFormProdBonus();
+    _productionStats[GeologPercent]         = getGeologBonus();
+    _productionStats[ClassBonusPercent]     = getClassBonus();
+    _productionStats[AllianceBonusPercent]  = getAllianceClassBonus();
     _productionStats[Plasma]                = prodMines * getPlasmaBonus() * 0.01f;
     _productionStats[LifeFormBonus]         = prodMines * getLifeFormProdBonus() * 0.01f;
     _productionStats[Geolog]                = prodMines * getGeologBonus() * 0.01f;
@@ -455,6 +473,7 @@ void PlayerManager:: readPlanetData(const QJsonObject& parent)
 
         PlanetPosition planetPosition(filePosition[0], filePosition[1], filePosition[2]);
         Planet* planet = new Planet(name, planetPosition, 0, static_cast<Species>(species));
+
         for (int i = 1; i < static_cast<int>(TechType::Count); ++i)
         {
             TechType techType = static_cast<TechType>(i);
@@ -476,7 +495,6 @@ void PlayerManager:: readPlanetData(const QJsonObject& parent)
         }
 
         planet->setCrawlerNumber(planetObj["crawlers"].toInt(0));
-
         _planets.push_back(planet);
     }
 }

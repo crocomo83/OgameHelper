@@ -23,6 +23,7 @@ Planet::Planet(const QString& name, const PlanetPosition& position, int temperat
     int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
     _choicesLifeFormResearch.assign(numberLifeFormReseach, Species::None);
 
+    computeLifeFormBuildingBonus();
     computeBonusPos();
     computeProduction();
 }
@@ -53,6 +54,7 @@ Planet::Planet(const Planet* planet)
         _choicesLifeFormResearch.push_back(planet->getChoiceLifeFormResearch(i));
     }
 
+    computeLifeFormBuildingBonus();
     computeBonusPos();
     computeProduction();
 }
@@ -87,6 +89,33 @@ void Planet::computeBonusPos()
     }
 }
 
+void Planet::computeLifeFormBuildingBonus()
+{
+    _lifeFormBuildingBonuses.clear();
+    for (int i = 0; i < static_cast<int>(BonusLifeFormBuilding::Count); i++)
+    {
+        _lifeFormBuildingBonuses[static_cast<BonusLifeFormBuilding>(i)];
+    }
+
+    TechType typeBuilding = TechManager::instance().getBuildingTech(_species);
+    int lifeFormBuildingNumber = TechManager::instance().getNumberTechs(typeBuilding);
+
+    for (int j = 0; j < lifeFormBuildingNumber; j++)
+    {
+        if (_species != Species::None)
+        {
+            TechType lifeFormBuilding = speciesToBuildingLifeForm.at(_species);
+            int level = getTechLevel(lifeFormBuilding, j);
+
+            const LifeFormBuilding* lifeFormTech = dynamic_cast<const LifeFormBuilding*>(TechManager::instance().getTech(lifeFormBuilding, j));
+            for (auto itr = lifeFormTech->bonuses.begin(); itr != lifeFormTech->bonuses.end(); ++itr)
+            {
+                _lifeFormBuildingBonuses[itr->first] += level * itr->second;
+            }
+        }
+    }
+}
+
 void Planet::computeProduction()
 {
     _productionStats.clear();
@@ -112,7 +141,7 @@ void Planet::computeProduction()
     _productionStats[ProductionStatPlanet::CrawlersPercent] = Ressources(crawlerBonus, crawlerBonus, crawlerBonus);
 
     // Buildings life form
-    _productionStats[ProductionStatPlanet::BuildingLifeFormPercent] = getLifeFormBuildingBonusPercent();
+    _productionStats[ProductionStatPlanet::BuildingLifeFormPercent] = getLifeFormProdBonus();
 }
 
 const QString& Planet::getName() const
@@ -138,6 +167,14 @@ int Planet::getNumberTech(TechType type) const
 int Planet::getTechLevel(TechType type, int index) const
 {
     return _techs.at(type).at(index);
+}
+
+Ressources Planet::getLifeFormProdBonus() const
+{
+    float metalBonus    = _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::Metal);
+    float cristalBonus  = _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::Cristal);
+    float deutBonus     = _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::Deut);
+    return Ressources(metalBonus, cristalBonus, deutBonus);
 }
 
 Ressources Planet::getBonusMine() const
@@ -185,29 +222,6 @@ float Planet::getCrawlerBonus() const
     int maxCrawler = getMaxActiveCrawler();
     int activeCrawlers = std::min(maxCrawler, _crawlerNumber);
     return std::min(50.0f, 0.02f * activeCrawlers);
-}
-
-Ressources Planet::getLifeFormBuildingBonusPercent() const
-{
-    TechType lifeFormBuilding = getLifeFormBuilding();
-    switch(lifeFormBuilding)
-    {
-        case TechType::HumanBuilding:
-        {
-            int levelBuildingMetal          = _techs.at(lifeFormBuilding).at(5);
-            int levelBuildingCristalAndDeut = _techs.at(lifeFormBuilding).at(7);
-            return Ressources(1.5f * levelBuildingMetal, 1.5f * levelBuildingCristalAndDeut, 1.0f * levelBuildingCristalAndDeut);
-        }
-        case TechType::RoctasBuilding:
-        {
-            int levelBuildingMetal      = _techs.at(lifeFormBuilding).at(5);
-            int levelBuildingCristal    = _techs.at(lifeFormBuilding).at(8);
-            int levelBuildingDeut       = _techs.at(lifeFormBuilding).at(9);
-            return Ressources(2 * levelBuildingMetal, 2 * levelBuildingCristal, 2 * levelBuildingDeut);
-        }
-        default:
-            return Ressources();
-    }
 }
 
 Ressources Planet::getCrawlerProduction() const

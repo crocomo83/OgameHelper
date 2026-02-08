@@ -1,5 +1,7 @@
 #include "item.h"
 
+#include <QEvent>
+
 Item::Item(QString name, QWidget *parent)
     : QWidget(parent)
 {
@@ -19,6 +21,7 @@ Item::Item(QString name, QWidget *parent)
     setLayout(layout);
 
     _spinBox->setValue(0);
+    _spinBox->installEventFilter(this);
 
     connect(_spinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &Item::onSpinValueChanged);
 }
@@ -65,4 +68,18 @@ void Item::onSpinValueChanged(int value)
 void Item::setOnValueChanged(std::function<void(int)> callback)
 {
     m_onValueChanged = std::move(callback);
+}
+
+bool Item::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::Wheel)
+    {
+        auto *w = qobject_cast<QWidget*>(obj);
+        if (w)
+        {
+            event->ignore();
+            return true;
+        }
+    }
+    return QWidget::eventFilter(obj, event);
 }

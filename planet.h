@@ -8,7 +8,7 @@
 class Planet
 {
 public:
-    enum ProductionStatPlanet{
+    enum class ProductionStatPlanet{
         Base,
         Mines,
         CrawlersPercent,
@@ -31,7 +31,6 @@ public:
     int                     getCrawlerNumber() const;
     int                     getMaxActiveCrawler() const;
     float                   getCrawlerBonus() const;
-    Ressources              getLifeFormBuildingBonusPercent() const;
     Ressources              getCrawlerProduction() const;
     Ressources              getLifeFormBuildingProduction() const;
     std::vector<TechType>   getAvailableBuildings() const;
@@ -39,7 +38,9 @@ public:
     Species                 getChoiceLifeFormResearch(int index) const;
     int                     getLevelLifeFormResearch(Species species, int index) const;
     const Ressources&       getProductionStat(ProductionStatPlanet stat) const;
+    Ressources              getLifeFormProdBonus() const;
 
+    void                    computeLifeFormBuildingBonus();
     void                    computeProduction();
 
     void                    setName(QString name);
@@ -61,4 +62,5 @@ private:
     int                                         _crawlerNumber;
 
     std::map<ProductionStatPlanet, Ressources>  _productionStats;
+    std::map<BonusLifeFormBuilding, float>      _lifeFormBuildingBonuses;
 };

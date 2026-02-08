@@ -45,7 +45,8 @@
 		"cristal": 8000,
 		"deut": 1000,
 		"energie": 40,
-		"increaseFactor": 1.4
+		"increaseFactor": 1.4,
+		"metalBonus" : 2
 	},
 	{
 		"name": "Disruption Chamber",
@@ -53,7 +54,8 @@
 		"cristal": 15000,
 		"deut": 10000,
 		"energie": 0,
-		"increaseFactor": 1.2
+		"increaseFactor": 1.2,
+		"energy" : 1
 	},
 	{
 		"name": "Megalith",
@@ -61,7 +63,9 @@
 		"cristal": 35000,
 		"deut": 15000,
 		"energie": 80,
-		"increaseFactor": 1.5
+		"increaseFactor": 1.5,
+		"reducLifeFormBuildingCostPercent" : 1,
+		"reducLifeFormBuildingDurationPercent" : 1
 	},
 	{
 		"name": "Crystal Refinery",
@@ -69,7 +73,8 @@
 		"cristal": 44000,
 		"deut": 25000,
 		"energie": 90,
-		"increaseFactor": 1.4
+		"increaseFactor": 1.4,
+		"cristalBonus" : 2
 	},
 	{
 		"name": "Deuterium Synthesiser",
@@ -77,7 +82,8 @@
 		"cristal": 50000,
 		"deut": 20000,
 		"energie": 90,
-		"increaseFactor": 1.4
+		"increaseFactor": 1.4,
+		"deutBonus" : 2
 	},
 	{
 		"name": "Mineral Research Centre",
@@ -85,7 +91,8 @@
 		"cristal": 150000,
 		"deut": 100000,
 		"energie": 120,
-		"increaseFactor": 1.8
+		"increaseFactor": 1.8,
+		"reducMineCostPercent" : 0.5
 	},
 	{
 		"name": "Advanced Recycling Plant",

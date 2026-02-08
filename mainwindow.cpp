@@ -44,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
     buildTradeImputs(_generalTable, 3);
 
     onPlanetsChanged();
+    onTechChanged();
 
     QPushButton* saveButton = ui->saveButton;
     connect(saveButton, &QPushButton::clicked, this, []() {
@@ -179,7 +180,7 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
         QString planetName = "";
         if (levelUp.indexPlanet >= 0)
         {
-            Planet* planet = PlayerManager::instance().getPlanet(levelUp.indexPlanet);
+            const Planet* planet = PlayerManager::instance().getPlanet(levelUp.indexPlanet);
             planetName = planet->getName();
         }
 
@@ -416,10 +417,12 @@ void MainWindow::onTechChanged()
     for (int i = 0; i < numberPlanet; ++i)
     {
         Planet* planet = PlayerManager::instance().getPlanet(i);
+        planet->computeLifeFormBuildingBonus();
         planet->computeBonusPos();
         planet->computeProduction();
     }
 
+    PlayerManager::instance().computeLifeFormResearch();
     PlayerManager::instance().computeProduction();
 
     buildResumeOutputs(_overviewTable);

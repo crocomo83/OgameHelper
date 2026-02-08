@@ -19,6 +19,8 @@ public:
     void setOnLevelChanged(std::function<void(int)> callback);
     void setEnabled(bool enabled);
 
+    virtual bool eventFilter(QObject *watched, QEvent *event) override;
+
 private slots:
     void onComboBoxChanged(int index);
     void onSpinValueChanged(int value);

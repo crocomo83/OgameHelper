@@ -57,26 +57,39 @@ bool TechManager::loadConfig(TechType techType, QString path)
         cost.deut    = obj["deut"].toInt(0);
         cost.energy  = obj["energie"].toInt(0);
 
-        if (isLifeFormResearch(techType))
+        if (isLifeFormBuilding(techType))
         {
-            std::unique_ptr<LifeFormTech> lifeFormTech = std::make_unique<LifeFormTech>();
-            lifeFormTech->name = name;
-            lifeFormTech->baseCost = cost;
-            lifeFormTech->increaseFactor = (float)obj["increaseFactor"].toDouble(2.0);
-            lifeFormTech->bonuses = extractBonuses(obj);
+            Species species = getAssociatedSpecies(techType);
 
-            _techs[techType][index++] = std::move(lifeFormTech);
+            LifeFormBuilding lifeFormBuilding;
+            lifeFormBuilding.name = name;
+            lifeFormBuilding.baseCost = cost;
+            lifeFormBuilding.increaseFactor = (float)obj["increaseFactor"].toDouble(2.0);
+            lifeFormBuilding.species = species;
+            lifeFormBuilding.bonuses = extractBonusesBuilding(obj);
 
-            const CommonTech* child = _techs.at(techType).at(index - 1).get();
-            const LifeFormTech* test = dynamic_cast<const LifeFormTech*>(child);
+            _techs[techType][index++] = std::make_unique<LifeFormBuilding>(lifeFormBuilding);
+        }
+        else if (isLifeFormResearch(techType))
+        {
+            Species species = getAssociatedSpecies(techType);
+
+            LifeFormTech lifeFormTech;
+            lifeFormTech.name = name;
+            lifeFormTech.baseCost = cost;
+            lifeFormTech.increaseFactor = (float)obj["increaseFactor"].toDouble(2.0);
+            lifeFormTech.species = species;
+            lifeFormTech.bonuses = extractBonuses(obj);
+
+            _techs[techType][index++] = std::make_unique<LifeFormTech>(lifeFormTech);
         }
         else
         {
-            std::unique_ptr<CommonTech> tech = std::make_unique<CommonTech>();
-            tech->name = name;
-            tech->baseCost = cost;
-            tech->increaseFactor = (float)obj["increaseFactor"].toDouble(2.0);
-            _techs[techType][index++] = std::move(tech);
+            CommonTech tech;
+            tech.name = name;
+            tech.baseCost = cost;
+            tech.increaseFactor = (float)obj["increaseFactor"].toDouble(2.0);
+            _techs[techType][index++] = std::make_unique<CommonTech>(tech);
         }
     }
 
@@ -145,6 +158,20 @@ Ressources TechManager::getCost(TechType techType, int indexTech, int level)
     }
 }
 
+bool TechManager::isLifeFormBuilding(TechType techType) const
+{
+    switch(techType)
+    {
+        case TechType::HumanBuilding:
+        case TechType::MechBuilding:
+        case TechType::KaeleshBuilding:
+        case TechType::RoctasBuilding:
+            return true;
+        default:
+            return false;
+    }
+}
+
 bool TechManager::isLifeFormResearch(TechType techType) const
 {
     switch(techType)
@@ -157,6 +184,79 @@ bool TechManager::isLifeFormResearch(TechType techType) const
         default:
             return false;
     }
+}
+
+Species TechManager::getAssociatedSpecies(TechType techType) const
+{
+    switch(techType)
+    {
+        case TechType::HumanBuilding:
+        case TechType::HumanResearch:
+            return Species::Humans;
+
+        case TechType::MechBuilding:
+        case TechType::MechResearch:
+            return Species::Mechs;
+
+        case TechType::KaeleshBuilding:
+        case TechType::KaeleshResearch:
+            return Species::Kaeleshs;
+
+        case TechType::RoctasBuilding:
+        case TechType::RoctasResearch:
+            return Species::Roctas;
+
+        default:
+            return Species::None;
+    }
+}
+
+TechType TechManager::getBuildingTech(Species species) const
+{
+    switch(species)
+    {
+        case Species::Humans:
+            return TechType::HumanBuilding;
+        case Species::Mechs:
+            return TechType::MechBuilding;
+        case Species::Kaeleshs:
+            return TechType::KaeleshBuilding;
+        case Species::Roctas:
+            return TechType::RoctasBuilding;
+        default:
+            return TechType::None;
+    }
+}
+
+TechType TechManager::getResearchTech(Species species) const
+{
+    switch(species)
+    {
+    case Species::Humans:
+        return TechType::HumanResearch;
+    case Species::Mechs:
+        return TechType::MechResearch;
+    case Species::Kaeleshs:
+        return TechType::KaeleshResearch;
+    case Species::Roctas:
+        return TechType::RoctasResearch;
+    default:
+        return TechType::None;
+    }
+}
+
+std::map<BonusLifeFormBuilding, double> TechManager::extractBonusesBuilding(const QJsonObject& obj) const
+{
+    std::map<BonusLifeFormBuilding, double> result;
+    for (auto itr = bonusLifeFormBuildingStr.begin(); itr != bonusLifeFormBuildingStr.end(); ++itr)
+    {
+        BonusLifeFormBuilding bonusLifeForm = itr->first;
+        if (obj[itr->second].isDouble())
+        {
+            result[bonusLifeForm] = obj[itr->second].toDouble(0.0);
+        }
+    }
+    return result;
 }
 
 std::map<BonusLifeForm, double> TechManager::extractBonuses(const QJsonObject& obj) const

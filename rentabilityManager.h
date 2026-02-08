@@ -14,8 +14,32 @@ public:
         MetalMine,
         CristalMine,
         DeutMine,
+        BatBonusMetal,
+        BatBonusCristal,
+        BatBonusDeut,
         Crawlers,
-        Plasma
+        Plasma,
+        Astrophysique,
+        PropCombustion,
+        LifeForm1,
+        LifeForm2,
+        LifeForm3,
+        LifeForm4,
+        LifeForm5,
+        LifeForm6,
+        LifeForm7,
+        LifeForm8,
+        LifeForm9,
+        LifeForm10,
+        LifeForm11,
+        LifeForm12,
+        LifeForm13,
+        LifeForm14,
+        LifeForm15,
+        LifeForm16,
+        LifeForm17,
+        LifeForm18,
+        LevelUpLifeForm
     };
 
     struct LevelUp
@@ -41,7 +65,8 @@ public:
     QString rentaToString(float timeToRecover) const;
 
 private:
-    void addMinesRentability(Planet *planet, int indexPlanet);
+    void addMinesRentability(const Planet *planet, int indexPlanet);
+    void addLifeFormBuilding(const Planet *planet, int indexPlanet);
 
 private:
     RentabilityManager();

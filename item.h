@@ -20,6 +20,7 @@ public:
     void setMaxValue(int max);
 
     void setOnValueChanged(std::function<void(int)> callback);
+    virtual bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
     void onSpinValueChanged(int value);

@@ -1,6 +1,7 @@
 #include "lifeFormSelectItem.h"
 
 #include <QHBoxLayout>
+#include <QEvent>
 
 LifeFormSelectItem::LifeFormSelectItem(QStringList names, QWidget *parent)
     : QWidget(parent)
@@ -8,9 +9,12 @@ LifeFormSelectItem::LifeFormSelectItem(QStringList names, QWidget *parent)
     _comboBox = new QComboBox(this);
     _comboBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
     _comboBox->addItems(names);
+    _comboBox->setCurrentIndex(0);
+    _comboBox->installEventFilter(this);
 
     _spinBox = new QSpinBox(this);
     _spinBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+    _spinBox->installEventFilter(this);
 
     auto* layout = new QHBoxLayout(this);
     layout->addWidget(_comboBox);
@@ -20,8 +24,6 @@ LifeFormSelectItem::LifeFormSelectItem(QStringList names, QWidget *parent)
     layout->setSpacing(0);
 
     setLayout(layout);
-
-    _comboBox->setCurrentIndex(0);
 
     connect(_comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &LifeFormSelectItem::onComboBoxChanged);
     connect(_spinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &LifeFormSelectItem::onSpinValueChanged);
@@ -74,4 +76,18 @@ void LifeFormSelectItem::setOnLevelChanged(std::function<void(int)> callback)
 void LifeFormSelectItem::setEnabled(bool enabled)
 {
     _spinBox->setEnabled(enabled);
+}
+
+bool LifeFormSelectItem::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::Wheel)
+    {
+        auto *w = qobject_cast<QWidget*>(obj);
+        if (w)
+        {
+            event->ignore();
+            return true;
+        }
+    }
+    return QWidget::eventFilter(obj, event);
 }
