@@ -126,11 +126,11 @@ int TechManager::getProductionMine(CommonBuildingType mineType, int level, float
     switch(mineType)
     {
     case CommonBuildingType::MineMetal:
-        return (int)(bonus * 30 * level * std::pow(1.1, level));
+        return (int)(bonus * 24 * 30 * level * std::pow(1.1, level));
     case CommonBuildingType::MineCristal:
-        return (int)(bonus * 20 * level * std::pow(1.1, level));
+        return (int)(bonus * 24 * 20 * level * std::pow(1.1, level));
     case CommonBuildingType::MineDeut:
-        return (int)(bonus * 10 * level * std::pow(1.1, level) * (1.28 - 0.002 * temperatureMax));
+        return (int)(bonus * 24 * 10 * level * std::pow(1.1, level) * (1.28 - 0.002 * temperatureMax));
     default:
         return 0;
     }

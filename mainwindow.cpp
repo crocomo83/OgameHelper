@@ -184,8 +184,7 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
             planetName = planet->getName();
         }
 
-        const QString& name = RentabilityManager::instance().levelUpToString(levelUp.type);
-        addLabel(tableWidget, name + " : " + QString::number(levelUp.levelToUpdate), i+1, 0);
+        addLabel(tableWidget, levelUp.name + " : " + QString::number(levelUp.levelToUpdate), i+1, 0);
         addLabel(tableWidget, planetName, i+1, 1);
         addLabel(tableWidget, levelUp.timeToRecoverStr, i+1, 2);
     }

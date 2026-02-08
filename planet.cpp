@@ -131,9 +131,10 @@ void Planet::computeProduction()
     int levelMetal = getTechLevel(TechType::CommonBuilding, static_cast<int>(CommonBuildingType::MineMetal));
     int levelCristal = getTechLevel(TechType::CommonBuilding, static_cast<int>(CommonBuildingType::MineCristal));
     int levelDeut = getTechLevel(TechType::CommonBuilding, static_cast<int>(CommonBuildingType::MineDeut));
-    minesProduction.metal   = _bonusProdPositionCoeff.metal * 24 * 30 * levelMetal * std::pow(1.1, levelMetal);
-    minesProduction.cristal = _bonusProdPositionCoeff.cristal * 24 * 20 * levelCristal * std::pow(1.1, levelCristal);
-    minesProduction.deut    = _bonusProdPositionCoeff.deut * 24 * 10 * levelDeut * std::pow(1.1, levelDeut) * (1.28 - 0.002 * _temperature);
+
+    minesProduction.metal   = TechManager::instance().getProductionMine(CommonBuildingType::MineMetal, levelMetal, _bonusProdPositionCoeff.metal);
+    minesProduction.cristal = TechManager::instance().getProductionMine(CommonBuildingType::MineCristal, levelCristal, _bonusProdPositionCoeff.cristal);
+    minesProduction.deut    = TechManager::instance().getProductionMine(CommonBuildingType::MineDeut, levelDeut, _bonusProdPositionCoeff.deut, _temperature);
     _productionStats[ProductionStatPlanet::Mines] = minesProduction;
 
     // Crawlers

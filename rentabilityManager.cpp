@@ -18,6 +18,7 @@ int RentabilityManager::refresh()
     {
         const Planet* planet = PlayerManager::instance().getPlanet(i);
         addMinesRentability(planet, i);
+        addLifeFormBuilding(planet, i);
     }
 
     std::sort(rentaLevelUp.begin(), rentaLevelUp.end(),
@@ -31,31 +32,6 @@ int RentabilityManager::refresh()
 const RentabilityManager::LevelUp& RentabilityManager::getLevelUp(int index) const
 {
     return rentaLevelUp.at(index);
-}
-
-QString RentabilityManager::levelUpToString(LevelUpType levelUp)
-{
-    switch (levelUp)
-    {
-        case LevelUpType::MetalMine:
-            return QStringLiteral("Mine de métal");
-        case LevelUpType::CristalMine:
-            return QStringLiteral("Mine de cristal");
-        case LevelUpType::DeutMine:
-            return QStringLiteral("Mine de deut");
-        case LevelUpType::BatBonusMetal:
-            return QStringLiteral("Bâtiment bonus métal");
-        case LevelUpType::BatBonusCristal:
-            return QStringLiteral("Bâtiment bonus cristal");
-        case LevelUpType::BatBonusDeut:
-            return QStringLiteral("Bâtiment bonus deut");
-        case LevelUpType::Crawlers:
-            return QStringLiteral("Foreuses");
-        case LevelUpType::Plasma:
-            return QStringLiteral("Plasma");
-    }
-
-    return QStringLiteral("Inconnu");
 }
 
 void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlanet)
@@ -92,30 +68,30 @@ void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlan
     prodMinesLevelUp += prodMinesLevelUp * bonusPercent * 0.01f;
 
     LevelUp levelUpMetal;
-    levelUpMetal.type = LevelUpType::MetalMine;
+    levelUpMetal.name = "Mine de métal";
     levelUpMetal.indexPlanet = indexPlanet;
     levelUpMetal.levelToUpdate = levelMetal;
-    levelUpMetal.rentaPerHour = Ressources(prodMinesLevelUp.metal, 0, 0);
+    levelUpMetal.rentaPerDay = Ressources(prodMinesLevelUp.metal, 0, 0);
     levelUpMetal.cost = TechManager::instance().getCost(TechType::CommonBuilding, indexMetal, levelMetal);
     levelUpMetal.computeRenta(PlayerManager::instance().getConversionRate());
     levelUpMetal.timeToRecoverStr = rentaToString(levelUpMetal.timeToRecover);
     rentaLevelUp.push_back(levelUpMetal);
 
     LevelUp levelUpCristal;
-    levelUpCristal.type = LevelUpType::CristalMine;
+    levelUpCristal.name = "Mine de cristal";
     levelUpCristal.indexPlanet = indexPlanet;
     levelUpCristal.levelToUpdate = levelCristal;
-    levelUpCristal.rentaPerHour = Ressources(0, prodMinesLevelUp.cristal, 0);
+    levelUpCristal.rentaPerDay = Ressources(0, prodMinesLevelUp.cristal, 0);
     levelUpCristal.cost = TechManager::instance().getCost(TechType::CommonBuilding, indexCristal, levelCristal);
     levelUpCristal.computeRenta(PlayerManager::instance().getConversionRate());
     levelUpCristal.timeToRecoverStr = rentaToString(levelUpCristal.timeToRecover);
     rentaLevelUp.push_back(levelUpCristal);
 
     LevelUp levelUpDeut;
-    levelUpDeut.type = LevelUpType::DeutMine;
+    levelUpDeut.name = "Mine de deut";
     levelUpDeut.indexPlanet = indexPlanet;
     levelUpDeut.levelToUpdate = levelDeut;
-    levelUpDeut.rentaPerHour = Ressources(0, 0, prodMinesLevelUp.deut);
+    levelUpDeut.rentaPerDay = Ressources(0, 0, prodMinesLevelUp.deut);
     levelUpDeut.cost = TechManager::instance().getCost(TechType::CommonBuilding, indexDeut, levelDeut);
     levelUpDeut.computeRenta(PlayerManager::instance().getConversionRate());
     levelUpDeut.timeToRecoverStr = rentaToString(levelUpDeut.timeToRecover);
@@ -126,32 +102,60 @@ void RentabilityManager::addLifeFormBuilding(const Planet *planet, int indexPlan
 {
     Ressources prodMines = planet->getProductionStat(Planet::ProductionStatPlanet::Mines);
 
-    Species species = planet->getSpecies();
-    TechType buildingTech = TechManager::instance().getBuildingTech(species);
+    TechType buildingType = speciesToBuildingLifeForm.at(planet->getSpecies());
+    int numberBuildingLifeForm = TechManager::instance().getNumberTechs(buildingType);
+    for (int i = 0; i < numberBuildingLifeForm; i++)
+    {
+        Ressources bonusProdPercent;
+        const LifeFormBuilding* tech = dynamic_cast<const LifeFormBuilding*>(TechManager::instance().getTech(buildingType, i));
+        for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
+        {
+            switch(itr->first)
+            {
+            case BonusLifeFormBuilding::Metal:
+                bonusProdPercent += Ressources(itr->second, 0.0f, 0.0f);
+                break;
+            case BonusLifeFormBuilding::Cristal:
+                bonusProdPercent += Ressources(0.0f, itr->second, 0.0f);
+                break;
+            case BonusLifeFormBuilding::Deut:
+                bonusProdPercent += Ressources(0.0f, 0.0f, itr->second);
+                break;
+            }
+        }
 
-    Ressources bonusBuilding = planet->getProductionStat(Planet::ProductionStatPlanet::BuildingLifeFormPercent);
+        Ressources bonusProd = prodMines * bonusProdPercent * 0.01f;
+
+        int levelUpBatiment = planet->getTechLevel(buildingType, i) + 1;
+
+        LevelUp levelUpBuilding;
+        levelUpBuilding.name = tech->name;
+        levelUpBuilding.indexPlanet = indexPlanet;
+        levelUpBuilding.levelToUpdate = levelUpBatiment;
+        levelUpBuilding.rentaPerDay = bonusProd;
+        levelUpBuilding.cost = TechManager::instance().getCost(buildingType, i, levelUpBatiment);
+        levelUpBuilding.computeRenta(PlayerManager::instance().getConversionRate());
+        levelUpBuilding.timeToRecoverStr = rentaToString(levelUpBuilding.timeToRecover);
+        rentaLevelUp.push_back(levelUpBuilding);
+    }
 }
 
 QString RentabilityManager::rentaToString(float timeToRecover) const
 {
-    if (timeToRecover < 24.0f)
+    if (timeToRecover < 7.0f)
     {
-        return QString::number(timeToRecover) + "h";
+        return QString::number(timeToRecover) + "j";
     }
-    else if (timeToRecover < 24.0f * 7.0f)
+    else if (timeToRecover < 30.0f)
     {
-        return QString::number(timeToRecover / 24.0f) + "j";
+        return QString::number(timeToRecover / 7.0f) + "s";
     }
-    else if (timeToRecover < 24.0f * 30.0f)
+    else if (timeToRecover < 365.0f)
     {
-        return QString::number(timeToRecover / 24.0f / 7.0f) + "s";
-    }
-    else if (timeToRecover < 24.0f * 30.0f * 12.0f)
-    {
-        return QString::number(timeToRecover / 24.0f / 30.0f) + "m";
+        return QString::number(timeToRecover / 30.0f) + "m";
     }
     else
     {
-        return QString::number(timeToRecover / 24.0f / 30.0f / 12.0f) + "a";
+        return QString::number(timeToRecover / 365.0f) + "a";
     }
 }
