@@ -10,6 +10,8 @@
 #include <QPushButton>
 #include <QLineEdit>
 
+static constexpr int NUMBER_RENTA_MAX = 20;
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -37,7 +39,6 @@ MainWindow::MainWindow(QWidget *parent)
     _planetTable->setFocusPolicy(Qt::NoFocus);
 
     buildResumeOutputs(_overviewTable);
-    buildRentaOutputs(_rentaTable);
     buildGeneralImputs(_generalTable, 0);
     buildResearchImputs(_generalTable, 1);
     buildSpecialisationImputs(_generalTable, 2);
@@ -45,6 +46,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     onPlanetsChanged();
     onTechChanged();
+
+    buildRentaOutputs(_rentaTable);
 
     QPushButton* saveButton = ui->saveButton;
     connect(saveButton, &QPushButton::clicked, this, []() {
@@ -173,7 +176,7 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
     addLabel(tableWidget, "Temps de recouvrement", 0, 2);
 
     int nb = RentabilityManager::instance().refresh();
-    for (int i = 0; i < std::min(10, nb); ++i)
+    for (int i = 0; i < std::min(NUMBER_RENTA_MAX, nb); ++i)
     {
         const RentabilityManager::LevelUp& levelUp = RentabilityManager::instance().getLevelUp(i);
 

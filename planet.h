@@ -38,7 +38,9 @@ public:
     Species                 getChoiceLifeFormResearch(int index) const;
     int                     getLevelLifeFormResearch(Species species, int index) const;
     const Ressources&       getProductionStat(ProductionStatPlanet stat) const;
+    float                   getLifeFormBuildingBonus(BonusLifeFormBuilding bonus) const;
     Ressources              getLifeFormProdBonus() const;
+    Ressources              getCost(TechType techType, int indexTech, int level) const;
 
     void                    computeLifeFormBuildingBonus();
     void                    computeProduction();

@@ -19,6 +19,7 @@ int RentabilityManager::refresh()
         const Planet* planet = PlayerManager::instance().getPlanet(i);
         addMinesRentability(planet, i);
         addLifeFormBuilding(planet, i);
+        addLifeFormResearch(planet, i);
     }
 
     std::sort(rentaLevelUp.begin(), rentaLevelUp.end(),
@@ -72,7 +73,7 @@ void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlan
     levelUpMetal.indexPlanet = indexPlanet;
     levelUpMetal.levelToUpdate = levelMetal;
     levelUpMetal.rentaPerDay = Ressources(prodMinesLevelUp.metal, 0, 0);
-    levelUpMetal.cost = TechManager::instance().getCost(TechType::CommonBuilding, indexMetal, levelMetal);
+    levelUpMetal.cost = planet->getCost(TechType::CommonBuilding, indexMetal, levelMetal);
     levelUpMetal.computeRenta(PlayerManager::instance().getConversionRate());
     levelUpMetal.timeToRecoverStr = rentaToString(levelUpMetal.timeToRecover);
     rentaLevelUp.push_back(levelUpMetal);
@@ -82,7 +83,7 @@ void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlan
     levelUpCristal.indexPlanet = indexPlanet;
     levelUpCristal.levelToUpdate = levelCristal;
     levelUpCristal.rentaPerDay = Ressources(0, prodMinesLevelUp.cristal, 0);
-    levelUpCristal.cost = TechManager::instance().getCost(TechType::CommonBuilding, indexCristal, levelCristal);
+    levelUpCristal.cost = planet->getCost(TechType::CommonBuilding, indexCristal, levelCristal);
     levelUpCristal.computeRenta(PlayerManager::instance().getConversionRate());
     levelUpCristal.timeToRecoverStr = rentaToString(levelUpCristal.timeToRecover);
     rentaLevelUp.push_back(levelUpCristal);
@@ -92,7 +93,7 @@ void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlan
     levelUpDeut.indexPlanet = indexPlanet;
     levelUpDeut.levelToUpdate = levelDeut;
     levelUpDeut.rentaPerDay = Ressources(0, 0, prodMinesLevelUp.deut);
-    levelUpDeut.cost = TechManager::instance().getCost(TechType::CommonBuilding, indexDeut, levelDeut);
+    levelUpDeut.cost = planet->getCost(TechType::CommonBuilding, indexDeut, levelDeut);
     levelUpDeut.computeRenta(PlayerManager::instance().getConversionRate());
     levelUpDeut.timeToRecoverStr = rentaToString(levelUpDeut.timeToRecover);
     rentaLevelUp.push_back(levelUpDeut);
@@ -107,6 +108,7 @@ void RentabilityManager::addLifeFormBuilding(const Planet *planet, int indexPlan
     for (int i = 0; i < numberBuildingLifeForm; i++)
     {
         Ressources bonusProdPercent;
+        bool bonusFound = false;
         const LifeFormBuilding* tech = dynamic_cast<const LifeFormBuilding*>(TechManager::instance().getTech(buildingType, i));
         for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
         {
@@ -114,14 +116,22 @@ void RentabilityManager::addLifeFormBuilding(const Planet *planet, int indexPlan
             {
             case BonusLifeFormBuilding::Metal:
                 bonusProdPercent += Ressources(itr->second, 0.0f, 0.0f);
+                bonusFound = true;
                 break;
             case BonusLifeFormBuilding::Cristal:
                 bonusProdPercent += Ressources(0.0f, itr->second, 0.0f);
+                bonusFound = true;
                 break;
             case BonusLifeFormBuilding::Deut:
                 bonusProdPercent += Ressources(0.0f, 0.0f, itr->second);
+                bonusFound = true;
                 break;
             }
+        }
+
+        if (!bonusFound)
+        {
+            continue;
         }
 
         Ressources bonusProd = prodMines * bonusProdPercent * 0.01f;
@@ -133,10 +143,67 @@ void RentabilityManager::addLifeFormBuilding(const Planet *planet, int indexPlan
         levelUpBuilding.indexPlanet = indexPlanet;
         levelUpBuilding.levelToUpdate = levelUpBatiment;
         levelUpBuilding.rentaPerDay = bonusProd;
-        levelUpBuilding.cost = TechManager::instance().getCost(buildingType, i, levelUpBatiment);
+        levelUpBuilding.cost = planet->getCost(buildingType, i, levelUpBatiment);
         levelUpBuilding.computeRenta(PlayerManager::instance().getConversionRate());
         levelUpBuilding.timeToRecoverStr = rentaToString(levelUpBuilding.timeToRecover);
         rentaLevelUp.push_back(levelUpBuilding);
+    }
+}
+
+void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlanet)
+{
+    Ressources prodMines = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Mines);
+    int numberResearchLifeForm = TechManager::instance().getNumberTechs(TechType::HumanResearch);
+    for (int i = 0; i < numberResearchLifeForm; i++)
+    {
+        Ressources bonusProdPercent;
+        bool bonusFound = false;
+
+        Species speciesLifeForm = planet->getChoiceLifeFormResearch(i);
+        if (speciesLifeForm == Species::None)
+        {
+            continue;
+        }
+        TechType researchLifeFormType = speciesToTechLifeForm.at(speciesLifeForm);
+        const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
+
+        for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
+        {
+            switch(itr->first)
+            {
+            case BonusLifeForm::Metal:
+                bonusProdPercent += Ressources(itr->second, 0.0f, 0.0f);
+                bonusFound = true;
+                break;
+            case BonusLifeForm::Cristal:
+                bonusProdPercent += Ressources(0.0f, itr->second, 0.0f);
+                bonusFound = true;
+                break;
+            case BonusLifeForm::Deuterium:
+                bonusProdPercent += Ressources(0.0f, 0.0f, itr->second);
+                bonusFound = true;
+                break;
+            }
+        }
+
+        if (!bonusFound)
+        {
+            continue;
+        }
+
+        Ressources bonusProd = prodMines * bonusProdPercent * 0.01f;
+
+        int levelUpResearch = planet->getTechLevel(researchLifeFormType, i) + 1;
+
+        LevelUp levelUpLifeFormResearch;
+        levelUpLifeFormResearch.name = tech->name;
+        levelUpLifeFormResearch.indexPlanet = indexPlanet;
+        levelUpLifeFormResearch.levelToUpdate = levelUpResearch;
+        levelUpLifeFormResearch.rentaPerDay = bonusProd;
+        levelUpLifeFormResearch.cost = planet->getCost(researchLifeFormType, i, levelUpResearch);
+        levelUpLifeFormResearch.computeRenta(PlayerManager::instance().getConversionRate());
+        levelUpLifeFormResearch.timeToRecoverStr = rentaToString(levelUpLifeFormResearch.timeToRecover);
+        rentaLevelUp.push_back(levelUpLifeFormResearch);
     }
 }
 

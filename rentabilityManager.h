@@ -33,6 +33,7 @@ public:
 private:
     void addMinesRentability(const Planet *planet, int indexPlanet);
     void addLifeFormBuilding(const Planet *planet, int indexPlanet);
+    void addLifeFormResearch(const Planet *planet, int indexPlanet);
 
 private:
     RentabilityManager();

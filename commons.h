@@ -135,6 +135,8 @@ enum class BonusLifeFormBuilding{
     ReducMineCostPercent,
     ReducLifeFormBuildingCostPercent,
     ReducLifeFormBuildingDurationPercent,
+    ReducLifeFormResearchCostPercent,
+    ReducLifeFormResearchDurationPercent,
     Count
 };
 
@@ -146,7 +148,9 @@ inline static const std::map<BonusLifeFormBuilding, QString> bonusLifeFormBuildi
     {BonusLifeFormBuilding::Energy, "energy"},
     {BonusLifeFormBuilding::ReducMineCostPercent, "reducMineCostPercent"},
     {BonusLifeFormBuilding::ReducLifeFormBuildingCostPercent, "reducLifeFormBuildingCostPercent"},
-    {BonusLifeFormBuilding::ReducLifeFormBuildingDurationPercent, "reducLifeFormBuildingDurationPercent"}
+    {BonusLifeFormBuilding::ReducLifeFormBuildingDurationPercent, "reducLifeFormBuildingDurationPercent"},
+    {BonusLifeFormBuilding::ReducLifeFormResearchCostPercent, "reducLifeFormResearchCostPercent"},
+    {BonusLifeFormBuilding::ReducLifeFormResearchDurationPercent, "reducLifeFormResearchDurationPercent"}
 };
 
 struct CommonTech{

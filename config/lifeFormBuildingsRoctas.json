@@ -21,7 +21,9 @@
 		"cristal": 10000,
 		"deut": 15000,
 		"energie": 15,
-		"increaseFactor": 1.3
+		"increaseFactor": 1.3,
+		"reducLifeFormResearchCostPercent" : 0.25,
+		"reducLifeFormResearchDurationPercent" : 2
 	},
 	{
 		"name": "Rune Forge",

@@ -170,12 +170,45 @@ int Planet::getTechLevel(TechType type, int index) const
     return _techs.at(type).at(index);
 }
 
+float Planet::getLifeFormBuildingBonus(BonusLifeFormBuilding bonus) const
+{
+    return _lifeFormBuildingBonuses.at(bonus);
+}
+
 Ressources Planet::getLifeFormProdBonus() const
 {
     float metalBonus    = _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::Metal);
     float cristalBonus  = _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::Cristal);
     float deutBonus     = _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::Deut);
     return Ressources(metalBonus, cristalBonus, deutBonus);
+}
+
+Ressources Planet::getCost(TechType techType, int indexTech, int level) const
+{
+    Ressources basicCost = TechManager::instance().getCost(techType, indexTech, level);
+    float factor;
+    switch (techType)
+    {
+    case TechType::CommonBuilding:
+        factor = 1.0f - _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::ReducMineCostPercent) / 100.0f;
+        break;
+    case TechType::HumanBuilding:
+    case TechType::MechBuilding:
+    case TechType::KaeleshBuilding:
+    case TechType::RoctasBuilding:
+        factor = 1.0f - _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::ReducLifeFormBuildingCostPercent) / 100.0f;
+        break;
+    case TechType::HumanResearch:
+    case TechType::MechResearch:
+    case TechType::KaeleshResearch:
+    case TechType::RoctasResearch:
+        factor = 1.0f - _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::ReducLifeFormResearchCostPercent) / 100.0f;
+        break;
+    default:
+        factor = 1.0f;
+    }
+
+    return factor * basicCost;
 }
 
 Ressources Planet::getBonusMine() const
