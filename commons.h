@@ -10,24 +10,28 @@ enum RessourceType
     Metal,
     Cristal,
     Deut,
-    Energy
+    Energy,
+    Antimatter
 };
+inline static const QStringList ressourceToString = {"Métal", "Cristal", "Deut", "Energy", "Antimatter"};
 
 struct Ressources {
-    float metal   = 0.f;
-    float cristal = 0.f;
-    float deut    = 0.f;
-    float energy  = 0.f;
+    float metal     = 0.f;
+    float cristal   = 0.f;
+    float deut      = 0.f;
+    float energy    = 0.f;
+    float antimatter = 0.f;
 
     Ressources(float metal_ = 0.f, float cristal_ = 0.f,
-               float deut_ = 0.f, float energy_ = 0.f)
-        : metal(metal_), cristal(cristal_), deut(deut_), energy(energy_) {}
+               float deut_ = 0.f, float energy_ = 0.f, float antimatter_ = 0.f)
+        : metal(metal_), cristal(cristal_), deut(deut_), energy(energy_), antimatter(antimatter_) {}
 
     Ressources& operator+=(const Ressources& other) {
         metal   += other.metal;
         cristal += other.cristal;
         deut    += other.deut;
         energy  += other.energy;
+        antimatter += other.antimatter;
         return *this;
     }
 
@@ -36,6 +40,7 @@ struct Ressources {
         cristal -= other.cristal;
         deut    -= other.deut;
         energy  -= other.energy;
+        antimatter -= other.antimatter;
         return *this;
     }
 
@@ -44,6 +49,7 @@ struct Ressources {
         cristal *= scalar;
         deut    *= scalar;
         energy  *= scalar;
+        antimatter *= scalar;
         return *this;
     }
 
@@ -52,6 +58,16 @@ struct Ressources {
         cristal *= other.cristal;
         deut    *= other.deut;
         energy  *= other.energy;
+        antimatter *= other.antimatter;
+        return *this;
+    }
+
+    Ressources& operator/(float diviser) {
+        metal   /= diviser;
+        cristal /= diviser;
+        deut    /= diviser;
+        energy  /= diviser;
+        antimatter /= diviser;
         return *this;
     }
 
@@ -94,6 +110,8 @@ struct Ressources {
                 return this->deut;
             case RessourceType::Energy:
                 return this->energy;
+            case RessourceType::Antimatter:
+                return this->antimatter;
             default:
                 return -1;
         }
@@ -111,10 +129,11 @@ struct Ressources {
             this->deut = value;
         case RessourceType::Energy:
             this->energy = value;
+        case RessourceType::Antimatter:
+            this->antimatter = value;
         }
     }
 };
-inline static const QStringList ressourceToString = {"Métal", "Cristal", "Deut"};
 
 enum class Species
 {

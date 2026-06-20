@@ -22,8 +22,6 @@ public:
     Species getAssociatedSpecies(TechType techType) const;
     TechType getBuildingTech(Species species) const;
     TechType getResearchTech(Species species) const;
-    Ressources getBonusLvlUpLifeFormBuilding() const;
-
 
     std::map<BonusLifeFormBuilding, double> extractBonusesBuilding(const QJsonObject& obj) const;
     std::map<BonusLifeForm, double> extractBonuses(const QJsonObject& obj) const;

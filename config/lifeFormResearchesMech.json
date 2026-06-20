@@ -1,6 +1,6 @@
 [
 	{
-		"name": "Catalyser Technology",
+		"name": "Mech 1-1",
 		"metal": 10000,
 		"cristal": 6000,
 		"deut": 1000,
@@ -8,7 +8,7 @@
 		"deuteriumBonus" : 0.08
 	},
 	{
-		"name": "Plasma Drive",
+		"name": "Mech 1-2",
 		"metal": 7500,
 		"cristal": 12500,
 		"deut": 5000,
@@ -16,7 +16,7 @@
 		"speedAllShip" : 0.2
 	},
 	{
-		"name": "Efficiency Module",
+		"name": "Mech 1-3",
 		"metal": 15000,
 		"cristal": 10000,
 		"deut": 5000,
@@ -24,7 +24,7 @@
 		"deuteriumSaving" : 0.03
 	},
 	{
-		"name": "Depot AI",
+		"name": "Mech 1-4",
 		"metal": 20000,
 		"cristal": 15000,
 		"deut": 7500,
@@ -33,7 +33,7 @@
 		"depotDurationReduction" : 0.2
 	},
 	{
-		"name": "General Overhaul (Light Fighter)",
+		"name": "Mech 1-5",
 		"metal": 160000,
 		"cristal": 120000,
 		"deut": 50000,
@@ -41,7 +41,7 @@
 		"lightFighterFullBonus" : 0.3
 	},
 	{
-		"name": "Automated Transport Lines",
+		"name": "Mech 1-6",
 		"metal": 50000,
 		"cristal": 50000,
 		"deut": 20000,
@@ -51,7 +51,7 @@
 		"deuteriumBonus" : 0.06
 	},
 	{
-		"name": "Improved Drone AI",
+		"name": "Mech 2-1",
 		"metal": 70000,
 		"cristal": 40000,
 		"deut": 20000,
@@ -60,7 +60,7 @@
 		"spyResearchDurationReduction" : 0.2
 	},
 	{
-		"name": "Experimental Recycling Technology",
+		"name": "Mech 2-2",
 		"metal": 160000,
 		"cristal": 120000,
 		"deut": 50000,
@@ -68,7 +68,7 @@
 		"recyclingShipFullBonus" : 1
 	},
 	{
-		"name": "General Overhaul (Cruiser)",
+		"name": "Mech 2-3",
 		"metal": 160000,
 		"cristal": 120000,
 		"deut": 50000,
@@ -76,7 +76,7 @@
 		"cruiserFullBonus" : 0.3
 	},
 	{
-		"name": "Slingshot Autopilot",
+		"name": "Mech 2-4",
 		"metal": 85000,
 		"cristal": 40000,
 		"deut": 35000,
@@ -84,7 +84,7 @@
 		"deutSavingOnRecall" : 0.15
 	},
 	{
-		"name": "High-Temperature Superconductors",
+		"name": "Mech 2-5",
 		"metal": 120000,
 		"cristal": 30000,
 		"deut": 25000,
@@ -93,7 +93,7 @@
 		"energyResearchDurationReduction" : 0.2
 	},
 	{
-		"name": "General Overhaul (Battleship)",
+		"name": "Mech 2-6",
 		"metal": 160000,
 		"cristal": 120000,
 		"deut": 50000,
@@ -101,7 +101,7 @@
 		"battleshipFullBonus" : 0.3
 	},
 	{
-		"name": "Artificial Swarm Intelligence",
+		"name": "Mech 3-1",
 		"metal": 200000,
 		"cristal": 100000,
 		"deut": 100000,
@@ -111,7 +111,7 @@
 		"deuteriumBonus" : 0.06
 	},
 	{
-		"name": "General Overhaul (Battlecruiser)",
+		"name": "Mech 3-2",
 		"metal": 160000,
 		"cristal": 120000,
 		"deut": 50000,
@@ -119,7 +119,7 @@
 		"battlecruiserFullBonus" : 0.3
 	},
 	{
-		"name": "General Overhaul (Bomber)",
+		"name": "Mech 3-3",
 		"metal": 320000,
 		"cristal": 240000,
 		"deut": 100000,
@@ -127,7 +127,7 @@
 		"bomberFullBonus" : 0.3
 	},
 	{
-		"name": "General Overhaul (Destroyer)",
+		"name": "Mech 3-4",
 		"metal": 320000,
 		"cristal": 240000,
 		"deut": 100000,
@@ -135,7 +135,7 @@
 		"destroyerFullBonus" : 0.3
 	},
 	{
-		"name": "Experimental Weapons Technology",
+		"name": "Mech 3-5",
 		"metal": 500000,
 		"cristal": 300000,
 		"deut": 200000,
@@ -144,7 +144,7 @@
 		"weaponResearchDurationReduction" : 0.2
 	},
 	{
-		"name": "Mechan General Enhancement",
+		"name": "Mech 3-6",
 		"metal": 300000,
 		"cristal": 180000,
 		"deut": 120000,

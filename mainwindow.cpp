@@ -4,6 +4,7 @@
 #include "techManager.h"
 #include "playerManager.h"
 #include "rentabilityManager.h"
+#include "discoverymanager.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -26,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
     _rentaTable = ui->renta;
     _generalTable = ui->commonTab;
     _planetTable = ui->planetsTab;
+    _discoveryTab = ui->discoveryTab;
 
     initTable(_overviewTable);
     initTable(_generalTable);
@@ -38,15 +40,16 @@ MainWindow::MainWindow(QWidget *parent)
     _planetTable->setSelectionMode(QAbstractItemView::NoSelection);
     _planetTable->setFocusPolicy(Qt::NoFocus);
 
-    buildResumeOutputs(_overviewTable);
     buildGeneralImputs(_generalTable, 0);
     buildResearchImputs(_generalTable, 1);
     buildSpecialisationImputs(_generalTable, 2);
     buildTradeImputs(_generalTable, 3);
+    buildDiscoveryImputs(_discoveryTab);
 
     onPlanetsChanged();
     onTechChanged();
 
+    buildResumeOutputs(_overviewTable);
     buildRentaOutputs(_rentaTable);
 
     QPushButton* saveButton = ui->saveButton;
@@ -107,6 +110,7 @@ DoubleSpinBoxItem* MainWindow::addDoubleSpinBoxItem(QTableWidget* tableWidget, Q
     doubleSpinBox->setValue(defaultValue);
     doubleSpinBox->setMinValue(minValue);
     doubleSpinBox->setMaxValue(maxValue);
+    doubleSpinBox->setLocale(QLocale::C);
     tableWidget->setCellWidget(row, column, doubleSpinBox);
     return doubleSpinBox;
 }
@@ -396,6 +400,110 @@ void MainWindow::buildPlanetImputs(QTableWidget* tableWidget, int column)
     });
 }
 
+void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
+{
+    float expePerDay = DiscoveryManager::instance().getDiscoveryPerDay();
+    DoubleSpinBoxItem* expeItem = addDoubleSpinBoxItem(tableWidget, "Expé/j : ", 0, 0, expePerDay);
+    expeItem->setOnValueChanged([this](double value) {
+        DiscoveryManager::instance().setDiscoveryPerDay((float)value);
+    });
+
+    float bonusTemp = DiscoveryManager::instance().getTempBonusRessources();
+    Item* tempBonus = addSpinBoxItem(tableWidget, "Bonus R : ", 0, 1, bonusTemp, 0, 99);
+    tempBonus->setOnValueChanged([this](int value) {
+        float bonusRessources = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionRessourcesIncrease);
+        float bonusFleat = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionShipIncrease);
+        DiscoveryManager::instance().setTempBonusRessources(value);
+        DiscoveryManager::instance().loadBonusFactor(bonusRessources, bonusFleat);
+    });
+
+    float bonusRessources = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionRessourcesIncrease);
+    addLabel(tableWidget, "Ressources : " + QString::number(bonusRessources, 'f', 1) + "%", 0, 2);
+
+    float bonusFleat = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionShipIncrease);
+    addLabel(tableWidget, "Fleat : " + QString::number(bonusFleat, 'f', 1) + "%", 0, 3);
+
+    float deutConsumption = DiscoveryManager::instance().getDeutConsumption();
+    Item* deutConso = addSpinBoxItem(tableWidget, "Deut cons : ", 0, 4, deutConsumption, 0, 99999);
+    deutConso->setOnValueChanged([this](int value) {
+        DiscoveryManager::instance().setDeutConsumption(value);
+    });
+
+    DiscoveryManager::instance().loadBonusFactor(bonusRessources, bonusFleat);
+
+    addLabel(tableWidget, "Type : ", 1, 1);
+    addLabel(tableWidget, "Number : ", 1, 2);
+    addLabel(tableWidget, "Metal (M) : ", 1, 3);
+    addLabel(tableWidget, "Cristal (M) : ", 1, 4);
+    addLabel(tableWidget, "Deut (M) : ", 1, 5);
+    addLabel(tableWidget, "AM (milliers) : ", 1, 6);
+
+    for (int i = 1; i < static_cast<int>(DiscoveryManager::DiscoveryType::Count); ++i)
+    {
+        DiscoveryManager::DiscoveryType type = static_cast<DiscoveryManager::DiscoveryType>(i);
+        QString strType = DiscoveryManager::instance().getTypeStrList(type);
+        addLabel(tableWidget, strType, i+1, 1);
+
+        tableWidget->setCellWidget(i+1, 2, new QSpinBox());
+
+        DiscoveryManager::Discovery discovery = DiscoveryManager::instance().getDiscovery(type);
+
+        QDoubleValidator* validator = new QDoubleValidator(0.0, 1000.0, 3, this);
+        validator->setNotation(QDoubleValidator::StandardNotation);
+        validator->setLocale(QLocale::C);
+
+        QLineEdit* metalValue = new QLineEdit();
+        metalValue->setValidator(validator);
+        metalValue->setEnabled(discovery.hasRessource(RessourceType::Metal));
+        tableWidget->setCellWidget(i+1, 3, metalValue);
+
+        QLineEdit* cristalValue = new QLineEdit();
+        cristalValue->setValidator(validator);
+        cristalValue->setEnabled(discovery.hasRessource(RessourceType::Cristal));
+        tableWidget->setCellWidget(i+1, 4, cristalValue);
+
+        QLineEdit* deutValue = new QLineEdit();
+        deutValue->setValidator(validator);
+        deutValue->setEnabled(discovery.hasRessource(RessourceType::Deut));
+        tableWidget->setCellWidget(i+1, 5, deutValue);
+
+        QLineEdit* amValue = new QLineEdit();
+        amValue->setValidator(validator);
+        amValue->setEnabled(discovery.hasRessource(RessourceType::Antimatter));
+        tableWidget->setCellWidget(i+1, 6, amValue);
+    }
+
+    addLabel(tableWidget, "Ajout : ", 1, 0);
+    QPushButton* addButton = new QPushButton("Ajouter");
+    tableWidget->setCellWidget(2, 0, addButton);
+    connect(addButton, &QPushButton::clicked, this, [tableWidget]() {
+        for (int i = 1; i < static_cast<int>(DiscoveryManager::DiscoveryType::Count); ++i)
+        {
+            DiscoveryManager::DiscoveryType type = static_cast<DiscoveryManager::DiscoveryType>(i);
+            Ressources ressources;
+
+            QSpinBox* number = static_cast<QSpinBox*>(tableWidget->cellWidget(i+1, 2));
+            QLineEdit* metalValue = static_cast<QLineEdit*>(tableWidget->cellWidget(i+1, 3));
+            QLineEdit* cristalValue = static_cast<QLineEdit*>(tableWidget->cellWidget(i+1, 4));
+            QLineEdit* deutValue = static_cast<QLineEdit*>(tableWidget->cellWidget(i+1, 5));
+            QLineEdit* amValue = static_cast<QLineEdit*>(tableWidget->cellWidget(i+1, 6));
+
+            ressources.metal = metalValue->text().toFloat() * 1000000;
+            ressources.cristal = cristalValue->text().toFloat() * 1000000;
+            ressources.deut = deutValue->text().toFloat() * 1000000;
+            ressources.antimatter = amValue->text().toFloat() * 1000;
+
+            DiscoveryManager::instance().addDiscover(type, ressources, number->value());
+
+            number->clear();
+            metalValue->clear();
+            cristalValue->clear();
+            deutValue->clear();
+            amValue->clear();
+        }
+    });
+}
+
 void MainWindow::onPlanetsChanged()
 {
     _planetTable->clear();
@@ -429,4 +537,5 @@ void MainWindow::onTechChanged()
 
     buildResumeOutputs(_overviewTable);
     buildRentaOutputs(_rentaTable);
+    buildDiscoveryImputs(_discoveryTab);
 }

@@ -19,7 +19,6 @@ Planet::Planet(const QString& name, const PlanetPosition& position, int temperat
             _techs[current].assign(numberTechs, 0);
         }
     }
-
     int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
     _choicesLifeFormResearch.assign(numberLifeFormReseach, Species::None);
 
@@ -98,7 +97,7 @@ void Planet::computeLifeFormBuildingBonus()
     }
 
     TechType typeBuilding = TechManager::instance().getBuildingTech(_species);
-    int lifeFormBuildingNumber = TechManager::instance().getNumberTechs(typeBuilding);
+    int lifeFormBuildingNumber = typeBuilding == TechType::None ? 0 : TechManager::instance().getNumberTechs(typeBuilding);
 
     for (int j = 0; j < lifeFormBuildingNumber; j++)
     {

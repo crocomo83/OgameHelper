@@ -46,6 +46,7 @@ public:
     void buildSpecialisationImputs(QTableWidget* tableWidget, int column);
     void buildTradeImputs(QTableWidget* tableWidget, int column);
     void buildPlanetImputs(QTableWidget* tableWidget, int column);
+    void buildDiscoveryImputs(QTableWidget* tableWidget);
 
 private slots:
     void onPlanetsChanged();
@@ -62,4 +63,5 @@ private:
     QTableWidget* _rentaTable;
     QTableWidget* _planetTable;
     QTableWidget* _overviewTable;
+    QTableWidget* _discoveryTab;
 };

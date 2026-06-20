@@ -1,6 +1,6 @@
 [
 	{
-		"name": "Volcanic Batteries",
+		"name": "Roctas 1-1",
 		"metal": 10000,
 		"cristal": 6000,
 		"deut": 1000,
@@ -8,7 +8,7 @@
 		"energyBonus" : 0.25
 	},
 	{
-		"name": "Acoustic Scanning",
+		"name": "Roctas 1-2",
 		"metal": 7500,
 		"cristal": 12500,
 		"deut": 5000,
@@ -16,7 +16,7 @@
 		"cristalBonus" : 0.08
 	},
 	{
-		"name": "High Energy Pump Systems",
+		"name": "Roctas 1-3",
 		"metal": 15000,
 		"cristal": 10000,
 		"deut": 5000,
@@ -24,7 +24,7 @@
 		"deuteriumBonus" : 0.06
 	},
 	{
-		"name": "Cargo Hold Expansion (Civilian Ships)",
+		"name": "Roctas 1-4",
 		"metal": 20000,
 		"cristal": 15000,
 		"deut": 7500,
@@ -32,7 +32,7 @@
 		"fret" : 0.4
 	},
 	{
-		"name": "Magma-Powered Production",
+		"name": "Roctas 1-5",
 		"metal": 25000,
 		"cristal": 20000,
 		"deut": 10000,
@@ -42,7 +42,7 @@
 		"deuteriumBonus" : 0.08
 	},
 	{
-		"name": "Geothermal Power Plants",
+		"name": "Roctas 1-6",
 		"metal": 50000,
 		"cristal": 50000,
 		"deut": 20000,
@@ -50,7 +50,7 @@
 		"energyBonus" : 0.25
 	},
 	{
-		"name": "Depth Sounding",
+		"name": "Roctas 2-1",
 		"metal": 70000,
 		"cristal": 40000,
 		"deut": 20000,
@@ -58,7 +58,7 @@
 		"metalBonus" : 0.08
 	},
 	{
-		"name": "Ion Crystal Enhancement (Heavy Fighter)",
+		"name": "Roctas 2-2",
 		"metal": 160000,
 		"cristal": 120000,
 		"deut": 50000,
@@ -66,7 +66,7 @@
 		"heavyFighterFullBonus" : 0.3
 	},
 	{
-		"name": "Improved Stellarator",
+		"name": "Roctas 2-3",
 		"metal": 75000,
 		"cristal": 55000,
 		"deut": 25000,
@@ -75,7 +75,7 @@
 		"plasmaResearchDurationReduction" : 0.3
 	},
 	{
-		"name": "Hardened Diamond Drill Heads",
+		"name": "Roctas 2-4",
 		"metal": 85000,
 		"cristal": 40000,
 		"deut": 35000,
@@ -83,7 +83,7 @@
 		"metalBonus" : 0.08
 	},
 	{
-		"name": "Seismic Mining Technology",
+		"name": "Roctas 2-5",
 		"metal": 120000,
 		"cristal": 30000,
 		"deut": 25000,
@@ -91,7 +91,7 @@
 		"cristalBonus" : 0.08
 	},
 	{
-		"name": "Magma-Powered Pump Systems",
+		"name": "Roctas 2-6",
 		"metal": 100000,
 		"cristal": 40000,
 		"deut": 30000,
@@ -99,7 +99,7 @@
 		"deuteriumBonus" : 0.08
 	},
 	{
-		"name": "Ion Crystal Modules",
+		"name": "Roctas 3-1",
 		"metal": 200000,
 		"cristal": 100000,
 		"deut": 100000,
@@ -108,7 +108,7 @@
 		"crawlerEnergySaving" : 0.1
 	},
 	{
-		"name": "Optimised Silo Construction Method",
+		"name": "Roctas 3-2",
 		"metal": 220000,
 		"cristal": 110000,
 		"deut": 110000,
@@ -117,7 +117,7 @@
 		"siloDurationReduction" : 0.2
 	},
 	{
-		"name": "Diamond Energy Transmitter",
+		"name": "Roctas 3-3",
 		"metal": 240000,
 		"cristal": 120000,
 		"deut": 120000,
@@ -126,7 +126,7 @@
 		"energyResearchDurationReduction" : 0.2
 	},
 	{
-		"name": "Obsidian Shield Reinforcement",
+		"name": "Roctas 3-4",
 		"metal": 250000,
 		"cristal": 250000,
 		"deut": 250000,
@@ -134,7 +134,7 @@
 		"defenseBonus" : 0.5
 	},
 	{
-		"name": "Rune Shields",
+		"name": "Roctas 3-5",
 		"metal": 500000,
 		"cristal": 300000,
 		"deut": 200000,
@@ -143,7 +143,7 @@
 		"shellResearchDurationReduction" : 0.2
 	},
 	{
-		"name": "Rock’tal Collector Enhancement",
+		"name": "Roctas 3-6",
 		"metal": 300000,
 		"cristal": 180000,
 		"deut": 200000,

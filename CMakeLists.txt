@@ -47,6 +47,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         rentabilityManager.cpp
         positionitem.h positionitem.cpp
         lifeFormSelectItem.h lifeFormSelectItem.cpp
+        discoverymanager.h discoverymanager.cpp
 
 
 

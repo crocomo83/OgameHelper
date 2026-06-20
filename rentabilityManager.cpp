@@ -1,6 +1,7 @@
 #include "rentabilityManager.h"
 #include "playerManager.h"
 #include "techManager.h"
+#include "discoveryManager.h"
 
 RentabilityManager& RentabilityManager::instance()
 {
@@ -152,12 +153,13 @@ void RentabilityManager::addLifeFormBuilding(const Planet *planet, int indexPlan
 
 void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlanet)
 {
-    Ressources prodMines = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Mines);
+    DiscoveryManager::instance().computeRentability();
+
     int numberResearchLifeForm = TechManager::instance().getNumberTechs(TechType::HumanResearch);
     for (int i = 0; i < numberResearchLifeForm; i++)
     {
         Ressources bonusProdPercent;
-        bool bonusFound = false;
+        bool bonusMiningFound = false;
 
         Species speciesLifeForm = planet->getChoiceLifeFormResearch(i);
         if (speciesLifeForm == Species::None)
@@ -173,37 +175,80 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
             {
             case BonusLifeForm::Metal:
                 bonusProdPercent += Ressources(itr->second, 0.0f, 0.0f);
-                bonusFound = true;
+                bonusMiningFound = true;
                 break;
             case BonusLifeForm::Cristal:
                 bonusProdPercent += Ressources(0.0f, itr->second, 0.0f);
-                bonusFound = true;
+                bonusMiningFound = true;
                 break;
             case BonusLifeForm::Deuterium:
                 bonusProdPercent += Ressources(0.0f, 0.0f, itr->second);
-                bonusFound = true;
+                bonusMiningFound = true;
                 break;
+            case BonusLifeForm::ExpeditionRessourcesIncrease:
+            {
+                const DiscoveryManager::SummaryPerDay& summary = DiscoveryManager::instance().getSummary();
+                const Ressources& mean = summary.meanRessourceFound - summary.meanLost;
+
+                int levelSpecies = PlayerManager::instance().getSpecies(tech->species);
+                float factorSpecies = 1.0f + (float)levelSpecies / 1000.0f;
+                float bonusPercent = itr->second * factorSpecies;
+
+                int levelUpResearch = planet->getTechLevel(researchLifeFormType, i) + 1;
+
+                LevelUp levelUpLifeFormResearch;
+                levelUpLifeFormResearch.name = tech->name;
+                levelUpLifeFormResearch.indexPlanet = indexPlanet;
+                levelUpLifeFormResearch.levelToUpdate = levelUpResearch;
+                levelUpLifeFormResearch.rentaPerDay = mean * bonusPercent / 100.0f;
+                levelUpLifeFormResearch.cost = planet->getCost(researchLifeFormType, i, levelUpResearch);
+                levelUpLifeFormResearch.computeRenta(PlayerManager::instance().getConversionRate());
+                levelUpLifeFormResearch.timeToRecoverStr = rentaToString(levelUpLifeFormResearch.timeToRecover);
+                rentaLevelUp.push_back(levelUpLifeFormResearch);
+                break;
+            }
+            case BonusLifeForm::ExpeditionShipIncrease:
+            {
+                const DiscoveryManager::SummaryPerDay& summary = DiscoveryManager::instance().getSummary();
+                const Ressources& mean = summary.meanShipFound - summary.meanLost;
+
+                int levelSpecies = PlayerManager::instance().getSpecies(tech->species);
+                float factorSpecies = 1.0f + (float)levelSpecies / 1000.0f;
+                float bonusPercent = itr->second * factorSpecies;
+
+                int levelUpResearch = planet->getTechLevel(researchLifeFormType, i) + 1;
+
+                LevelUp levelUpLifeFormResearch;
+                levelUpLifeFormResearch.name = tech->name;
+                levelUpLifeFormResearch.indexPlanet = indexPlanet;
+                levelUpLifeFormResearch.levelToUpdate = levelUpResearch;
+                levelUpLifeFormResearch.rentaPerDay = mean * bonusPercent / 100.0f;
+                levelUpLifeFormResearch.cost = planet->getCost(researchLifeFormType, i, levelUpResearch);
+                levelUpLifeFormResearch.computeRenta(PlayerManager::instance().getConversionRate());
+                levelUpLifeFormResearch.timeToRecoverStr = rentaToString(levelUpLifeFormResearch.timeToRecover);
+                rentaLevelUp.push_back(levelUpLifeFormResearch);
+                break;
+            }
             }
         }
 
-        if (!bonusFound)
+        if (bonusMiningFound)
         {
-            continue;
+            Ressources prodMines = planet->getProductionStat(Planet::ProductionStatPlanet::Mines);
+            Ressources bonusProd = prodMines * bonusProdPercent * 0.01f;
+
+            int levelUpResearch = planet->getTechLevel(researchLifeFormType, i) + 1;
+
+            LevelUp levelUpLifeFormResearch;
+            levelUpLifeFormResearch.name = tech->name;
+            levelUpLifeFormResearch.indexPlanet = indexPlanet;
+            levelUpLifeFormResearch.levelToUpdate = levelUpResearch;
+            levelUpLifeFormResearch.rentaPerDay = bonusProd;
+            levelUpLifeFormResearch.cost = planet->getCost(researchLifeFormType, i, levelUpResearch);
+            levelUpLifeFormResearch.computeRenta(PlayerManager::instance().getConversionRate());
+            levelUpLifeFormResearch.timeToRecoverStr = rentaToString(levelUpLifeFormResearch.timeToRecover);
+            rentaLevelUp.push_back(levelUpLifeFormResearch);
         }
-
-        Ressources bonusProd = prodMines * bonusProdPercent * 0.01f;
-
-        int levelUpResearch = planet->getTechLevel(researchLifeFormType, i) + 1;
-
-        LevelUp levelUpLifeFormResearch;
-        levelUpLifeFormResearch.name = tech->name;
-        levelUpLifeFormResearch.indexPlanet = indexPlanet;
-        levelUpLifeFormResearch.levelToUpdate = levelUpResearch;
-        levelUpLifeFormResearch.rentaPerDay = bonusProd;
-        levelUpLifeFormResearch.cost = planet->getCost(researchLifeFormType, i, levelUpResearch);
-        levelUpLifeFormResearch.computeRenta(PlayerManager::instance().getConversionRate());
-        levelUpLifeFormResearch.timeToRecoverStr = rentaToString(levelUpLifeFormResearch.timeToRecover);
-        rentaLevelUp.push_back(levelUpLifeFormResearch);
     }
 }
 

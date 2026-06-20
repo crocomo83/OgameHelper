@@ -95,6 +95,11 @@ Ressources PlayerManager::getPlasmaBonus() const
     return Ressources(levelPlasma, 0.66f * levelPlasma, 0.33f * levelPlasma);
 }
 
+float PlayerManager::getLifeFormBonus(BonusLifeForm bonus) const
+{
+    return _lifeFormBonuses.at(bonus);
+}
+
 Ressources PlayerManager::getLifeFormProdBonus() const
 {
     float metalBonus    = _lifeFormBonuses.at(BonusLifeForm::Metal);
@@ -330,8 +335,11 @@ bool PlayerManager::loadSave(const QString& path)
 
 void PlayerManager::addPlanet(const QString& name, const PlanetPosition& position, int temperature, Species species)
 {
+    qDebug() << "add planet";
     Planet* planet = new Planet(name, position, temperature, species);
+    qDebug() << "add planet 1";
     _planets.push_back(planet);
+    qDebug() << "add planet ok";
 }
 
 void PlayerManager::duplicatePlanet()

@@ -98,7 +98,16 @@ bool TechManager::loadConfig(TechType techType, QString path)
 
 int TechManager::getNumberTechs(TechType techType) const
 {
-    return _techs.at(techType).size();
+    if (_techs.contains(techType))
+    {
+        return _techs.at(techType).size();
+    }
+    else
+    {
+        qDebug() << "ERROR : no tech type : " << (int)techType;
+        return 0;
+    }
+
 }
 
 const CommonTech* TechManager::getTech(TechType techType, int type) const

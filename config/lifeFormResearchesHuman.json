@@ -1,6 +1,6 @@
 [
 	{
-		"name": "Intergalactic Envoys",
+		"name": "Human 1-1",
 		"metal": 5000,
 		"cristal": 2500,
 		"deut": 500,
@@ -8,7 +8,7 @@
 		"speedDiscovery" : 1
 	},
 	{
-		"name": "High-Performance Extractors",
+		"name": "Human 1-2",
 		"metal": 7000,
 		"cristal": 10000,
 		"deut": 5000,
@@ -18,7 +18,7 @@
 		"deuteriumBonus" : 0.06
 	},
 	{
-		"name": "Fusion Drives",
+		"name": "Human 1-3",
 		"metal": 15000,
 		"cristal": 10000,
 		"deut": 5000,
@@ -26,7 +26,7 @@
 		"speedCiviliansShip" : 0.5
 	},
 	{
-		"name": "Stealth Field Generator",
+		"name": "Human 1-4",
 		"metal": 20000,
 		"cristal": 15000,
 		"deut": 7500,
@@ -35,7 +35,7 @@
 		"spyResearchDurationReduction" : 0.2
 	},
 	{
-		"name": "Orbital Den",
+		"name": "Human 1-5",
 		"metal": 25000,
 		"cristal": 20000,
 		"deut": 10000,
@@ -43,7 +43,7 @@
 		"ressourceHiddenBonus" : 4
 	},
 	{
-		"name": "Research AI",
+		"name": "Human 1-6",
 		"metal": 35000,
 		"cristal": 25000,
 		"deut": 15000,
@@ -52,7 +52,7 @@
 		"lifeFormResearchSpeed" : 0.1
 	},
 	{
-		"name": "High-Performance Terraformer",
+		"name": "Human 2-1",
 		"metal": 70000,
 		"cristal": 40000,
 		"deut": 30000,
@@ -61,7 +61,7 @@
 		"terraformerDurationReduction" : 0.2
 	},
 	{
-		"name": "Enhanced Production Technologies",
+		"name": "Human 2-2",
 		"metal": 80000,
 		"cristal": 50000,
 		"deut": 20000,
@@ -71,7 +71,7 @@
 		"deuteriumBonus" : 0.06
 	},
 	{
-		"name": "Light Fighter Mk II",
+		"name": "Human 2-3",
 		"metal": 320000,
 		"cristal": 240000,
 		"deut": 100000,
@@ -79,7 +79,7 @@
 		"lightFighterFullBonus" : 0.3
 	},
 	{
-		"name": "Cruiser Mk II",
+		"name": "Human 2-4",
 		"metal": 320000,
 		"cristal": 240000,
 		"deut": 100000,
@@ -87,7 +87,7 @@
 		"cruiserFullBonus" : 0.3
 	},
 	{
-		"name": "Improved Lab Technology",
+		"name": "Human 2-5",
 		"metal": 120000,
 		"cristal": 30000,
 		"deut": 25000,
@@ -96,7 +96,7 @@
 		"lifeFormResearchSpeed" : 0.1
 	},
 	{
-		"name": "Plasma Terraformer",
+		"name": "Human 2-6",
 		"metal": 100000,
 		"cristal": 40000,
 		"deut": 30000,
@@ -105,7 +105,7 @@
 		"terraformerDurationReduction" : 0.2
 	},
 	{
-		"name":"Low-Temperature Drives",
+		"name":"Human 3-1",
 		"metal": 200000,
 		"cristal": 100000,
 		"deut": 100000,
@@ -114,7 +114,7 @@
 		"spyResearchDurationReduction" : 0.2
 	},
 	{
-		"name": "Bomber Mk II",
+		"name": "Human 3-2",
 		"metal": 160000,
 		"cristal": 120000,
 		"deut": 50000,
@@ -122,7 +122,7 @@
 		"bomberFullBonus" : 0.3
 	},
 	{
-		"name": "Destroyer Mk II",
+		"name": "Human 3-3",
 		"metal": 160000,
 		"cristal": 120000,
 		"deut": 50000,
@@ -130,7 +130,7 @@
 		"destroyerFullBonus" : 0.3
 	},
 	{
-		"name": "Battlecruiser Mk II",
+		"name": "Human 3-4",
 		"metal": 320000,
 		"cristal": 240000,
 		"deut": 100000,
@@ -138,7 +138,7 @@
 		"battlecruiserFullBonus" : 0.3
 	},
 	{
-		"name": "Robot Assistants",
+		"name": "Human 3-5",
 		"metal": 300000,
 		"cristal": 180000,
 		"deut": 120000,
@@ -147,7 +147,7 @@
 		"lifeFormResearchSpeed" : 0.2
 	},
 	{
-		"name": "Supercomputer",
+		"name": "Human 3-6",
 		"metal": 500000,
 		"cristal": 300000,
 		"deut": 200000,
