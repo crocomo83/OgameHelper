@@ -12,6 +12,7 @@ public:
     struct LevelUp
     {
         int indexPlanet = -1;
+        int numberInstance = 1;
         QString name;
         int levelToUpdate;
         Ressources cost;
@@ -31,6 +32,7 @@ public:
     QString rentaToString(float timeToRecover) const;
 
 private:
+    void addNewLevelUp(LevelUp levelUp);
     void addMinesRentability(const Planet *planet, int indexPlanet);
     void addLifeFormBuilding(const Planet *planet, int indexPlanet);
     void addLifeFormResearch(const Planet *planet, int indexPlanet);

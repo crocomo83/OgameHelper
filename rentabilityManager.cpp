@@ -36,6 +36,25 @@ const RentabilityManager::LevelUp& RentabilityManager::getLevelUp(int index) con
     return rentaLevelUp.at(index);
 }
 
+void RentabilityManager::addNewLevelUp(LevelUp levelUp)
+{
+    auto it = std::find_if(rentaLevelUp.begin(), rentaLevelUp.end(), [this, levelUp](const LevelUp& current)
+    {
+        return current.name == levelUp.name
+                && current.levelToUpdate == levelUp.levelToUpdate
+                && std::abs(current.timeToRecover - levelUp.timeToRecover) < 1.0f;
+    });
+
+    if (it == rentaLevelUp.end())
+    {
+        rentaLevelUp.push_back(std::move(levelUp));
+    }
+    else
+    {
+        it->numberInstance++;
+    }
+}
+
 void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlanet)
 {
     int temperatureMax = planet->getTemperatureMax();
@@ -77,7 +96,7 @@ void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlan
     levelUpMetal.cost = planet->getCost(TechType::CommonBuilding, indexMetal, levelMetal);
     levelUpMetal.computeRenta(PlayerManager::instance().getConversionRate());
     levelUpMetal.timeToRecoverStr = rentaToString(levelUpMetal.timeToRecover);
-    rentaLevelUp.push_back(levelUpMetal);
+    addNewLevelUp(std::move(levelUpMetal));
 
     LevelUp levelUpCristal;
     levelUpCristal.name = "Mine de cristal";
@@ -87,7 +106,7 @@ void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlan
     levelUpCristal.cost = planet->getCost(TechType::CommonBuilding, indexCristal, levelCristal);
     levelUpCristal.computeRenta(PlayerManager::instance().getConversionRate());
     levelUpCristal.timeToRecoverStr = rentaToString(levelUpCristal.timeToRecover);
-    rentaLevelUp.push_back(levelUpCristal);
+    addNewLevelUp(std::move(levelUpCristal));
 
     LevelUp levelUpDeut;
     levelUpDeut.name = "Mine de deut";
@@ -97,7 +116,7 @@ void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlan
     levelUpDeut.cost = planet->getCost(TechType::CommonBuilding, indexDeut, levelDeut);
     levelUpDeut.computeRenta(PlayerManager::instance().getConversionRate());
     levelUpDeut.timeToRecoverStr = rentaToString(levelUpDeut.timeToRecover);
-    rentaLevelUp.push_back(levelUpDeut);
+    addNewLevelUp(std::move(levelUpDeut));
 }
 
 void RentabilityManager::addLifeFormBuilding(const Planet *planet, int indexPlanet)
@@ -147,7 +166,7 @@ void RentabilityManager::addLifeFormBuilding(const Planet *planet, int indexPlan
         levelUpBuilding.cost = planet->getCost(buildingType, i, levelUpBatiment);
         levelUpBuilding.computeRenta(PlayerManager::instance().getConversionRate());
         levelUpBuilding.timeToRecoverStr = rentaToString(levelUpBuilding.timeToRecover);
-        rentaLevelUp.push_back(levelUpBuilding);
+        addNewLevelUp(std::move(levelUpBuilding));
     }
 }
 
@@ -204,7 +223,7 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
                 levelUpLifeFormResearch.cost = planet->getCost(researchLifeFormType, i, levelUpResearch);
                 levelUpLifeFormResearch.computeRenta(PlayerManager::instance().getConversionRate());
                 levelUpLifeFormResearch.timeToRecoverStr = rentaToString(levelUpLifeFormResearch.timeToRecover);
-                rentaLevelUp.push_back(levelUpLifeFormResearch);
+                addNewLevelUp(std::move(levelUpLifeFormResearch));
                 break;
             }
             case BonusLifeForm::ExpeditionShipIncrease:
@@ -226,7 +245,7 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
                 levelUpLifeFormResearch.cost = planet->getCost(researchLifeFormType, i, levelUpResearch);
                 levelUpLifeFormResearch.computeRenta(PlayerManager::instance().getConversionRate());
                 levelUpLifeFormResearch.timeToRecoverStr = rentaToString(levelUpLifeFormResearch.timeToRecover);
-                rentaLevelUp.push_back(levelUpLifeFormResearch);
+                addNewLevelUp(std::move(levelUpLifeFormResearch));
                 break;
             }
             }
@@ -247,7 +266,7 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
             levelUpLifeFormResearch.cost = planet->getCost(researchLifeFormType, i, levelUpResearch);
             levelUpLifeFormResearch.computeRenta(PlayerManager::instance().getConversionRate());
             levelUpLifeFormResearch.timeToRecoverStr = rentaToString(levelUpLifeFormResearch.timeToRecover);
-            rentaLevelUp.push_back(levelUpLifeFormResearch);
+            addNewLevelUp(std::move(levelUpLifeFormResearch));
         }
     }
 }

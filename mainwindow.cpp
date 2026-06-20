@@ -11,7 +11,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 
-static constexpr int NUMBER_RENTA_MAX = 20;
+static constexpr int NUMBER_RENTA_MAX = 100;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     _planetTable = ui->planetsTab;
     _discoveryTab = ui->discoveryTab;
 
+    _rentaTable->setRowCount(NUMBER_RENTA_MAX + 1);
     initTable(_overviewTable);
     initTable(_generalTable);
 
@@ -184,15 +185,19 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
     {
         const RentabilityManager::LevelUp& levelUp = RentabilityManager::instance().getLevelUp(i);
 
-        QString planetName = "";
-        if (levelUp.indexPlanet >= 0)
+        QString displayedName = "";
+        if (levelUp.numberInstance > 1)
+        {
+            displayedName = "Group of " + QString::number(levelUp.numberInstance);
+        }
+        else if (levelUp.indexPlanet >= 0)
         {
             const Planet* planet = PlayerManager::instance().getPlanet(levelUp.indexPlanet);
-            planetName = planet->getName();
+            displayedName = planet->getName();
         }
 
         addLabel(tableWidget, levelUp.name + " : " + QString::number(levelUp.levelToUpdate), i+1, 0);
-        addLabel(tableWidget, planetName, i+1, 1);
+        addLabel(tableWidget, displayedName, i+1, 1);
         addLabel(tableWidget, levelUp.timeToRecoverStr, i+1, 2);
     }
 }
