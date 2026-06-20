@@ -188,6 +188,9 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
         TechType researchLifeFormType = speciesToTechLifeForm.at(speciesLifeForm);
         const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
 
+        int levelSpecies = PlayerManager::instance().getSpecies(tech->species);
+        float factorSpecies = 1.0f + (float)levelSpecies / 1000.0f;
+
         for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
         {
             switch(itr->first)
@@ -208,9 +211,6 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
             {
                 const DiscoveryManager::SummaryPerDay& summary = DiscoveryManager::instance().getSummary();
                 const Ressources& mean = summary.meanRessourceFound - summary.meanLost;
-
-                int levelSpecies = PlayerManager::instance().getSpecies(tech->species);
-                float factorSpecies = 1.0f + (float)levelSpecies / 1000.0f;
                 float bonusPercent = itr->second * factorSpecies;
 
                 int levelUpResearch = planet->getTechLevel(researchLifeFormType, i) + 1;
@@ -230,9 +230,6 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
             {
                 const DiscoveryManager::SummaryPerDay& summary = DiscoveryManager::instance().getSummary();
                 const Ressources& mean = summary.meanShipFound - summary.meanLost;
-
-                int levelSpecies = PlayerManager::instance().getSpecies(tech->species);
-                float factorSpecies = 1.0f + (float)levelSpecies / 1000.0f;
                 float bonusPercent = itr->second * factorSpecies;
 
                 int levelUpResearch = planet->getTechLevel(researchLifeFormType, i) + 1;
@@ -253,8 +250,8 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
 
         if (bonusMiningFound)
         {
-            Ressources prodMines = planet->getProductionStat(Planet::ProductionStatPlanet::Mines);
-            Ressources bonusProd = prodMines * bonusProdPercent * 0.01f;
+            Ressources prodMines = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Mines);
+            Ressources bonusProd = prodMines * bonusProdPercent * factorSpecies * 0.01f;
 
             int levelUpResearch = planet->getTechLevel(researchLifeFormType, i) + 1;
 
