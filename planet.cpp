@@ -220,6 +220,11 @@ void Planet::setName(QString name)
     _name = name;
 }
 
+void Planet::setTemperatureMax(int tempMax)
+{
+    _temperature = tempMax;
+}
+
 void Planet::setSpecies(Species species)
 {
     _species = species;

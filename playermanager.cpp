@@ -335,11 +335,8 @@ bool PlayerManager::loadSave(const QString& path)
 
 void PlayerManager::addPlanet(const QString& name, const PlanetPosition& position, int temperature, Species species)
 {
-    qDebug() << "add planet";
     Planet* planet = new Planet(name, position, temperature, species);
-    qDebug() << "add planet 1";
     _planets.push_back(planet);
-    qDebug() << "add planet ok";
 }
 
 void PlayerManager::duplicatePlanet()
@@ -471,6 +468,7 @@ void PlayerManager:: readPlanetData(const QJsonObject& parent)
 
         QString name = planetObj["name"].toString();
         int species = planetObj["species"].toInt();
+        int temperatureMax = planetObj["temperatureMax"].toInt();
 
         std::array<int, 3> filePosition;
         QJsonArray positionArray = planetObj["position"].toArray();
@@ -480,7 +478,7 @@ void PlayerManager:: readPlanetData(const QJsonObject& parent)
         }
 
         PlanetPosition planetPosition(filePosition[0], filePosition[1], filePosition[2]);
-        Planet* planet = new Planet(name, planetPosition, 0, static_cast<Species>(species));
+        Planet* planet = new Planet(name, planetPosition, temperatureMax, static_cast<Species>(species));
 
         for (int i = 1; i < static_cast<int>(TechType::Count); ++i)
         {
@@ -645,6 +643,7 @@ void PlayerManager::writePlanetData(QJsonArray &parent, int indexPlanet)
     planetObj["position"] = positionArray;
 
     planetObj["species"] = static_cast<int>(planet->getSpecies());
+    planetObj["temperatureMax"] = static_cast<int>(planet->getTemperatureMax());
 
     for (int i = 1; i < static_cast<int>(TechType::Count); ++i)
     {

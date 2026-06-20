@@ -334,6 +334,13 @@ void MainWindow::buildPlanetImputs(QTableWidget* tableWidget, int column)
         emit techChanged();
     });
 
+    // Temperature
+    Item* temperatureItem = addSpinBoxItem(tableWidget, "Temp max : ", currentRow++, column, planet->getTemperatureMax(), -99, 99);
+    temperatureItem->setOnValueChanged([this, planet](int value){
+        planet->setTemperatureMax(value);
+        emit techChanged();
+    });
+
     // Life form
     currentRow++;
     addLabel(tableWidget, "Forme de vie", currentRow++, column);

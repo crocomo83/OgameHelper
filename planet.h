@@ -46,6 +46,7 @@ public:
     void                    computeProduction();
 
     void                    setName(QString name);
+    void                    setTemperatureMax(int tempMax);
     void                    setSpecies(Species species);
     void                    setTechLevel(TechType type, int index, int level);
     void                    setCrawlerNumber(int crawlers);
