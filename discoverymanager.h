@@ -2,6 +2,8 @@
 
 #include "commons.h"
 
+#include <chrono>
+
 class DiscoveryManager
 {
 public:
@@ -113,11 +115,14 @@ private:
     DiscoveryManager(const DiscoveryManager&) = delete;
     DiscoveryManager& operator=(const DiscoveryManager&) = delete;
 
+    void computeTimeToPos16();
+
 private:
     std::map<DiscoveryManager::DiscoveryType, Discovery> dataDiscoveries;
     float discoveryPerDay = 0.0f;
     int deutConsumption = 0;
     int additionalBonusRessources = 0;
+    std::chrono timeToPos16;
 
     SummaryPerDay summary;
 };

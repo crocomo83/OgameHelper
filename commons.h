@@ -388,6 +388,28 @@ enum class ResearchType
     Count
 };
 
+enum class Unit
+{
+    LightFighter,
+    HeavyFighter,
+    Cruiser,
+    Battleship,
+    Battlecruiser,
+    Bomber,
+    Destroyer,
+    Deathstar,
+    Reaper,
+    Pathfinder,
+    SmallCargo,
+    LargeCargo,
+    ColonyShip,
+    Recycler,
+    EspionageProbe,
+    SolarSatellite,
+    Crawler,
+    Count
+};
+
 enum class Class
 {
     None,

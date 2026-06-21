@@ -297,3 +297,8 @@ void DiscoveryManager::setTempBonusRessources(int bonus)
 {
     additionalBonusRessources = bonus;
 }
+
+void DiscoveryManager::computeTimeToPos16()
+{
+
+}

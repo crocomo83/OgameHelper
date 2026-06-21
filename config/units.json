@@ -3,101 +3,118 @@
         "name": "Chasseurs léger",
         "metal": 3000,
         "cristal": 1000,
-        "deut": 0
+        "deut": 0,
+        "speed": 12500
     },
     {
         "name": "Chasseurs lourd",
         "metal": 6000,
         "cristal": 4000,
-        "deut": 0
+        "deut": 0,
+        "speed": 10000
     },
 	{
         "name": "Croiseur",
         "metal": 20000,
         "cristal": 7000,
-        "deut": 2000
+        "deut": 2000,
+        "speed": 15000
     },
 	{
         "name": "Vaisseau de bataille",
         "metal": 45000,
         "cristal": 15000,
-        "deut": 0
+        "deut": 0,
+        "speed": 10000
     },{
         "name": "Traqueur",
         "metal": 30000,
         "cristal": 40000,
-        "deut": 15000
+        "deut": 15000,
+        "speed": 10000
     },
 	{
         "name": "Bombardier",
         "metal": 50000,
         "cristal": 25000,
-        "deut": 15000
+        "deut": 15000,
+        "speed": 5000
     },
 	{
         "name": "Destructeur",
         "metal": 60000,
         "cristal": 50000,
-        "deut": 15000
+        "deut": 15000,
+        "speed": 5000
     },
 	{
         "name": "Etoile de la mort",
         "metal": 5000000,
         "cristal": 4000000,
-        "deut": 1000000
+        "deut": 1000000,
+        "speed": 100
     },
 	{
         "name": "Faucheur",
         "metal": 85000,
         "cristal": 55000,
-        "deut": 25000
+        "deut": 25000,
+        "speed": 7000
     },
 	{
         "name": "Eclaireur",
         "metal": 8000,
         "cristal": 15000,
-        "deut": 8000
+        "deut": 8000,
+        "speed": 12000
     },
 	{
         "name": "Petit transporteur",
         "metal": 2000,
         "cristal": 2000,
-        "deut": 0
+        "deut": 0,
+        "speed": 5000
     },
 	{
         "name": "Grand transporteur",
         "metal": 6000,
         "cristal": 6000,
-        "deut": 0
+        "deut": 0,
+        "speed": 7500
     },
 	{
         "name": "Vaisseau de colonisation",
         "metal": 10000,
         "cristal": 20000,
-        "deut": 10000
+        "deut": 10000,
+        "speed": 2500
     },
 	{
         "name": "Recycleur",
         "metal": 10000,
         "cristal": 6000,
-        "deut": 2000
+        "deut": 2000,
+        "speed": 2000
     },
 	{
         "name": "Sonde d'espionnage",
         "metal": 0,
         "cristal": 1000,
-        "deut": 0
+        "deut": 0,
+        "speed": 100000000
     },
 	{
         "name": "Satelite solaire",
         "metal": 0,
         "cristal": 2000,
-        "deut": 500
+        "deut": 500,
+        "speed": 0
     },
 	{
         "name": "Foreuse",
         "metal": 2000,
         "cristal": 2000,
-        "deut": 1000
+        "deut": 1000,
+        "speed": 0
     }
 ]
