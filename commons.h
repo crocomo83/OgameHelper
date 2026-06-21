@@ -292,11 +292,15 @@ inline static const std::map<BonusLifeForm, QString> bonusLifeFormStr =
 struct LifeFormBuilding : public CommonTech{
     Species species;
     std::map<BonusLifeFormBuilding, double> bonuses;
+    int durationBase = 0;
+    float durationFactor = 1.0f;
 };
 
 struct LifeFormTech : public CommonTech{
     Species species;
     std::map<BonusLifeForm, double> bonuses;
+    int durationBase = 0;
+    float durationFactor = 1.0f;
 };
 
 enum class UniverseSpecifics
@@ -353,6 +357,7 @@ enum class CommonBuildingType
     HangarCristal,
     HangarDeut,
     UsineRobots,
+    ChantierSpatial,
     LaboRecherche,
     DepotRavitaillement,
     SiloMissiles,

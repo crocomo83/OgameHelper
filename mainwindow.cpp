@@ -179,6 +179,7 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
 
     addLabel(tableWidget, "Planète", 0, 1);
     addLabel(tableWidget, "Temps de recouvrement", 0, 2);
+    addLabel(tableWidget, "Temps de construction", 0, 3);
 
     int nb = RentabilityManager::instance().refresh();
     for (int i = 0; i < std::min(NUMBER_RENTA_MAX, nb); ++i)
@@ -188,7 +189,7 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
         QString displayedName = "";
         if (levelUp.numberInstance > 1)
         {
-            displayedName = "Group of " + QString::number(levelUp.numberInstance);
+            displayedName = "[" + QString::number(levelUp.numberInstance) + "]";
         }
         else if (levelUp.indexPlanet >= 0)
         {
@@ -199,6 +200,7 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
         addLabel(tableWidget, levelUp.name + " : " + QString::number(levelUp.levelToUpdate), i+1, 0);
         addLabel(tableWidget, displayedName, i+1, 1);
         addLabel(tableWidget, levelUp.timeToRecoverStr, i+1, 2);
+        addLabel(tableWidget, QString::number(levelUp.timeToCompleteDay), i+1, 3);
     }
 }
 

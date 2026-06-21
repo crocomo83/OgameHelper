@@ -5,7 +5,9 @@
 		"cristal": 3,
 		"deut": 0,
 		"energie": 0,
-		"increaseFactor": 1.2
+		"increaseFactor": 1.2,
+		"durationBase" : 40,
+		"durationFactor" : 1.21
 	},
 	{
 		"name": "Crystal Farm",
@@ -13,7 +15,9 @@
 		"cristal": 2,
 		"deut": 0,
 		"energie": 10,
-		"increaseFactor": 1.2
+		"increaseFactor": 1.2,
+		"durationBase" : 40,
+		"durationFactor" : 1.21
 	},
 	{
 		"name": "Rune Technologium",
@@ -22,6 +26,8 @@
 		"deut": 15000,
 		"energie": 15,
 		"increaseFactor": 1.3,
+		"durationBase" : 16000,
+		"durationFactor" : 1.25,
 		"reducLifeFormResearchCostPercent" : 0.25,
 		"reducLifeFormResearchDurationPercent" : 2
 	},
@@ -31,7 +37,9 @@
 		"cristal": 3800,
 		"deut": 1000,
 		"energie": 20,
-		"increaseFactor": 1.7
+		"increaseFactor": 1.7,
+		"durationBase" : 16000,
+		"durationFactor" : 1.6
 	},
 	{
 		"name": "Oriktorium",
@@ -39,7 +47,9 @@
 		"cristal": 40000,
 		"deut": 50000,
 		"energie": 60,
-		"increaseFactor": 1.65
+		"increaseFactor": 1.65,
+		"durationBase" : 64000,
+		"durationFactor" : 1.7
 	},
 	{
 		"name": "Magma Forge",
@@ -48,6 +58,8 @@
 		"deut": 1000,
 		"energie": 40,
 		"increaseFactor": 1.4,
+		"durationBase" : 2000,
+		"durationFactor" : 1.3,
 		"metalBonus" : 2
 	},
 	{
@@ -57,6 +69,8 @@
 		"deut": 10000,
 		"energie": 0,
 		"increaseFactor": 1.2,
+		"durationBase" : 16000,
+		"durationFactor" : 1.25,
 		"energy" : 1
 	},
 	{
@@ -66,6 +80,8 @@
 		"deut": 15000,
 		"energie": 80,
 		"increaseFactor": 1.5,
+		"durationBase" : 40000,
+		"durationFactor" : 1.4,
 		"reducLifeFormBuildingCostPercent" : 1,
 		"reducLifeFormBuildingDurationPercent" : 1
 	},
@@ -76,6 +92,8 @@
 		"deut": 25000,
 		"energie": 90,
 		"increaseFactor": 1.4,
+		"durationBase" : 40000,
+		"durationFactor" : 1.2,
 		"cristalBonus" : 2
 	},
 	{
@@ -85,6 +103,8 @@
 		"deut": 20000,
 		"energie": 90,
 		"increaseFactor": 1.4,
+		"durationBase" : 52000,
+		"durationFactor" : 1.2,
 		"deutBonus" : 2
 	},
 	{
@@ -94,6 +114,8 @@
 		"deut": 100000,
 		"energie": 120,
 		"increaseFactor": 1.8,
+		"durationBase" : 90000,
+		"durationFactor" : 1.3,
 		"reducMineCostPercent" : 0.5
 	},
 	{
@@ -102,6 +124,8 @@
 		"cristal": 125000,
 		"deut": 125000,
 		"energie": 100,
-		"increaseFactor": 1.5
+		"increaseFactor": 1.5,
+		"durationBase" : 95000,
+		"durationFactor" : 1.3
 	}
 ]

@@ -64,7 +64,9 @@ bool TechManager::loadConfig(TechType techType, QString path)
             LifeFormBuilding lifeFormBuilding;
             lifeFormBuilding.name = name;
             lifeFormBuilding.baseCost = cost;
-            lifeFormBuilding.increaseFactor = (float)obj["increaseFactor"].toDouble(2.0);
+            lifeFormBuilding.increaseFactor = (float)obj["increaseFactor"].toDouble(1.0);
+            lifeFormBuilding.durationBase = obj["durationBase"].toInt(0);
+            lifeFormBuilding.durationFactor = (float)obj["durationFactor"].toDouble(1.0);
             lifeFormBuilding.species = species;
             lifeFormBuilding.bonuses = extractBonusesBuilding(obj);
 
@@ -78,6 +80,8 @@ bool TechManager::loadConfig(TechType techType, QString path)
             lifeFormTech.name = name;
             lifeFormTech.baseCost = cost;
             lifeFormTech.increaseFactor = (float)obj["increaseFactor"].toDouble(2.0);
+            lifeFormTech.durationBase = obj["durationBase"].toInt(0);
+            lifeFormTech.durationFactor = (float)obj["durationFactor"].toDouble(1.0);
             lifeFormTech.species = species;
             lifeFormTech.bonuses = extractBonuses(obj);
 

@@ -189,8 +189,21 @@ Ressources Planet::getCost(TechType techType, int indexTech, int level) const
     switch (techType)
     {
     case TechType::CommonBuilding:
-        factor = 1.0f - _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::ReducMineCostPercent) / 100.0f;
+    {
+        CommonBuildingType buildingType = static_cast<CommonBuildingType>(indexTech);
+        switch(buildingType)
+        {
+            case CommonBuildingType::MineMetal:
+            case CommonBuildingType::MineCristal:
+            case CommonBuildingType::MineDeut:
+                factor = 1.0f - _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::ReducMineCostPercent) / 100.0f;
+                break;
+            default:
+                factor = 1.0f;
+                break;
+        }
         break;
+    }
     case TechType::HumanBuilding:
     case TechType::MechBuilding:
     case TechType::KaeleshBuilding:
@@ -205,9 +218,58 @@ Ressources Planet::getCost(TechType techType, int indexTech, int level) const
         break;
     default:
         factor = 1.0f;
+        break;
+    }
+    return factor * basicCost;
+}
+
+float Planet::getTime(TechType techType, int indexTech, int level) const
+{
+    int robotLevel = getTechLevel(TechType::CommonBuilding, static_cast<int>(CommonBuildingType::UsineRobots));
+    int nanitLevel = getTechLevel(TechType::CommonBuilding, static_cast<int>(CommonBuildingType::UsineNanite));
+
+    switch (techType)
+    {
+    case TechType::CommonBuilding:
+    {
+        Ressources basicCost = TechManager::instance().getCost(techType, indexTech, level);
+        float timeHours = (basicCost.metal + basicCost.cristal) / (2500.0f * (float)std::max(4 - level/2, 1));
+        timeHours /= (float)(1 + robotLevel);
+        timeHours /= (float)std::pow(2, nanitLevel);
+        return timeHours / 24.0f;
     }
 
-    return factor * basicCost;
+    case TechType::HumanBuilding:
+    case TechType::MechBuilding:
+    case TechType::KaeleshBuilding:
+    case TechType::RoctasBuilding:
+    {
+        float factor = 1.0f - _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::ReducLifeFormBuildingDurationPercent) / 100.0f;
+        const CommonTech* tech = TechManager::instance().getTech(techType, indexTech);
+        const LifeFormBuilding* building = static_cast<const LifeFormBuilding*>(tech);
+        float timeSeconds = (float)level * (float)building->durationBase * (float)std::pow(building->durationFactor, level);
+        timeSeconds /= (float)(1 + robotLevel);
+        timeSeconds /= (float)std::pow(2, nanitLevel);
+        timeSeconds *= factor;
+        return timeSeconds / 24.0f / 3600.0f;
+    }
+    case TechType::HumanResearch:
+    case TechType::MechResearch:
+    case TechType::KaeleshResearch:
+    case TechType::RoctasResearch:
+    {
+        float factor = 1.0f - _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::ReducLifeFormResearchDurationPercent) / 100.0f;
+        const CommonTech* tech = TechManager::instance().getTech(techType, indexTech);
+        const LifeFormTech* research = static_cast<const LifeFormTech*>(tech);
+        float timeSeconds = (float)level * (float)research->durationBase * (float)std::pow(research->durationFactor, level);
+        //qDebug() << "Research life form : Level : " << level << ", Duration base : " << research->durationBase << ", Duration factor : " << research->durationFactor;
+
+        timeSeconds *= factor;
+        return timeSeconds / 24.0f / 3600.0f;
+    }
+    default:
+        return -1.0f;
+    }
 }
 
 Ressources Planet::getBonusMine() const

@@ -41,6 +41,7 @@ public:
     float                   getLifeFormBuildingBonus(BonusLifeFormBuilding bonus) const;
     Ressources              getLifeFormProdBonus() const;
     Ressources              getCost(TechType techType, int indexTech, int level) const;
+    float                   getTime(TechType techType, int indexTech, int level) const; //time in days
 
     void                    computeLifeFormBuildingBonus();
     void                    computeProduction();

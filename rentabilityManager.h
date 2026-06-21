@@ -4,6 +4,7 @@
 
 #include <map>
 #include <QString>
+#include <chrono>
 
 class Planet;
 class RentabilityManager
@@ -17,11 +18,12 @@ public:
         int levelToUpdate;
         Ressources cost;
         Ressources rentaPerDay;
+        float timeToCompleteDay;
         float timeToRecover = -1.0f;
         QString timeToRecoverStr = "";
 
         void computeRenta(Ressources tradeRate)
-            {timeToRecover = cost.getEquivalentDeut(tradeRate) / rentaPerDay.getEquivalentDeut(tradeRate);}
+            {timeToRecover = cost.getEquivalentDeut(tradeRate) / rentaPerDay.getEquivalentDeut(tradeRate) + timeToCompleteDay;}
     };
 
 public:
