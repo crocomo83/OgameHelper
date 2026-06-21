@@ -57,6 +57,7 @@ public:
     Planet *        getPlanet(int index) const;
 
     Ressources      getPlasmaBonus() const;
+    float           getLifeFormBonus(BonusLifeForm bonus) const;
     Ressources      getLifeFormProdBonus() const;
     Ressources      getGeologBonus() const;
     Ressources      getClassBonus() const;
