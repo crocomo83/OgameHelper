@@ -1,5 +1,6 @@
 #include "planet.h"
 #include "techManager.h"
+#include "playermanager.h"
 
 #include <QDebug>
 

@@ -1,4 +1,6 @@
 #include "discoverymanager.h"
+#include "techManager.h"
+#include "playermanager.h"
 
 #include <QJsonObject>
 #include <QJsonArray>
@@ -111,9 +113,10 @@ bool DiscoveryManager::loadSave(QString path)
     discoveryPerDay = (float)rootObj["discoveryPerDay"].toDouble();
     deutConsumption = rootObj["deutConsumption"].toInt();
     additionalBonusRessources = rootObj["tempBonus"].toInt();
-    QJsonArray discoveries = rootObj["discoveries"].toArray();
+    positionDiscovery = rootObj["positionDiscovery"].toInt();
 
     // Parcours du tableau
+    QJsonArray discoveries = rootObj["discoveries"].toArray();
     for (const QJsonValue &value : discoveries) {
         QJsonObject obj = value.toObject();
 
@@ -204,6 +207,7 @@ bool DiscoveryManager::save(QString path)
     rootObj["discoveryPerDay"] = discoveryPerDay;
     rootObj["deutConsumption"] = deutConsumption;
     rootObj["tempBonus"] = additionalBonusRessources;
+    rootObj["positionDiscovery"] = positionDiscovery;
 
     // Conversion en document JSON
     QJsonDocument doc(rootObj);
@@ -222,6 +226,12 @@ bool DiscoveryManager::save(QString path)
     file.close();
 
     return true;
+}
+
+void DiscoveryManager::refresh()
+{
+    computeDiscoverySpeed();
+    timeToPos16 = computeTimeToPos16();
 }
 
 void DiscoveryManager::computeRentability()
@@ -273,6 +283,11 @@ int DiscoveryManager::getDeutConsumption() const
     return deutConsumption;
 }
 
+int DiscoveryManager::getPositionDiscovery() const
+{
+    return positionDiscovery;
+}
+
 int DiscoveryManager::getTempBonusRessources() const
 {
     return additionalBonusRessources;
@@ -293,12 +308,44 @@ void DiscoveryManager::setDeutConsumption(int deut)
     deutConsumption = deut;
 }
 
+void DiscoveryManager::setPositionDiscovery(int position)
+{
+    positionDiscovery = position;
+}
+
 void DiscoveryManager::setTempBonusRessources(int bonus)
 {
     additionalBonusRessources = bonus;
 }
 
-void DiscoveryManager::computeTimeToPos16()
+void DiscoveryManager::computeDiscoverySpeed()
 {
+    int levelPropCombustion = PlayerManager::instance().getResearchLevel(ResearchType::PropCombusion);
+    Class classPlayer = PlayerManager::instance().getClass();
+    AllianceClass allianceClass = PlayerManager::instance().getAllianceClass();
 
+    bonusSpeedPercent = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::LargeCargoUpdate);
+    bonusSpeedPercent += PlayerManager::instance().getLifeFormBonus(BonusLifeForm::SpeedCivilianShips);
+    bonusSpeedPercent += 10.0f * levelPropCombustion;
+
+    if (classPlayer == Class::Collector)
+    {
+        bonusSpeedPercent += 100.0f;
+    }
+    if (allianceClass == AllianceClass::Merchand)
+    {
+        bonusSpeedPercent += 10.0f;
+    }
+}
+
+std::chrono::seconds DiscoveryManager::computeTimeToPos16()
+{
+    const Unit& largeCargo = TechManager::instance().getUnit(UnitType::LargeCargo);
+    int initSpeed = largeCargo.speed;
+    float speed = (float)initSpeed * (1.0f + bonusSpeedPercent / 100.0f);
+
+    float percentSpeed = 100.0f;
+    float distance = (float)(16 - positionDiscovery);
+    int time =  std::round(10.0f + 35000.0f/percentSpeed * std::sqrt((1000000.0f + distance * 5000) / speed));
+    return std::chrono::seconds(time);
 }

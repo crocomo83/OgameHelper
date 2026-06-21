@@ -303,6 +303,12 @@ struct LifeFormTech : public CommonTech{
     float durationFactor = 1.0f;
 };
 
+struct Unit{
+    QString name = "";
+    Ressources cost;
+    int speed;
+};
+
 enum class UniverseSpecifics
 {
     EconnomicSpeed,
@@ -388,7 +394,7 @@ enum class ResearchType
     Count
 };
 
-enum class Unit
+enum class UnitType
 {
     LightFighter,
     HeavyFighter,

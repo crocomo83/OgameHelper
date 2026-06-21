@@ -11,6 +11,8 @@
 #include <QPushButton>
 #include <QLineEdit>
 
+#include <chrono>
+
 static constexpr int NUMBER_RENTA_MAX = 100;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -416,6 +418,8 @@ void MainWindow::buildPlanetImputs(QTableWidget* tableWidget, int column)
 
 void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
 {
+    DiscoveryManager::instance().refresh();
+
     float expePerDay = DiscoveryManager::instance().getDiscoveryPerDay();
     DoubleSpinBoxItem* expeItem = addDoubleSpinBoxItem(tableWidget, "Expé/j : ", 0, 0, expePerDay);
     expeItem->setOnValueChanged([this](double value) {
@@ -442,6 +446,17 @@ void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
     deutConso->setOnValueChanged([this](int value) {
         DiscoveryManager::instance().setDeutConsumption(value);
     });
+
+    float positionDiscovery = DiscoveryManager::instance().getPositionDiscovery();
+    Item* posDiscoveryItem = addSpinBoxItem(tableWidget, "Pos discovery : ", 0, 5, positionDiscovery, 1, 15);
+    posDiscoveryItem->setOnValueChanged([this](int value) {
+        DiscoveryManager::instance().setPositionDiscovery(value);
+    });
+
+    const std::chrono::seconds secondsToPos16 = DiscoveryManager::instance().getTimeToPos16();
+    int min = secondsToPos16.count() / 60;
+    int sec = secondsToPos16.count() % 60;
+    addLabel(tableWidget, "Min : " + QString::number(min) + ", Sec : " + QString::number(sec), 0, 6);
 
     DiscoveryManager::instance().loadBonusFactor(bonusRessources, bonusFleat);
 

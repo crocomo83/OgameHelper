@@ -97,15 +97,19 @@ public:
     bool loadSave(QString path);
     void loadBonusFactor(float ressourcesBonus, float shipBonus);
     bool save(QString path);
+    void refresh();
     void computeRentability();
     QString getTypeStrList(DiscoveryType type) const;
     Discovery getDiscovery(DiscoveryType type) const;
     float getDiscoveryPerDay() const;
     int getDeutConsumption() const;
+    int getPositionDiscovery() const;
     int getTempBonusRessources() const;
     const SummaryPerDay& getSummary() const;
+    inline std::chrono::seconds getTimeToPos16() const {return timeToPos16; }
     void setDiscoveryPerDay(float value);
     void setDeutConsumption(int deut);
+    void setPositionDiscovery(int position);
     void setTempBonusRessources(int bonus);
 
 private:
@@ -115,14 +119,18 @@ private:
     DiscoveryManager(const DiscoveryManager&) = delete;
     DiscoveryManager& operator=(const DiscoveryManager&) = delete;
 
-    void computeTimeToPos16();
+    void computeDiscoverySpeed();
+    std::chrono::seconds computeTimeToPos16();
 
 private:
     std::map<DiscoveryManager::DiscoveryType, Discovery> dataDiscoveries;
     float discoveryPerDay = 0.0f;
     int deutConsumption = 0;
+    int positionDiscovery = 1;
     int additionalBonusRessources = 0;
-    std::chrono timeToPos16;
+
+    float bonusSpeedPercent;
+    std::chrono::seconds timeToPos16;
 
     SummaryPerDay summary;
 };

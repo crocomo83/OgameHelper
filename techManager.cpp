@@ -26,9 +26,10 @@ TechManager::TechManager()
     loadConfig(TechType::KaeleshResearch,   ":/config/lifeFormResearchesKaelesh.json");
     loadConfig(TechType::MechResearch,      ":/config/lifeFormResearchesMech.json");
     loadConfig(TechType::RoctasResearch,    ":/config/lifeFormResearchesRoctas.json");
+    loadUnits(":/config/units.json");
 }
 
-bool TechManager::loadConfig(TechType techType, QString path)
+bool TechManager::loadConfig(TechType techType, const QString &path)
 {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly)) {
@@ -97,6 +98,42 @@ bool TechManager::loadConfig(TechType techType, QString path)
         }
     }
 
+    return true;
+}
+
+bool TechManager::loadUnits(const QString& path)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Fichier introuvable : " << path;
+        return false;
+    }
+
+    QJsonParseError err;
+    QByteArray raw = file.readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(raw, &err);
+
+    if (err.error != QJsonParseError::NoError) {
+        qWarning() << "Erreur JSON : " << path << " : " << err.errorString();
+        return false;
+    }
+
+    int index = 0;
+    QJsonArray array = doc.array();
+    for (const QJsonValue &val : array) {
+        UnitType type = static_cast<UnitType>(index);
+        QJsonObject obj = val.toObject();
+
+        Unit unit;
+        unit.name           = obj["name"].toString();
+        unit.cost.metal     = obj["metal"].toInt(0);
+        unit.cost.cristal   = obj["cristal"].toInt(0);
+        unit.cost.deut      = obj["deut"].toInt(0);
+        unit.speed          = obj["speed"].toInt(0);
+
+        _units[type] = std::move(unit);
+        index++;
+    }
     return true;
 }
 
@@ -256,6 +293,11 @@ TechType TechManager::getResearchTech(Species species) const
     default:
         return TechType::None;
     }
+}
+
+const Unit& TechManager::getUnit(UnitType type) const
+{
+    return _units.at(type);
 }
 
 std::map<BonusLifeFormBuilding, double> TechManager::extractBonusesBuilding(const QJsonObject& obj) const

@@ -172,7 +172,9 @@ void PlayerManager::computeLifeFormResearch()
                 for (auto itr = lifeFormTech->bonuses.begin(); itr != lifeFormTech->bonuses.end(); ++itr)
                 {
                     float bonusLevelSpecies = 1.0f + (float)_levelSpecies[lifeFormTech->species] * 0.001f;
-                    _lifeFormBonuses[itr->first] += level * itr->second * bonusLevelSpecies;
+                    float rawBonus = level * itr->second * bonusLevelSpecies;
+                    float bonus = std::round(rawBonus * 100.0f) / 100.0f;
+                    _lifeFormBonuses[itr->first] += bonus;
                 }
             }
         }
