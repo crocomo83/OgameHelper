@@ -51,10 +51,12 @@ public:
 private slots:
     void onPlanetsChanged();
     void onTechChanged();
+    void onRentaChanged();
 
 signals:
     void planetsChanged();
     void techChanged();
+    void rentaChanged();
 
 private:
     Ui::MainWindow *ui;

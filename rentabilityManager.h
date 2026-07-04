@@ -3,6 +3,7 @@
 #include "commons.h"
 
 #include <map>
+#include <unordered_map>
 #include <QString>
 #include <chrono>
 #include <optional>
@@ -27,11 +28,26 @@ public:
             {timeToRecover = cost.getEquivalentDeut(tradeRate) / rentaPerDay.getEquivalentDeut(tradeRate) + timeToCompleteDay;}
     };
 
+    enum TypeFilter
+    {
+        BuildingFilter,
+        ResearchFilter,
+        LifeFormBuildingFilter,
+        LifeFormResearchFilter,
+        Count
+    };
+    inline static const QStringList typeFilterString = {"Building", "Research", "LifeFormBuilding", "LifeFormResearch"};
+
+
 public:
     static RentabilityManager& instance();
 
     int refresh();
-    const RentabilityManager::LevelUp& getLevelUp(int index) const;
+    inline const RentabilityManager::LevelUp& getLevelUp(int index) const {return rentaLevelUp.at(index);}
+    inline bool getFilterPlanet(int index) const {return _filterPlanet.at(index);}
+    inline bool getFilterType(TypeFilter index) const {return _typeFilter.at(index);}
+    inline void setFilterPlanet(int index, bool state) {_filterPlanet[index] = state;}
+    inline void setFilterType(TypeFilter index, bool state) {_typeFilter[index] = state;}
     QString rentaToString(float timeToRecover) const;
 
 private:
@@ -49,4 +65,6 @@ private:
     RentabilityManager& operator=(const RentabilityManager&) = delete;
 
     std::vector <LevelUp> rentaLevelUp;
+    std::vector<bool> _filterPlanet;
+    std::unordered_map<TypeFilter, bool> _typeFilter;
 };

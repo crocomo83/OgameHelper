@@ -230,6 +230,7 @@ bool DiscoveryManager::save(QString path)
 
 void DiscoveryManager::refresh()
 {
+    computeRentability();
     computeDiscoverySpeed();
     timeToPos16 = computeTimeToPos16(_bonusSpeedPercent);
 }
@@ -259,7 +260,6 @@ void DiscoveryManager::computeRentability()
     float scrapFactor = (float)PlayerManager::instance().getScrapRate() / 100.0f;
     summary.meanShipFound = scrapFactor * factorShip * shipDiscovery.mean;
 
-    // TODO add factor
     const Discovery& combatDiscovery = dataDiscoveries.at(DiscoveryType::Combat);
     float factorCombat = (float)combatDiscovery.count / (float)globalCount * discoveryPerDay;
     summary.meanLost = factorCombat * dataDiscoveries.at(DiscoveryType::Combat).mean;

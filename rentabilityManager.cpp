@@ -9,20 +9,40 @@ RentabilityManager& RentabilityManager::instance()
     return instance;
 }
 
-RentabilityManager::RentabilityManager() {}
+RentabilityManager::RentabilityManager()
+{
+    int nbPlanet = PlayerManager::instance().getNumberPlanets();
+    _filterPlanet.resize(nbPlanet, true);
+    _typeFilter[TypeFilter::BuildingFilter]           = true;
+    _typeFilter[TypeFilter::ResearchFilter]           = true;
+    _typeFilter[TypeFilter::LifeFormBuildingFilter]   = true;
+    _typeFilter[TypeFilter::LifeFormResearchFilter]   = true;
+}
 
 int RentabilityManager::refresh()
 {
+    DiscoveryManager::instance().refresh();
+
     rentaLevelUp.clear();
-    addReasearchRentability();
+
+    if (_typeFilter.at(TypeFilter::ResearchFilter))
+        addReasearchRentability();
 
     int nbPlanet = PlayerManager::instance().getNumberPlanets();
     for (int i = 0; i < nbPlanet; ++i)
     {
+        if (!_filterPlanet.at(i)) continue;
+
         const Planet* planet = PlayerManager::instance().getPlanet(i);
-        addMinesRentability(planet, i);
-        addLifeFormBuilding(planet, i);
-        addLifeFormResearch(planet, i);
+
+        if (_typeFilter.at(TypeFilter::BuildingFilter))
+            addMinesRentability(planet, i);
+
+        if (_typeFilter.at(TypeFilter::LifeFormBuildingFilter))
+            addLifeFormBuilding(planet, i);
+
+        if (_typeFilter.at(TypeFilter::LifeFormResearchFilter))
+            addLifeFormResearch(planet, i);
     }
 
     std::sort(rentaLevelUp.begin(), rentaLevelUp.end(),
@@ -31,11 +51,6 @@ int RentabilityManager::refresh()
               });
 
     return rentaLevelUp.size();
-}
-
-const RentabilityManager::LevelUp& RentabilityManager::getLevelUp(int index) const
-{
-    return rentaLevelUp.at(index);
 }
 
 void RentabilityManager::addNewLevelUp(LevelUp levelUp)
@@ -212,7 +227,6 @@ void RentabilityManager::addLifeFormBuilding(const Planet *planet, int indexPlan
 
 void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlanet)
 {
-    DiscoveryManager::instance().computeRentability();
     Ressources prodMines = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Mines);
 
     int numberResearchLifeForm = TechManager::instance().getNumberTechs(TechType::HumanResearch);

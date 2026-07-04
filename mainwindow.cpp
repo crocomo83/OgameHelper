@@ -74,6 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(this, &MainWindow::planetsChanged, this, &MainWindow::onPlanetsChanged);
     connect(this, &MainWindow::techChanged, this, &MainWindow::onTechChanged);
+    connect(this, &MainWindow::rentaChanged, this, &MainWindow::onRentaChanged);
 }
 
 MainWindow::~MainWindow()
@@ -110,9 +111,9 @@ Item* MainWindow::addSpinBoxItem(QTableWidget* tableWidget, QString str, int row
 DoubleSpinBoxItem* MainWindow::addDoubleSpinBoxItem(QTableWidget* tableWidget, QString str, int row, int column, double defaultValue, double minValue, double maxValue)
 {
     DoubleSpinBoxItem* doubleSpinBox = new DoubleSpinBoxItem(str);
-    doubleSpinBox->setValue(defaultValue);
     doubleSpinBox->setMinValue(minValue);
     doubleSpinBox->setMaxValue(maxValue);
+    doubleSpinBox->setValue(defaultValue);
     doubleSpinBox->setLocale(QLocale::C);
     tableWidget->setCellWidget(row, column, doubleSpinBox);
     return doubleSpinBox;
@@ -177,11 +178,14 @@ void MainWindow::buildResumeOutputs(QTableWidget* tableWidget)
 
 void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
 {
-    addLabel(tableWidget, "A augmenter", 0, 0);
+    tableWidget->clear();
 
+    addLabel(tableWidget, "A augmenter", 0, 0);
     addLabel(tableWidget, "Planète", 0, 1);
     addLabel(tableWidget, "Temps de recouvrement", 0, 2);
     addLabel(tableWidget, "Temps de construction", 0, 3);
+    addLabel(tableWidget, "Planet filter", 0, 5);
+    addLabel(tableWidget, "Type filter", 0, 6);
 
     int nb = RentabilityManager::instance().refresh();
     for (int i = 0; i < std::min(NUMBER_RENTA_MAX, nb); ++i)
@@ -203,6 +207,29 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
         addLabel(tableWidget, displayedName, i+1, 1);
         addLabel(tableWidget, levelUp.timeToRecoverStr, i+1, 2);
         addLabel(tableWidget, QString::number(levelUp.timeToCompleteDay), i+1, 3);
+    }
+
+    for (int i = 0; i < PlayerManager::instance().getNumberPlanets(); ++i)
+    {
+        const Planet* planet = PlayerManager::instance().getPlanet(i);
+        bool state = RentabilityManager::instance().getFilterPlanet(i);
+        CheckBoxItem* planetFilterItem = addCheckBoxItem(tableWidget, planet->getName(), i + 1, 5, state);
+        planetFilterItem->setOnValueChanged([this, i](bool value) {
+            RentabilityManager::instance().setFilterPlanet(i, value);
+            emit rentaChanged();
+        });
+    }
+
+    for (int i = 0; i < static_cast<int>(RentabilityManager::TypeFilter::Count); ++i)
+    {
+        RentabilityManager::TypeFilter typeFilter = static_cast<RentabilityManager::TypeFilter>(i);
+        bool state = RentabilityManager::instance().getFilterType(typeFilter);
+
+        CheckBoxItem* typeFilterItem = addCheckBoxItem(tableWidget, RentabilityManager::typeFilterString.at(i), i + 1, 6, state);
+        typeFilterItem->setOnValueChanged([this, typeFilter](bool value) {
+            RentabilityManager::instance().setFilterType(typeFilter, value);
+            emit rentaChanged();
+        });
     }
 }
 
@@ -421,7 +448,7 @@ void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
     DiscoveryManager::instance().refresh();
 
     float expePerDay = DiscoveryManager::instance().getDiscoveryPerDay();
-    DoubleSpinBoxItem* expeItem = addDoubleSpinBoxItem(tableWidget, "Expé/j : ", 0, 0, expePerDay);
+    DoubleSpinBoxItem* expeItem = addDoubleSpinBoxItem(tableWidget, "Expé/j : ", 0, 0, expePerDay, 0, 999.9);
     expeItem->setOnValueChanged([this](double value) {
         DiscoveryManager::instance().setDiscoveryPerDay((float)value);
     });
@@ -568,4 +595,9 @@ void MainWindow::onTechChanged()
     buildResumeOutputs(_overviewTable);
     buildRentaOutputs(_rentaTable);
     buildDiscoveryImputs(_discoveryTab);
+}
+
+void MainWindow::onRentaChanged()
+{
+    buildRentaOutputs(_rentaTable);
 }
