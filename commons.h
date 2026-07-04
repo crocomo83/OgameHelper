@@ -424,7 +424,7 @@ enum class Class
     General,
     Count
 };
-inline static const QStringList classToString = {"Aucune", "Collecteur", "Général", "Explorateur"};
+inline static const QStringList classToString = {"Aucune", "Collecteur", "Explorateur", "Général"};
 
 enum class AllianceClass
 {

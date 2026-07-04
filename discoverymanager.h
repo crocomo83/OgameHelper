@@ -85,6 +85,7 @@ public:
         Ressources meanRessourceFound;
         Ressources meanShipFound;
         Ressources meanLost;
+        Ressources globalMean;
     };
 
 public:
@@ -106,11 +107,13 @@ public:
     int getPositionDiscovery() const;
     int getTempBonusRessources() const;
     const SummaryPerDay& getSummary() const;
-    inline std::chrono::seconds getTimeToPos16() const {return timeToPos16; }
+    inline float getTimeToPos16() const {return timeToPos16; }
     void setDiscoveryPerDay(float value);
     void setDeutConsumption(int deut);
     void setPositionDiscovery(int position);
     void setTempBonusRessources(int bonus);
+
+    Ressources computeReductionTimeDiscovery(float bonusSpeedPercent);
 
 private:
     DiscoveryManager();
@@ -120,7 +123,7 @@ private:
     DiscoveryManager& operator=(const DiscoveryManager&) = delete;
 
     void computeDiscoverySpeed();
-    std::chrono::seconds computeTimeToPos16();
+    float computeTimeToPos16(float bonusSpeedPercent);
 
 private:
     std::map<DiscoveryManager::DiscoveryType, Discovery> dataDiscoveries;
@@ -129,8 +132,8 @@ private:
     int positionDiscovery = 1;
     int additionalBonusRessources = 0;
 
-    float bonusSpeedPercent;
-    std::chrono::seconds timeToPos16;
+    float _bonusSpeedPercent;
+    float timeToPos16;
 
     SummaryPerDay summary;
 };

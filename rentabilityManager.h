@@ -5,6 +5,7 @@
 #include <map>
 #include <QString>
 #include <chrono>
+#include <optional>
 
 class Planet;
 class RentabilityManager
@@ -12,7 +13,7 @@ class RentabilityManager
 public:
     struct LevelUp
     {
-        int indexPlanet = -1;
+        std::optional<int> indexPlanet;
         int numberInstance = 1;
         QString name;
         int levelToUpdate;
@@ -35,6 +36,7 @@ public:
 
 private:
     void addNewLevelUp(LevelUp levelUp);
+    void addReasearchRentability();
     void addMinesRentability(const Planet *planet, int indexPlanet);
     void addLifeFormBuilding(const Planet *planet, int indexPlanet);
     void addLifeFormResearch(const Planet *planet, int indexPlanet);

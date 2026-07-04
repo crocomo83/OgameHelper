@@ -27,6 +27,7 @@ PlayerManager::PlayerManager()
 
     computeLifeFormResearch();
     computeProduction();
+    computeLabsLevel();
 }
 
 int PlayerManager::getNumberPlanets() const
@@ -82,6 +83,18 @@ int PlayerManager::getResearchLevel(ResearchType researchType) const
 int PlayerManager::getSpecies(Species species) const
 {
     return _levelSpecies.at(species);
+}
+
+float PlayerManager::getResearchTime(int indexTech, int level) const
+{
+    float timeDays = TechManager::instance().getBaseTime(TechType::CommonResearch, indexTech, level);
+    timeDays /= (float)(1 + _labsLevel);
+    timeDays /= (float)_universeSpecifics.at(UniverseSpecifics::ResearchBoost);
+    if (_class == Class::Explorer)
+    {
+        timeDays *= 0.75f;
+    }
+    return timeDays;
 }
 
 Planet* PlayerManager::getPlanet(int index) const
@@ -209,6 +222,26 @@ void PlayerManager::computeProduction()
     _productionStats[Geolog]                = prodMines * getGeologBonus() * 0.01f;
     _productionStats[ClassBonus]            = prodMines * getClassBonus() * 0.01f;
     _productionStats[AllianceBonus]         = prodMines * getAllianceClassBonus() * 0.01f;
+}
+
+void PlayerManager::computeLabsLevel()
+{
+    std::vector<int> labLevels;
+    for (int i = 0; i < getNumberPlanets(); ++i)
+    {
+        const Planet* planet = getPlanet(i);
+        int labIndex = static_cast<int>(CommonBuildingType::LaboRecherche);
+        labLevels.push_back(planet->getTechLevel(TechType::CommonBuilding, labIndex));
+    }
+    std::sort(labLevels.begin(), labLevels.end(), std::greater<int>());
+
+    _labsLevel = 0;
+    int levelNetwork = getResearchLevel(ResearchType::Reseau);
+    int maxIndex = std::min(levelNetwork + 1, (int)labLevels.size());
+    for (int i = 0; i < maxIndex; ++i)
+    {
+        _labsLevel += labLevels.at(i);
+    }
 }
 
 const Ressources& PlayerManager::getProduction(ProductionStat stat) const

@@ -193,9 +193,9 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
         {
             displayedName = "[" + QString::number(levelUp.numberInstance) + "]";
         }
-        else if (levelUp.indexPlanet >= 0)
+        else if (levelUp.indexPlanet)
         {
-            const Planet* planet = PlayerManager::instance().getPlanet(levelUp.indexPlanet);
+            const Planet* planet = PlayerManager::instance().getPlanet(levelUp.indexPlanet.value());
             displayedName = planet->getName();
         }
 
@@ -453,9 +453,9 @@ void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
         DiscoveryManager::instance().setPositionDiscovery(value);
     });
 
-    const std::chrono::seconds secondsToPos16 = DiscoveryManager::instance().getTimeToPos16();
-    int min = secondsToPos16.count() / 60;
-    int sec = secondsToPos16.count() % 60;
+    const int secondsToPos16 = std::round(DiscoveryManager::instance().getTimeToPos16());
+    int min = secondsToPos16 / 60;
+    int sec = secondsToPos16 % 60;
     addLabel(tableWidget, "Min : " + QString::number(min) + ", Sec : " + QString::number(sec), 0, 6);
 
     DiscoveryManager::instance().loadBonusFactor(bonusRessources, bonusFleat);
@@ -563,6 +563,7 @@ void MainWindow::onTechChanged()
 
     PlayerManager::instance().computeLifeFormResearch();
     PlayerManager::instance().computeProduction();
+    PlayerManager::instance().computeLabsLevel();
 
     buildResumeOutputs(_overviewTable);
     buildRentaOutputs(_rentaTable);

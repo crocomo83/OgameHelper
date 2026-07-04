@@ -55,14 +55,12 @@ public:
     int             getNumberResearch() const;
     const QString&  getPlanetName(int index) const;
     Planet *        getPlanet(int index) const;
-
     Ressources      getPlasmaBonus() const;
     float           getLifeFormBonus(BonusLifeForm bonus) const;
     Ressources      getLifeFormProdBonus() const;
     Ressources      getGeologBonus() const;
     Ressources      getClassBonus() const;
     Ressources      getAllianceClassBonus() const;
-
     Class           getClass() const;
     AllianceClass   getAllianceClass() const;
     int             getScrapRate() const;
@@ -71,9 +69,11 @@ public:
     Ressources      getConversionRate() const;
     int             getResearchLevel(ResearchType researchType) const;
     int             getSpecies(Species species) const;
+    float           getResearchTime(int indexTech, int level) const;
 
     void            computeLifeFormResearch();
     void            computeProduction();
+    void            computeLabsLevel();
     const Ressources&   getProduction(ProductionStat stat) const;
     const QString& getProductionStr(ProductionStat stat) const;
 
@@ -135,4 +135,5 @@ private:
     std::map<BonusLifeForm, float>          _lifeFormBonuses;
 
     std::map<ProductionStat, Ressources>    _productionStats;
+    int                                     _labsLevel {0};
 };

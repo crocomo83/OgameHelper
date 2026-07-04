@@ -231,7 +231,7 @@ bool DiscoveryManager::save(QString path)
 void DiscoveryManager::refresh()
 {
     computeDiscoverySpeed();
-    timeToPos16 = computeTimeToPos16();
+    timeToPos16 = computeTimeToPos16(_bonusSpeedPercent);
 }
 
 void DiscoveryManager::computeRentability()
@@ -256,11 +256,25 @@ void DiscoveryManager::computeRentability()
 
     const Discovery& shipDiscovery = dataDiscoveries.at(DiscoveryType::Fleat);
     float factorShip = (float)shipDiscovery.count / (float)globalCount * discoveryPerDay;
-    summary.meanShipFound = factorShip * shipDiscovery.mean;
+    float scrapFactor = (float)PlayerManager::instance().getScrapRate() / 100.0f;
+    summary.meanShipFound = scrapFactor * factorShip * shipDiscovery.mean;
 
-    summary.meanLost = dataDiscoveries.at(DiscoveryType::Combat).mean;
-    summary.meanLost += dataDiscoveries.at(DiscoveryType::Blackhole).mean;
+    // TODO add factor
+    const Discovery& combatDiscovery = dataDiscoveries.at(DiscoveryType::Combat);
+    float factorCombat = (float)combatDiscovery.count / (float)globalCount * discoveryPerDay;
+    summary.meanLost = factorCombat * dataDiscoveries.at(DiscoveryType::Combat).mean;
+
+    const Discovery& blackholeDiscovery = dataDiscoveries.at(DiscoveryType::Blackhole);
+    float factorBlackhole = (float)blackholeDiscovery.count / (float)globalCount * discoveryPerDay;
+    summary.meanLost += factorBlackhole * dataDiscoveries.at(DiscoveryType::Blackhole).mean;
+
     summary.meanLost += Ressources(0.0f, 0.0f, (float)deutConsumption);
+
+    float bonusRessources = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionRessourcesIncrease);
+    float factorRessources = 1.0f + bonusRessources / 100.0f;
+    float bonusFleat = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionShipIncrease);
+    float factorFleat = 1.0f + bonusFleat / 100.0f;
+    summary.globalMean = factorRessources * summary.meanRessourceFound + factorFleat * summary.meanShipFound - summary.meanLost;
 }
 
 QString DiscoveryManager::getTypeStrList(DiscoveryType type) const
@@ -324,21 +338,21 @@ void DiscoveryManager::computeDiscoverySpeed()
     Class classPlayer = PlayerManager::instance().getClass();
     AllianceClass allianceClass = PlayerManager::instance().getAllianceClass();
 
-    bonusSpeedPercent = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::LargeCargoUpdate);
-    bonusSpeedPercent += PlayerManager::instance().getLifeFormBonus(BonusLifeForm::SpeedCivilianShips);
-    bonusSpeedPercent += 10.0f * levelPropCombustion;
+    _bonusSpeedPercent = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::LargeCargoUpdate);
+    _bonusSpeedPercent += PlayerManager::instance().getLifeFormBonus(BonusLifeForm::SpeedCivilianShips);
+    _bonusSpeedPercent += 10.0f * levelPropCombustion;
 
     if (classPlayer == Class::Collector)
     {
-        bonusSpeedPercent += 100.0f;
+        _bonusSpeedPercent += 100.0f;
     }
     if (allianceClass == AllianceClass::Merchand)
     {
-        bonusSpeedPercent += 10.0f;
+        _bonusSpeedPercent += 10.0f;
     }
 }
 
-std::chrono::seconds DiscoveryManager::computeTimeToPos16()
+float DiscoveryManager::computeTimeToPos16(float bonusSpeedPercent)
 {
     const Unit& largeCargo = TechManager::instance().getUnit(UnitType::LargeCargo);
     int initSpeed = largeCargo.speed;
@@ -346,6 +360,13 @@ std::chrono::seconds DiscoveryManager::computeTimeToPos16()
 
     float percentSpeed = 100.0f;
     float distance = (float)(16 - positionDiscovery);
-    int time =  std::round(10.0f + 35000.0f/percentSpeed * std::sqrt((1000000.0f + distance * 5000) / speed));
-    return std::chrono::seconds(time);
+    return 10.0f + 35000.0f/percentSpeed * std::sqrt((1000000.0f + (float)distance * 5000.0f) / speed);
 }
+
+Ressources DiscoveryManager::computeReductionTimeDiscovery(float bonusSpeedPercent)
+{
+    float timeGain = timeToPos16 - computeTimeToPos16(bonusSpeedPercent + _bonusSpeedPercent);
+    float factorGain = 2.0f * timeGain / (2.0f * timeToPos16 + 3600.0f);
+    return factorGain * summary.globalMean;
+}
+

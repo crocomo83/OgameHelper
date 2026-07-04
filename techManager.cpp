@@ -186,7 +186,7 @@ int TechManager::getProductionMine(CommonBuildingType mineType, int level, float
     }
 }
 
-Ressources TechManager::getCost(TechType techType, int indexTech, int level)
+Ressources TechManager::getCost(TechType techType, int indexTech, int level) const
 {
     const CommonTech* commonTech = getTech(techType, indexTech);
     switch (techType)
@@ -206,6 +206,43 @@ Ressources TechManager::getCost(TechType techType, int indexTech, int level)
         default:
             return Ressources();
     }
+}
+
+float TechManager::getBaseTime(TechType techType, int indexTech, int level) const
+{
+    float timeHours;
+    switch (techType)
+    {
+        case TechType::CommonBuilding:
+        {
+            Ressources basicCost = getCost(techType, indexTech, level);
+            timeHours = (basicCost.metal + basicCost.cristal) / (2500.0f * (float)std::max(4 - level/2, 1));
+            break;
+        }
+        case TechType::CommonResearch:
+        {
+            Ressources basicCost = getCost(techType, indexTech, level);
+            timeHours = (basicCost.metal + basicCost.cristal) / 1000.0f;
+            break;
+        }
+        case TechType::HumanBuilding:
+        case TechType::MechBuilding:
+        case TechType::KaeleshBuilding:
+        case TechType::RoctasBuilding:
+        case TechType::HumanResearch:
+        case TechType::MechResearch:
+        case TechType::KaeleshResearch:
+        case TechType::RoctasResearch:
+        {
+            const CommonTech* tech = getTech(techType, indexTech);
+            const LifeFormTech* research = static_cast<const LifeFormTech*>(tech);
+            float timeSeconds = (float)level * (float)research->durationBase * (float)std::pow(research->durationFactor, level);
+            timeHours = timeSeconds / 3600.0f;
+            break;
+        }
+    }
+
+    return timeHours / 24.0f;
 }
 
 bool TechManager::isLifeFormBuilding(TechType techType) const
