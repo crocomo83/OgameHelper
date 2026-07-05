@@ -70,7 +70,7 @@ bool PlayerManager::getOfficerValue(Officers officer) const
     return _officers.at(officer);
 }
 
-Ressources PlayerManager::getConversionRate() const
+Ressources<float> PlayerManager::getConversionRate() const
 {
     return _conversionRates;
 }
@@ -102,10 +102,10 @@ Planet* PlayerManager::getPlanet(int index) const
     return _planets.at(index);
 }
 
-Ressources PlayerManager::getPlasmaBonus() const
+Ressources<float> PlayerManager::getPlasmaBonus() const
 {
     float levelPlasma = (float)getResearchLevel(ResearchType::Plasma);
-    return Ressources(levelPlasma, 0.66f * levelPlasma, 0.33f * levelPlasma);
+    return Ressources<float>(levelPlasma, 0.66f * levelPlasma, 0.33f * levelPlasma);
 }
 
 float PlayerManager::getLifeFormBonus(BonusLifeForm bonus) const
@@ -113,49 +113,49 @@ float PlayerManager::getLifeFormBonus(BonusLifeForm bonus) const
     return _lifeFormBonuses.at(bonus);
 }
 
-Ressources PlayerManager::getLifeFormProdBonus() const
+Ressources<float> PlayerManager::getLifeFormProdBonus() const
 {
     float metalBonus    = _lifeFormBonuses.at(BonusLifeForm::Metal);
     float cristalBonus  = _lifeFormBonuses.at(BonusLifeForm::Cristal);
     float deutBonus     = _lifeFormBonuses.at(BonusLifeForm::Deuterium);
-    return Ressources(metalBonus, cristalBonus, deutBonus);
+    return Ressources<float>(metalBonus, cristalBonus, deutBonus);
 }
 
-Ressources PlayerManager::getGeologBonus() const
+Ressources<float> PlayerManager::getGeologBonus() const
 {
     if (_officers.at(Officers::Concil))
     {
-        return Ressources(12.0f, 12.0f, 12.0f);
+        return Ressources<float>(12.0f, 12.0f, 12.0f);
     }
     else if (_officers.at(Officers::Geolog))
     {
-        return Ressources(10.0f, 10.0f, 10.0f);
+        return Ressources<float>(10.0f, 10.0f, 10.0f);
     }
     else
     {
-        return Ressources(0.0f, 0.0f, 0.0f);
+        return Ressources<float>();
     }
 }
-Ressources PlayerManager::getClassBonus() const
+Ressources<float> PlayerManager::getClassBonus() const
 {
     if (_class == Class::Collector)
     {
-        return Ressources(25.0f, 25.0f, 25.0f);
+        return Ressources<float>(25.0f, 25.0f, 25.0f);
     }
     else
     {
-        return Ressources(0.0f, 0.0f, 0.0f);
+        return Ressources<float>();
     }
 }
-Ressources PlayerManager::getAllianceClassBonus() const
+Ressources<float> PlayerManager::getAllianceClassBonus() const
 {
     if (_allianceClass == AllianceClass::Merchand)
     {
-        return Ressources(5.0f, 5.0f, 5.0f);
+        return Ressources<float>(5.0f, 5.0f, 5.0f);
     }
     else
     {
-        return Ressources(0.0f, 0.0f, 0.0f);
+        return Ressources<float>();
     }
 }
 
@@ -197,31 +197,39 @@ void PlayerManager::computeLifeFormResearch()
 void PlayerManager::computeProduction()
 {
     int numberPlanet = getNumberPlanets();
-    Ressources base, prodMines, prodCrawler, prodBuildingLifeForm;
+    Ressources<int> base, prodMines, prodCrawler, prodBuildingLifeForm;
     for (int i = 0; i < numberPlanet; ++i)
     {
         const Planet* planet = getPlanet(i);
 
-        base += planet->getProductionStat(Planet::ProductionStatPlanet::Base);
-        prodMines += planet->getProductionStat(Planet::ProductionStatPlanet::Mines);
-        prodBuildingLifeForm += planet->getLifeFormBuildingProduction();
-        prodCrawler += planet->getCrawlerProduction();
+        base                    += planet->getProductionStat(Planet::ProductionStat::Base);
+        prodMines               += planet->getProductionStat(Planet::ProductionStat::Mines);
+        prodBuildingLifeForm    += planet->getProductionStat(Planet::ProductionStat::BuildingLifeForm);
+        prodCrawler             += planet->getProductionStat(Planet::ProductionStat::Crawlers);
     }
 
-    _productionStats[Base]                  = base;
-    _productionStats[Mines]                 = prodMines;
-    _productionStats[BuildingLifeFormTotal] = prodBuildingLifeForm;
-    _productionStats[CrawlersTotal]         = prodCrawler;
-    _productionStats[PlasmaPercent]         = getPlasmaBonus();
-    _productionStats[LifeFormBonusPercent]  = getLifeFormProdBonus();
-    _productionStats[GeologPercent]         = getGeologBonus();
-    _productionStats[ClassBonusPercent]     = getClassBonus();
-    _productionStats[AllianceBonusPercent]  = getAllianceClassBonus();
-    _productionStats[Plasma]                = prodMines * getPlasmaBonus() * 0.01f;
-    _productionStats[LifeFormBonus]         = prodMines * getLifeFormProdBonus() * 0.01f;
-    _productionStats[Geolog]                = prodMines * getGeologBonus() * 0.01f;
-    _productionStats[ClassBonus]            = prodMines * getClassBonus() * 0.01f;
-    _productionStats[AllianceBonus]         = prodMines * getAllianceClassBonus() * 0.01f;
+    _productionStats[ProductionStat::Base]                  = base;
+    _productionStats[ProductionStat::Mines]                 = prodMines;
+    _productionStats[ProductionStat::BuildingLifeFormTotal] = prodBuildingLifeForm;
+    _productionStats[ProductionStat::CrawlersTotal]         = prodCrawler;
+    _productionStats[ProductionStat::Plasma]                = Ressources<float>(prodMines) * getPlasmaBonus() * 0.01f;
+    _productionStats[ProductionStat::LifeFormBonus]         = Ressources<float>(prodMines) * getLifeFormProdBonus() * 0.01f;
+    _productionStats[ProductionStat::Geolog]                = Ressources<float>(prodMines) * getGeologBonus() * 0.01f;
+    _productionStats[ProductionStat::ClassBonus]            = Ressources<float>(prodMines) * getClassBonus() * 0.01f;
+    _productionStats[ProductionStat::AllianceBonus]         = Ressources<float>(prodMines) * getAllianceClassBonus() * 0.01f;
+
+    _productionStats[ProductionStat::Total] = Ressources<float>();
+    for (int i = 0; i < static_cast<int>(ProductionStat::Total); i++)
+    {
+        ProductionStat stat = static_cast<ProductionStat>(i);
+        _productionStats[ProductionStat::Total] +=_productionStats.at(stat);
+    }
+
+    _productionStatsPercent[ProductionStatPercent::PlasmaPercent]         = getPlasmaBonus();
+    _productionStatsPercent[ProductionStatPercent::LifeFormBonusPercent]  = getLifeFormProdBonus();
+    _productionStatsPercent[ProductionStatPercent::GeologPercent]         = getGeologBonus();
+    _productionStatsPercent[ProductionStatPercent::ClassBonusPercent]     = getClassBonus();
+    _productionStatsPercent[ProductionStatPercent::AllianceBonusPercent]  = getAllianceClassBonus();
 }
 
 void PlayerManager::computeLabsLevel()
@@ -242,61 +250,6 @@ void PlayerManager::computeLabsLevel()
     {
         _labsLevel += labLevels.at(i);
     }
-}
-
-const Ressources& PlayerManager::getProduction(ProductionStat stat) const
-{
-    return _productionStats.at(stat);
-}
-
-const QString& PlayerManager::getProductionStr(ProductionStat stat) const
-{
-    return _prods[static_cast<int>(stat)];
-}
-
-void PlayerManager::setClass(Class globalClass)
-{
-    _class = globalClass;
-}
-
-void PlayerManager::setAllianceClass(AllianceClass allianceClass)
-{
-    _allianceClass = allianceClass;
-}
-
-void PlayerManager::setScrapRate(int scrapRate)
-{
-    _scrapRate = scrapRate;
-}
-
-void PlayerManager::setUniverseSpecific(UniverseSpecifics universeSpecific, int speed)
-{
-    _universeSpecifics[universeSpecific] = speed;
-}
-
-void PlayerManager::setOfficerActivated(Officers officer, bool activated)
-{
-    _officers[officer] = activated;
-}
-
-void PlayerManager::setConversionRate(Ressources conversionRate)
-{
-    _conversionRates = conversionRate;
-}
-
-void PlayerManager::setConversionRateAt(RessourceType type, float conversionRate)
-{
-    _conversionRates.setRessource(type, conversionRate);
-}
-
-void PlayerManager::setResearchLevel(ResearchType researchType, int level)
-{
-    _levelResearch[researchType] = level;
-}
-
-void PlayerManager::setSpecies(Species species, int level)
-{
-    _levelSpecies[species] = level;
 }
 
 bool PlayerManager::loadInitSave()
@@ -455,7 +408,7 @@ void PlayerManager::readConversionData(const QJsonObject& parent)
     QJsonArray merchandsRate = parent["merchandsRate"].toArray();
 
     int index = 0;
-    Ressources conversionRate;
+    Ressources<float> conversionRate;
     for (const QJsonValue& value : merchandsRate) {
         QJsonObject rate = value.toObject();
         double level = rate["level"].toDouble();

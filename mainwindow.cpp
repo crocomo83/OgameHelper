@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
+#include "utils.h"
 #include "techManager.h"
 #include "playerManager.h"
 #include "rentabilityManager.h"
@@ -164,16 +165,26 @@ void MainWindow::buildResumeOutputs(QTableWidget* tableWidget)
     addLabel(tableWidget, "Deuterium", index, 3);
     index++;
 
-    for (int i = 0; i < static_cast<int>(PlayerManager::ProductionStat::Count); i++)
-    {
-        PlayerManager::ProductionStat stat = static_cast<PlayerManager::ProductionStat>(i);
-        Ressources base = PlayerManager::instance().getProduction(stat);
-        addLabel(tableWidget, PlayerManager::instance().getProductionStr(stat), index, 0);
-        addLabel(tableWidget, QString::number((int)base.metal), index, 1);
-        addLabel(tableWidget, QString::number((int)base.cristal), index, 2);
-        addLabel(tableWidget, QString::number((int)base.deut), index, 3);
-        index++;
-    }
+    const Ressources<float>& productionStat = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Total);
+    addLabel(tableWidget, "Mines", index, 0);
+    addLabel(tableWidget, utils::formatRessource(productionStat.metal), index, 1);
+    addLabel(tableWidget, utils::formatRessource(productionStat.cristal), index, 2);
+    addLabel(tableWidget, utils::formatRessource(productionStat.deut), index, 3);
+    index++;
+
+    const Ressources<float>& discoveryRessources = DiscoveryManager::instance().getSummary().globalMean;
+    addLabel(tableWidget, "Discovery", index, 0);
+    addLabel(tableWidget, utils::formatRessource(discoveryRessources.metal), index, 1);
+    addLabel(tableWidget, utils::formatRessource(discoveryRessources.cristal), index, 2);
+    addLabel(tableWidget, utils::formatRessource(discoveryRessources.deut), index, 3);
+    index++;
+
+    const Ressources<float>& totalRessources = productionStat + discoveryRessources;
+    addLabel(tableWidget, "Total", index, 0);
+    addLabel(tableWidget, utils::formatRessource(totalRessources.metal), index, 1);
+    addLabel(tableWidget, utils::formatRessource(totalRessources.cristal), index, 2);
+    addLabel(tableWidget, utils::formatRessource(totalRessources.deut), index, 3);
+    index++;
 }
 
 void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
@@ -536,7 +547,7 @@ void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
         for (int i = 1; i < static_cast<int>(DiscoveryManager::DiscoveryType::Count); ++i)
         {
             DiscoveryManager::DiscoveryType type = static_cast<DiscoveryManager::DiscoveryType>(i);
-            Ressources ressources;
+            Ressources<float> ressources;
 
             QSpinBox* number = static_cast<QSpinBox*>(tableWidget->cellWidget(i+1, 2));
             QLineEdit* metalValue = static_cast<QLineEdit*>(tableWidget->cellWidget(i+1, 3));

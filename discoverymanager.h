@@ -58,7 +58,7 @@ public:
     struct Discovery
     {
         DiscoveryType type;
-        Ressources mean;
+        Ressources<float> mean;
         int count = 0;
         std::vector<RessourceType> availableRessources;
         float bonusFactor = 1.0f;
@@ -66,7 +66,7 @@ public:
         Discovery() : Discovery(DiscoveryType::Error) {}
         Discovery(DiscoveryType type_) : type(type_) {}
 
-        void add(Ressources value, int number = 1)
+        void add(Ressources<float> value, int number = 1)
         {
             if (number == 0) return;
             count += number;
@@ -82,10 +82,10 @@ public:
     // Basic without any bonus
     struct SummaryPerDay
     {
-        Ressources meanRessourceFound;
-        Ressources meanShipFound;
-        Ressources meanLost;
-        Ressources globalMean;
+        Ressources<float> meanRessourceFound;
+        Ressources<float> meanShipFound;
+        Ressources<float> meanLost;
+        Ressources<float> globalMean;
     };
 
 public:
@@ -93,27 +93,28 @@ public:
 
     QString getSavePath();
     DiscoveryType extractDiscoveryType(const QString& str) const;
-    void addDiscover(DiscoveryType type, Ressources value, int count = 1);
+    void addDiscover(DiscoveryType type, Ressources<float> value, int count = 1);
     void loadInit();
     bool loadSave(QString path);
     void loadBonusFactor(float ressourcesBonus, float shipBonus);
     bool save(QString path);
     void refresh();
     void computeRentability();
-    QString getTypeStrList(DiscoveryType type) const;
-    Discovery getDiscovery(DiscoveryType type) const;
-    float getDiscoveryPerDay() const;
-    int getDeutConsumption() const;
-    int getPositionDiscovery() const;
-    int getTempBonusRessources() const;
-    const SummaryPerDay& getSummary() const;
-    inline float getTimeToPos16() const {return timeToPos16; }
-    void setDiscoveryPerDay(float value);
-    void setDeutConsumption(int deut);
-    void setPositionDiscovery(int position);
-    void setTempBonusRessources(int bonus);
 
-    Ressources computeReductionTimeDiscovery(float bonusSpeedPercent);
+    inline QString getTypeStrList(DiscoveryType type) const {return discoveryTypeToString.at(type);}
+    inline Discovery getDiscovery(DiscoveryType type) const {return dataDiscoveries.at(type);}
+    inline float getDiscoveryPerDay() const {return discoveryPerDay;}
+    inline int getDeutConsumption() const {return deutConsumption;}
+    inline int getPositionDiscovery() const {return positionDiscovery;}
+    inline int getTempBonusRessources() const {return additionalBonusRessources;}
+    inline const SummaryPerDay& getSummary() const {return summary;}
+    inline float getTimeToPos16() const {return timeToPos16; }
+    inline void setDiscoveryPerDay(float value) {discoveryPerDay = value;}
+    inline void setDeutConsumption(int deut) {deutConsumption = deut;}
+    inline void setPositionDiscovery(int position) {positionDiscovery = position;}
+    inline void setTempBonusRessources(int bonus) {additionalBonusRessources = bonus;}
+
+    Ressources<float> computeReductionTimeDiscovery(float bonusSpeedPercent);
 
 private:
     DiscoveryManager();

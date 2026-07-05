@@ -52,7 +52,7 @@ bool TechManager::loadConfig(TechType techType, const QString &path)
         QJsonObject obj = val.toObject();
         QString name = obj["name"].toString();
 
-        Ressources cost;
+        Ressources<float> cost;
         cost.metal   = obj["metal"].toInt(0);
         cost.cristal = obj["cristal"].toInt(0);
         cost.deut    = obj["deut"].toInt(0);
@@ -173,20 +173,25 @@ const CommonTech* TechManager::getTech(TechType techType, int type) const
 
 int TechManager::getProductionMine(CommonBuildingType mineType, int level, float bonus, int temperatureMax) const
 {
+    int prodHours;
     switch(mineType)
     {
     case CommonBuildingType::MineMetal:
-        return (int)(bonus * 24.0f * 30.0f * (float)level * std::pow(1.1, level));
+        prodHours = (bonus * 30.0f * (float)level * std::pow(1.1, level));
+        break;
     case CommonBuildingType::MineCristal:
-        return (int)(bonus * 24.0f * 20.0f * (float)level * std::pow(1.1, level));
+        prodHours = (bonus * 20.0f * (float)level * std::pow(1.1, level));
+        break;
     case CommonBuildingType::MineDeut:
-        return (int)(bonus * 24.0f * 10.0f * (float)level * std::pow(1.1f, level) * (1.44f - 0.004f * (float)temperatureMax));
+        prodHours = (bonus * 10.0f * (float)level * std::pow(1.1f, level) * (1.44f - 0.004f * (float)temperatureMax));
+        break;
     default:
         return 0;
     }
+    return prodHours * 24;
 }
 
-Ressources TechManager::getCost(TechType techType, int indexTech, int level) const
+Ressources<float> TechManager::getCost(TechType techType, int indexTech, int level) const
 {
     const CommonTech* commonTech = getTech(techType, indexTech);
     switch (techType)
@@ -204,7 +209,7 @@ Ressources TechManager::getCost(TechType techType, int indexTech, int level) con
         case TechType::RoctasResearch:
             return level * commonTech->baseCost * std::pow(commonTech->increaseFactor, level - 1);
         default:
-            return Ressources();
+            return Ressources<float>();
     }
 }
 
@@ -215,13 +220,13 @@ float TechManager::getBaseTime(TechType techType, int indexTech, int level) cons
     {
         case TechType::CommonBuilding:
         {
-            Ressources basicCost = getCost(techType, indexTech, level);
+            Ressources<float> basicCost = getCost(techType, indexTech, level);
             timeHours = (basicCost.metal + basicCost.cristal) / (2500.0f * (float)std::max(4 - level/2, 1));
             break;
         }
         case TechType::CommonResearch:
         {
-            Ressources basicCost = getCost(techType, indexTech, level);
+            Ressources<float> basicCost = getCost(techType, indexTech, level);
             timeHours = (basicCost.metal + basicCost.cristal) / 1000.0f;
             break;
         }

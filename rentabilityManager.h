@@ -18,13 +18,13 @@ public:
         int numberInstance = 1;
         QString name;
         int levelToUpdate;
-        Ressources cost;
-        Ressources rentaPerDay;
+        Ressources<float> cost;
+        Ressources<float> rentaPerDay;
         float timeToCompleteDay;
         float timeToRecover = -1.0f;
         QString timeToRecoverStr = "";
 
-        void computeRenta(Ressources tradeRate)
+        void computeRenta(Ressources<float> tradeRate)
             {timeToRecover = cost.getEquivalentDeut(tradeRate) / rentaPerDay.getEquivalentDeut(tradeRate) + timeToCompleteDay;}
     };
 

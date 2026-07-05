@@ -8,9 +8,15 @@
 class Planet
 {
 public:
-    enum class ProductionStatPlanet{
+    enum class ProductionStat{
         Base,
         Mines,
+        Crawlers,
+        BuildingLifeForm,
+        Count
+    };
+
+    enum class ProductionStatPercent{
         CrawlersPercent,
         BuildingLifeFormPercent,
         Count
@@ -21,38 +27,38 @@ public:
 
     void computeBonusPos();
 
-    const QString&          getName() const;
-    Species                 getSpecies() const;
-    int                     getTemperatureMax() const;
-    int                     getNumberTech(TechType type) const;
-    int                     getTechLevel(TechType type, int index) const;
-    Ressources              getBonusMine() const;
-    PlanetPosition          getPosition() const;
-    int                     getCrawlerNumber() const;
+    inline const QString&   getName() const {return _name;}
+    inline Species          getSpecies() const {return _species;}
+    inline int              getTemperatureMax() const {return _temperature;}
+    inline int              getNumberTech(TechType type) const {return _techs.at(type).size();}
+    inline int              getTechLevel(TechType type, int index) const {return _techs.at(type).at(index);}
+    inline Ressources<float> getBonusMine() const {return _bonusProdPositionCoeff;}
+    inline PlanetPosition   getPosition() const {return _position;}
+    inline int              getCrawlerNumber() const {return _crawlerNumber;}
+    inline const Ressources<int>& getProductionStat(ProductionStat stat) const {return _productionStats.at(stat);}
+    inline const Ressources<float>& getProductionStatPercent(ProductionStatPercent stat) const {return _productionStatsPercent.at(stat);}
+    inline float            getLifeFormBuildingBonus(BonusLifeFormBuilding bonus) const {return _lifeFormBuildingBonuses.at(bonus);}
     int                     getMaxActiveCrawler() const;
     float                   getCrawlerBonus() const;
-    Ressources              getCrawlerProduction() const;
-    Ressources              getLifeFormBuildingProduction() const;
+    Ressources<float>       getLifeFormBuildingProduction() const;
     std::vector<TechType>   getAvailableBuildings() const;
     TechType                getLifeFormBuilding() const;
     Species                 getChoiceLifeFormResearch(int index) const;
     int                     getLevelLifeFormResearch(Species species, int index) const;
-    const Ressources&       getProductionStat(ProductionStatPlanet stat) const;
-    float                   getLifeFormBuildingBonus(BonusLifeFormBuilding bonus) const;
-    Ressources              getLifeFormProdBonus() const;
-    Ressources              getCost(TechType techType, int indexTech, int level) const;
+    Ressources<float>       getLifeFormProdBonus() const;
+    Ressources<float>       getCost(TechType techType, int indexTech, int level) const;
     float                   getTime(TechType techType, int indexTech, int level) const; //time in days
 
     void                    computeLifeFormBuildingBonus();
     void                    computeProduction();
 
-    void                    setName(QString name);
-    void                    setTemperatureMax(int tempMax);
-    void                    setSpecies(Species species);
+    inline void             setName(QString name) {_name = name;}
+    inline void             setTemperatureMax(int tempMax) {_temperature = tempMax;}
+    inline void             setSpecies(Species species) {_species = species;}
+    inline void             setCrawlerNumber(int crawlers) {_crawlerNumber = crawlers;}
+    inline void             setPosition(const PlanetPosition& planetPosition) {_position = planetPosition;}
+    inline void             setChoiceLifeFormResearch(int index, Species species) {_choicesLifeFormResearch[index] = species;}
     void                    setTechLevel(TechType type, int index, int level);
-    void                    setCrawlerNumber(int crawlers);
-    void                    setPosition(const PlanetPosition& planetPosition);
-    void                    setChoiceLifeFormResearch(int index, Species species);
     void                    setLevelLifeFormResearch(Species species, int index, int level);
 
 private:
@@ -62,9 +68,10 @@ private:
     Species                                     _species;
     std::map<TechType, std::vector<int>>        _techs;
     std::vector<Species>                        _choicesLifeFormResearch;
-    Ressources                                  _bonusProdPositionCoeff;
+    Ressources<float>                           _bonusProdPositionCoeff;
     int                                         _crawlerNumber;
 
-    std::map<ProductionStatPlanet, Ressources>  _productionStats;
+    std::map<ProductionStat, Ressources<int>> _productionStats;
+    std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;
     std::map<BonusLifeFormBuilding, float>      _lifeFormBuildingBonuses;
 };

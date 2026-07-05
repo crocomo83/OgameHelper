@@ -15,16 +15,26 @@ enum RessourceType
 };
 inline static const QStringList ressourceToString = {"Métal", "Cristal", "Deut", "Energy", "Antimatter"};
 
+template <typename T>
 struct Ressources {
-    float metal     = 0.f;
-    float cristal   = 0.f;
-    float deut      = 0.f;
-    float energy    = 0.f;
-    float antimatter = 0.f;
+    T metal     = 0.f;
+    T cristal   = 0.f;
+    T deut      = 0.f;
+    T energy    = 0.f;
+    T antimatter = 0.f;
 
-    Ressources(float metal_ = 0.f, float cristal_ = 0.f,
-               float deut_ = 0.f, float energy_ = 0.f, float antimatter_ = 0.f)
+    Ressources(T metal_ = 0.f, T cristal_ = 0.f,
+               T deut_ = 0.f, T energy_ = 0.f, T antimatter_ = 0.f)
         : metal(metal_), cristal(cristal_), deut(deut_), energy(energy_), antimatter(antimatter_) {}
+
+    template <typename U>
+    Ressources(const Ressources<U>& other)
+        : metal(static_cast<T>(other.metal))
+        , cristal(static_cast<T>(other.cristal))
+        , deut(static_cast<T>(other.deut))
+        , energy(static_cast<T>(other.energy))
+        , antimatter(static_cast<T>(other.antimatter))
+    {}
 
     Ressources& operator+=(const Ressources& other) {
         metal   += other.metal;
@@ -44,7 +54,7 @@ struct Ressources {
         return *this;
     }
 
-    Ressources& operator*=(float scalar) {
+    Ressources& operator*=(T scalar) {
         metal   *= scalar;
         cristal *= scalar;
         deut    *= scalar;
@@ -62,7 +72,7 @@ struct Ressources {
         return *this;
     }
 
-    Ressources& operator/(float diviser) {
+    Ressources& operator/(T diviser) {
         metal   /= diviser;
         cristal /= diviser;
         deut    /= diviser;
@@ -86,19 +96,19 @@ struct Ressources {
         return lhs;
     }
 
-    friend Ressources operator*(Ressources lhs, float scalar) {
+    friend Ressources operator*(Ressources lhs, T scalar) {
         lhs *= scalar;
         return lhs;
     }
 
-    friend Ressources operator*(float scalar, Ressources rhs) {
+    friend Ressources operator*(T scalar, Ressources rhs) {
         rhs *= scalar;
         return rhs;
     }
 
-    float getEquivalentDeut(Ressources trade) const { return metal / trade.metal + cristal / trade.cristal + deut / trade.deut; }
+    T getEquivalentDeut(Ressources trade) const { return metal / trade.metal + cristal / trade.cristal + deut / trade.deut; }
 
-    float getRessource(RessourceType type) const
+    T getRessource(RessourceType type) const
     {
         switch (type)
         {
@@ -117,7 +127,7 @@ struct Ressources {
         }
     }
 
-    void setRessource(RessourceType type, float value)
+    void setRessource(RessourceType type, T value)
     {
         switch (type)
         {
@@ -174,7 +184,7 @@ inline static const std::map<BonusLifeFormBuilding, QString> bonusLifeFormBuildi
 
 struct CommonTech{
     QString name = "";
-    Ressources baseCost;
+    Ressources<float> baseCost;
     float increaseFactor = 2.0;
 
     CommonTech() = default;
@@ -305,7 +315,7 @@ struct LifeFormTech : public CommonTech{
 
 struct Unit{
     QString name = "";
-    Ressources cost;
+    Ressources<float> cost;
     int speed;
 };
 

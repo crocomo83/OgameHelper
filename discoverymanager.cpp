@@ -79,7 +79,7 @@ DiscoveryManager::DiscoveryType DiscoveryManager::extractDiscoveryType(const QSt
     }
 }
 
-void DiscoveryManager::addDiscover(DiscoveryManager::DiscoveryType type, Ressources value, int count)
+void DiscoveryManager::addDiscover(DiscoveryManager::DiscoveryType type, Ressources<float> value, int count)
 {
     dataDiscoveries[type].add(value, count);
 }
@@ -126,7 +126,7 @@ bool DiscoveryManager::loadSave(QString path)
         discovery.type = type;
         discovery.count = obj["count"].toInt();
 
-        Ressources meanLoaded;
+        Ressources<float> meanLoaded;
         if (obj.contains("meanMetal"))
         {
             meanLoaded.metal = obj["meanMetal"].toDouble();
@@ -268,68 +268,13 @@ void DiscoveryManager::computeRentability()
     float factorBlackhole = (float)blackholeDiscovery.count / (float)globalCount * discoveryPerDay;
     summary.meanLost += factorBlackhole * dataDiscoveries.at(DiscoveryType::Blackhole).mean;
 
-    summary.meanLost += Ressources(0.0f, 0.0f, (float)deutConsumption);
+    summary.meanLost += Ressources(0.0f, 0.0f, (float)deutConsumption) * discoveryPerDay;
 
     float bonusRessources = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionRessourcesIncrease);
     float factorRessources = 1.0f + bonusRessources / 100.0f;
     float bonusFleat = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionShipIncrease);
     float factorFleat = 1.0f + bonusFleat / 100.0f;
     summary.globalMean = factorRessources * summary.meanRessourceFound + factorFleat * summary.meanShipFound - summary.meanLost;
-}
-
-QString DiscoveryManager::getTypeStrList(DiscoveryType type) const
-{
-    return discoveryTypeToString.at(type);
-}
-
-DiscoveryManager::Discovery DiscoveryManager::getDiscovery(DiscoveryType type) const
-{
-    return dataDiscoveries.at(type);
-}
-
-float DiscoveryManager::getDiscoveryPerDay() const
-{
-    return discoveryPerDay;
-}
-
-int DiscoveryManager::getDeutConsumption() const
-{
-    return deutConsumption;
-}
-
-int DiscoveryManager::getPositionDiscovery() const
-{
-    return positionDiscovery;
-}
-
-int DiscoveryManager::getTempBonusRessources() const
-{
-    return additionalBonusRessources;
-}
-
-const DiscoveryManager::SummaryPerDay& DiscoveryManager::getSummary() const
-{
-    return summary;
-}
-
-void DiscoveryManager::setDiscoveryPerDay(float value)
-{
-    discoveryPerDay = value;
-}
-
-void DiscoveryManager::setDeutConsumption(int deut)
-{
-    deutConsumption = deut;
-}
-
-void DiscoveryManager::setPositionDiscovery(int position)
-{
-    positionDiscovery = position;
-}
-
-void DiscoveryManager::setTempBonusRessources(int bonus)
-{
-    additionalBonusRessources = bonus;
 }
 
 void DiscoveryManager::computeDiscoverySpeed()
@@ -363,7 +308,7 @@ float DiscoveryManager::computeTimeToPos16(float bonusSpeedPercent)
     return 10.0f + 35000.0f/percentSpeed * std::sqrt((1000000.0f + (float)distance * 5000.0f) / speed);
 }
 
-Ressources DiscoveryManager::computeReductionTimeDiscovery(float bonusSpeedPercent)
+Ressources<float> DiscoveryManager::computeReductionTimeDiscovery(float bonusSpeedPercent)
 {
     float timeGain = timeToPos16 - computeTimeToPos16(bonusSpeedPercent + _bonusSpeedPercent);
     float factorGain = 2.0f * timeGain / (2.0f * timeToPos16 + 3600.0f);
