@@ -602,6 +602,7 @@ void MainWindow::onTechChanged()
     PlayerManager::instance().computeLifeFormResearch();
     PlayerManager::instance().computeProduction();
     PlayerManager::instance().computeLabsLevel();
+    DiscoveryManager::instance().refresh();
 
     buildResumeOutputs(_overviewTable);
     buildRentaOutputs(_rentaTable);
