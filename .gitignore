@@ -4,6 +4,7 @@ build-*/
 cmake-build-*/
 *.o
 *.obj
+Releases_versions
 
 # ---- Qt ----
 *.moc
