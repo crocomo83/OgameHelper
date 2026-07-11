@@ -90,7 +90,12 @@ float PlayerManager::getResearchTime(int indexTech, int level) const
     float timeDays = TechManager::instance().getBaseTime(TechType::CommonResearch, indexTech, level);
     timeDays /= (float)(1 + _labsLevel);
     timeDays /= (float)_universeSpecifics.at(UniverseSpecifics::ResearchBoost);
+
     if (_class == Class::Explorer)
+    {
+        timeDays *= 0.75f;
+    }
+    if (_officers.at(Officers::Technocrat))
     {
         timeDays *= 0.75f;
     }
