@@ -53,8 +53,11 @@ int RentabilityManager::refresh()
     return rentaLevelUp.size();
 }
 
-void RentabilityManager::addNewLevelUp(LevelUp levelUp)
+void RentabilityManager::addNewLevelUp(LevelUp levelUp, std::optional<int> indexPlanet)
 {
+    levelUp.computeRenta(PlayerManager::instance().getConversionRate());
+    levelUp.timeToRecoverStr = rentaToString(levelUp.timeToRecover);
+
     auto it = std::find_if(rentaLevelUp.begin(), rentaLevelUp.end(), [this, levelUp](const LevelUp& current)
     {
         return current.name == levelUp.name
@@ -64,11 +67,16 @@ void RentabilityManager::addNewLevelUp(LevelUp levelUp)
 
     if (it == rentaLevelUp.end())
     {
+        if (indexPlanet)
+        {
+            levelUp.indexPlanets.push_back(indexPlanet.value());
+        }
         rentaLevelUp.push_back(std::move(levelUp));
+
     }
-    else
+    else if(indexPlanet)
     {
-        it->numberInstance++;
+        it->indexPlanets.push_back(indexPlanet.value());
     }
 }
 
@@ -87,8 +95,6 @@ void RentabilityManager::addReasearchRentability()
     levelUpPlasma.rentaPerDay = bonusProdPercent;
     levelUpPlasma.cost = TechManager::instance().getCost(TechType::CommonResearch, indexPlasma, levelPlasma);
     levelUpPlasma.timeToCompleteDay = PlayerManager::instance().getResearchTime(indexPlasma, levelPlasma);
-    levelUpPlasma.computeRenta(PlayerManager::instance().getConversionRate());
-    levelUpPlasma.timeToRecoverStr = rentaToString(levelUpPlasma.timeToRecover);
     addNewLevelUp(std::move(levelUpPlasma));
 
     // Prop. combustion
@@ -101,8 +107,6 @@ void RentabilityManager::addReasearchRentability()
     levelUpCombu.rentaPerDay = DiscoveryManager::instance().computeReductionTimeDiscovery(10.0f);
     levelUpCombu.cost = TechManager::instance().getCost(TechType::CommonResearch, indexCombu, levelCombu);
     levelUpCombu.timeToCompleteDay = PlayerManager::instance().getResearchTime(indexCombu, levelCombu);
-    levelUpCombu.computeRenta(PlayerManager::instance().getConversionRate());
-    levelUpCombu.timeToRecoverStr = rentaToString(levelUpCombu.timeToRecover);
     addNewLevelUp(std::move(levelUpCombu));
 }
 
@@ -141,36 +145,27 @@ void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlan
 
     LevelUp levelUpMetal;
     levelUpMetal.name = "Mine de métal";
-    levelUpMetal.indexPlanet = indexPlanet;
     levelUpMetal.levelToUpdate = levelMetal;
     levelUpMetal.rentaPerDay = Ressources<float>(prodMinesLevelUp.metal, 0, 0);
     levelUpMetal.cost = planet->getCost(TechType::CommonBuilding, indexMetal, levelMetal);
     levelUpMetal.timeToCompleteDay = planet->getTime(TechType::CommonBuilding, indexMetal, levelMetal);
-    levelUpMetal.computeRenta(PlayerManager::instance().getConversionRate());
-    levelUpMetal.timeToRecoverStr = rentaToString(levelUpMetal.timeToRecover);
-    addNewLevelUp(std::move(levelUpMetal));
+    addNewLevelUp(std::move(levelUpMetal), indexPlanet);
 
     LevelUp levelUpCristal;
     levelUpCristal.name = "Mine de cristal";
-    levelUpCristal.indexPlanet = indexPlanet;
     levelUpCristal.levelToUpdate = levelCristal;
     levelUpCristal.rentaPerDay = Ressources<float>(0, prodMinesLevelUp.cristal, 0);
     levelUpCristal.cost = planet->getCost(TechType::CommonBuilding, indexCristal, levelCristal);
     levelUpCristal.timeToCompleteDay = planet->getTime(TechType::CommonBuilding, indexCristal, levelCristal);
-    levelUpCristal.computeRenta(PlayerManager::instance().getConversionRate());
-    levelUpCristal.timeToRecoverStr = rentaToString(levelUpCristal.timeToRecover);
-    addNewLevelUp(std::move(levelUpCristal));
+    addNewLevelUp(std::move(levelUpCristal), indexPlanet);
 
     LevelUp levelUpDeut;
     levelUpDeut.name = "Mine de deut";
-    levelUpDeut.indexPlanet = indexPlanet;
     levelUpDeut.levelToUpdate = levelDeut;
     levelUpDeut.rentaPerDay = Ressources<float>(0, 0, prodMinesLevelUp.deut);
     levelUpDeut.cost = planet->getCost(TechType::CommonBuilding, indexDeut, levelDeut);
     levelUpDeut.timeToCompleteDay = planet->getTime(TechType::CommonBuilding, indexDeut, levelDeut);
-    levelUpDeut.computeRenta(PlayerManager::instance().getConversionRate());
-    levelUpDeut.timeToRecoverStr = rentaToString(levelUpDeut.timeToRecover);
-    addNewLevelUp(std::move(levelUpDeut));
+    addNewLevelUp(std::move(levelUpDeut), indexPlanet);
 }
 
 void RentabilityManager::addLifeFormBuilding(const Planet *planet, int indexPlanet)
@@ -214,14 +209,11 @@ void RentabilityManager::addLifeFormBuilding(const Planet *planet, int indexPlan
 
         LevelUp levelUpBuilding;
         levelUpBuilding.name = tech->name;
-        levelUpBuilding.indexPlanet = indexPlanet;
         levelUpBuilding.levelToUpdate = levelUpBatiment;
         levelUpBuilding.rentaPerDay = bonusProd;
         levelUpBuilding.cost = planet->getCost(buildingType, i, levelUpBatiment);
         levelUpBuilding.timeToCompleteDay = planet->getTime(buildingType, i, levelUpBatiment);
-        levelUpBuilding.computeRenta(PlayerManager::instance().getConversionRate());
-        levelUpBuilding.timeToRecoverStr = rentaToString(levelUpBuilding.timeToRecover);
-        addNewLevelUp(std::move(levelUpBuilding));
+        addNewLevelUp(std::move(levelUpBuilding), indexPlanet);
     }
 }
 
@@ -277,14 +269,11 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
         {
             LevelUp levelUpLifeFormResearch;
             levelUpLifeFormResearch.name                = tech->name;
-            levelUpLifeFormResearch.indexPlanet         = indexPlanet;
             levelUpLifeFormResearch.levelToUpdate       = levelUpResearch;
             levelUpLifeFormResearch.rentaPerDay         = bonusRessources;
             levelUpLifeFormResearch.cost                = planet->getCost(researchLifeFormType, i, levelUpResearch);
             levelUpLifeFormResearch.timeToCompleteDay   = planet->getTime(researchLifeFormType, i, levelUpResearch);
-            levelUpLifeFormResearch.computeRenta(PlayerManager::instance().getConversionRate());
-            levelUpLifeFormResearch.timeToRecoverStr    = rentaToString(levelUpLifeFormResearch.timeToRecover);
-            addNewLevelUp(std::move(levelUpLifeFormResearch));
+            addNewLevelUp(std::move(levelUpLifeFormResearch), indexPlanet);
         }
     }
 }

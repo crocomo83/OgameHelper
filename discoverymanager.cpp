@@ -162,7 +162,7 @@ void DiscoveryManager::loadBonusFactor(float ressourcesBonus, float shipBonus)
     dataDiscoveries[DiscoveryType::Metal].bonusFactor = ressourceFactor;
     dataDiscoveries[DiscoveryType::Cristal].bonusFactor = ressourceFactor;
     dataDiscoveries[DiscoveryType::Deut].bonusFactor = ressourceFactor;
-    dataDiscoveries[DiscoveryType::Antimatter].bonusFactor = ressourceFactor;
+    dataDiscoveries[DiscoveryType::Antimatter].bonusFactor = 1.0f;
 
     dataDiscoveries[DiscoveryType::Fleat].bonusFactor = shipFactor;
 }

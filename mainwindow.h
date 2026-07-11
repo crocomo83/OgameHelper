@@ -31,13 +31,14 @@ public:
 
     void initTable(QTableWidget* tableWidget);
 
-    void addLabel(QTableWidget* tableWidget, QString str, int row, int column);
+    QLabel* addLabel(QTableWidget* tableWidget, QString str, int row, int column);
     Item* addSpinBoxItem(QTableWidget* tableWidget, QString str, int row, int column, int defaultValue = 0, int minValue = 0, int maxValue = 99);
     DoubleSpinBoxItem* addDoubleSpinBoxItem(QTableWidget* tableWidget, QString str, int row, int column, double defaultValue = 0.0, double minValue = 0.0, double maxValue = 99.9);
     CheckBoxItem* addCheckBoxItem(QTableWidget* tableWidget, QString str, int row, int column, bool defaultValue = false);
     ComboBoxItem* addComboBoxItem(QTableWidget* tableWidget, QString str, QStringList names, int row, int column, int defaultValue);
     PositionItem* addPositionItem(QTableWidget* tableWidget, int row, int column, const PlanetPosition &planetPosition);
     LifeFormSelectItem* addLifeFormSelectItem(QTableWidget* tableWidget, int row, int column, Species species, int level);
+    QLabel* createPlanetsLabel(std::vector<int> indexPlanets);
 
     void buildResumeOutputs(QTableWidget* tableWidget);
     void buildRentaOutputs(QTableWidget* tableWidget);

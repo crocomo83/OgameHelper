@@ -14,8 +14,7 @@ class RentabilityManager
 public:
     struct LevelUp
     {
-        std::optional<int> indexPlanet;
-        int numberInstance = 1;
+        std::vector<int> indexPlanets;
         QString name;
         int levelToUpdate;
         Ressources<float> cost;
@@ -25,7 +24,9 @@ public:
         QString timeToRecoverStr = "";
 
         void computeRenta(Ressources<float> tradeRate)
-            {timeToRecover = cost.getEquivalentDeut(tradeRate) / rentaPerDay.getEquivalentDeut(tradeRate) + timeToCompleteDay;}
+        {
+            timeToRecover = cost.getEquivalentDeut(tradeRate) / rentaPerDay.getEquivalentDeut(tradeRate) + timeToCompleteDay;
+        }
     };
 
     enum TypeFilter
@@ -51,7 +52,7 @@ public:
     QString rentaToString(float timeToRecover) const;
 
 private:
-    void addNewLevelUp(LevelUp levelUp);
+    void addNewLevelUp(LevelUp levelUp, std::optional<int> indexPlanet = std::nullopt);
     void addReasearchRentability();
     void addMinesRentability(const Planet *planet, int indexPlanet);
     void addLifeFormBuilding(const Planet *planet, int indexPlanet);

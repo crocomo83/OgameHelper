@@ -93,10 +93,11 @@ void MainWindow::initTable(QTableWidget* tableWidget)
     tableWidget->setFocusPolicy(Qt::NoFocus);
 }
 
-void MainWindow::addLabel(QTableWidget* tableWidget, QString str, int row, int column)
+QLabel* MainWindow::addLabel(QTableWidget* tableWidget, QString str, int row, int column)
 {
     QLabel* label = new QLabel(str);
     tableWidget->setCellWidget(row, column, label);
+    return label;
 }
 
 Item* MainWindow::addSpinBoxItem(QTableWidget* tableWidget, QString str, int row, int column, int defaultValue, int minValue, int maxValue)
@@ -154,6 +155,38 @@ LifeFormSelectItem* MainWindow::addLifeFormSelectItem(QTableWidget* tableWidget,
     return lifeFormItem;
 }
 
+QLabel* MainWindow::createPlanetsLabel(std::vector<int> indexPlanets)
+{
+    QString displayedName = "";
+    if (indexPlanets.size() > 1)
+    {
+        displayedName = "[" + QString::number(indexPlanets.size()) + "]";
+    }
+    else if (indexPlanets.size() == 1)
+    {
+        const Planet* planet = PlayerManager::instance().getPlanet(indexPlanets.at(0));
+        displayedName = planet->getName();
+    }
+
+    QLabel* labelPlanets = new QLabel(displayedName);
+    if (indexPlanets.size() > 1)
+    {
+        QString listPlanets;
+        for (int i = 0; i < indexPlanets.size(); ++i)
+        {
+            int indexPlanet = indexPlanets.at(i);
+            const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
+            listPlanets += planet->getName();
+            if (i != indexPlanets.size() - 1)
+            {
+                listPlanets += '\n';
+            }
+        }
+        labelPlanets->setToolTip(listPlanets);
+    }
+    return labelPlanets;
+}
+
 void MainWindow::buildResumeOutputs(QTableWidget* tableWidget)
 {
     tableWidget->clear();
@@ -203,19 +236,10 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
     {
         const RentabilityManager::LevelUp& levelUp = RentabilityManager::instance().getLevelUp(i);
 
-        QString displayedName = "";
-        if (levelUp.numberInstance > 1)
-        {
-            displayedName = "[" + QString::number(levelUp.numberInstance) + "]";
-        }
-        else if (levelUp.indexPlanet)
-        {
-            const Planet* planet = PlayerManager::instance().getPlanet(levelUp.indexPlanet.value());
-            displayedName = planet->getName();
-        }
+        QLabel* labelPlanets = createPlanetsLabel(levelUp.indexPlanets);
+        tableWidget->setCellWidget(i+1, 1, labelPlanets);
 
         addLabel(tableWidget, levelUp.name + " : " + QString::number(levelUp.levelToUpdate), i+1, 0);
-        addLabel(tableWidget, displayedName, i+1, 1);
         addLabel(tableWidget, levelUp.timeToRecoverStr, i+1, 2);
         addLabel(tableWidget, QString::number(levelUp.timeToCompleteDay), i+1, 3);
     }
