@@ -251,6 +251,12 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
             case BonusLifeForm::Deuterium:
                 bonusRessources += bonusFactor * Ressources(0.0f, 0.0f, prodMines.deut);
                 break;
+            case BonusLifeForm::Antimatter:
+            {
+                float antimatterMean = DiscoveryManager::instance().getSummary().meanRessourceFound.antimatter;
+                bonusRessources = bonusFactor * Ressources(0.0f, 0.0f, 0.0f, 0.0f, antimatterMean);
+                break;
+            }
             case BonusLifeForm::ExpeditionRessourcesIncrease:
                 bonusRessources += bonusFactor * DiscoveryManager::instance().getSummary().meanRessourceFound;
                 break;
@@ -265,7 +271,7 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
             }
         }
 
-        if (bonusRessources.metal != 0.0f || bonusRessources.cristal != 0.0f || bonusRessources.deut != 0.0f)
+        if (!bonusRessources.empty())
         {
             LevelUp levelUpLifeFormResearch;
             levelUpLifeFormResearch.name                = tech->name;

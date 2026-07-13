@@ -89,6 +89,13 @@ void Planet::computeBonusPos()
     }
 }
 
+void Planet::refresh()
+{
+    computeLifeFormBuildingBonus();
+    computeBonusPos();
+    computeProduction();
+}
+
 void Planet::computeLifeFormBuildingBonus()
 {
     _lifeFormBuildingBonuses.clear();

@@ -255,6 +255,10 @@ void DiscoveryManager::computeRentability()
     float factorDeut = (float)deutDiscovery.count / (float)globalCount * discoveryPerDay;
     summary.meanRessourceFound.deut = factorDeut * deutDiscovery.mean.deut;
 
+    const Discovery& amDiscovery = dataDiscoveries.at(DiscoveryType::Antimatter);
+    float factorAM = (float)amDiscovery.count / (float)globalCount * discoveryPerDay;
+    summary.meanRessourceFound.antimatter = factorAM * amDiscovery.mean.antimatter;
+
     const Discovery& shipDiscovery = dataDiscoveries.at(DiscoveryType::Fleat);
     float factorShip = (float)shipDiscovery.count / (float)globalCount * discoveryPerDay;
     float scrapFactor = (float)PlayerManager::instance().getScrapRate() / 100.0f;

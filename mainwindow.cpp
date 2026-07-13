@@ -618,14 +618,10 @@ void MainWindow::onTechChanged()
     for (int i = 0; i < numberPlanet; ++i)
     {
         Planet* planet = PlayerManager::instance().getPlanet(i);
-        planet->computeLifeFormBuildingBonus();
-        planet->computeBonusPos();
-        planet->computeProduction();
+        planet->refresh();
     }
 
-    PlayerManager::instance().computeLifeFormResearch();
-    PlayerManager::instance().computeProduction();
-    PlayerManager::instance().computeLabsLevel();
+    PlayerManager::instance().refresh();
     DiscoveryManager::instance().refresh();
 
     buildResumeOutputs(_overviewTable);

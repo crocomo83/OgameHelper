@@ -80,9 +80,11 @@ public:
     int                 getSpecies(Species species) const;
     float               getResearchTime(int indexTech, int level) const;
 
+    void                refresh();
     void                computeLifeFormResearch();
     void                computeProduction();
     void                computeLabsLevel();
+    void                computeConversionRate();
 
     inline const Ressources<float>& getProduction(ProductionStat stat) const {return _productionStats.at(stat);}
     inline const Ressources<float>& getProductionPercent(ProductionStatPercent stat) const {return _productionStatsPercent.at(stat);}
@@ -135,11 +137,11 @@ private:
 
     Class                                       _class;
     AllianceClass                               _allianceClass;
-    int                                         _scrapRate;
+    int                                         _scrapRate {35};
 
     std::map<UniverseSpecifics, int>            _universeSpecifics;
     std::map<Officers, bool>                    _officers;
-    Ressources<float>                                  _conversionRates;
+    Ressources<float>                           _conversionRates;
     std::map<ResearchType, int>                 _levelResearch;
     std::map<Species, int>                      _levelSpecies;
     std::vector<Planet*>                        _planets;

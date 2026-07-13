@@ -106,7 +106,17 @@ struct Ressources {
         return rhs;
     }
 
-    T getEquivalentDeut(Ressources trade) const { return metal / trade.metal + cristal / trade.cristal + deut / trade.deut; }
+    bool empty() const
+    {
+        return metal == 0.0f && cristal == 0.0f && deut == 0.0f && energy == 0.0f && antimatter == 0.0f;
+    }
+
+    T getEquivalentDeut(Ressources trade) const {
+        return  metal / trade.metal +
+                cristal / trade.cristal +
+                deut / trade.deut +
+                antimatter / trade.antimatter;
+    }
 
     T getRessource(RessourceType type) const
     {

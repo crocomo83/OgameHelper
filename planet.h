@@ -49,6 +49,7 @@ public:
     Ressources<float>       getCost(TechType techType, int indexTech, int level) const;
     float                   getTime(TechType techType, int indexTech, int level) const; //time in days
 
+    void                    refresh();
     void                    computeLifeFormBuildingBonus();
     void                    computeProduction();
 

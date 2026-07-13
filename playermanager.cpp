@@ -1,5 +1,6 @@
 #include "playermanager.h"
 #include "techManager.h"
+#include "discoveryManager.h"
 
 #include <QFile>
 #include <QDebug>
@@ -164,6 +165,14 @@ Ressources<float> PlayerManager::getAllianceClassBonus() const
     }
 }
 
+void PlayerManager::refresh()
+{
+    computeLifeFormResearch();
+    computeProduction();
+    computeLabsLevel();
+    computeConversionRate();
+}
+
 void PlayerManager::computeLifeFormResearch()
 {
     _lifeFormBonuses.clear();
@@ -255,6 +264,14 @@ void PlayerManager::computeLabsLevel()
     {
         _labsLevel += labLevels.at(i);
     }
+}
+
+void PlayerManager::computeConversionRate()
+{
+    int costFullMetal = 42000;
+    float benefMetal = getProduction(PlayerManager::ProductionStat::Total).metal;
+    float amToMetal = (float)costFullMetal / benefMetal;
+    _conversionRates.antimatter = amToMetal / _conversionRates.deut * _conversionRates.metal;
 }
 
 bool PlayerManager::loadInitSave()
