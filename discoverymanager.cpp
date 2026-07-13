@@ -154,16 +154,20 @@ bool DiscoveryManager::loadSave(QString path)
     return true;
 }
 
-void DiscoveryManager::loadBonusFactor(float ressourcesBonus, float shipBonus)
+void DiscoveryManager::loadBonusFactor(float ressourcesBonus, float shipBonus, float bonusAM, float bonusDiscoverer)
 {
     float ressourceFactor = 1.0f + ressourcesBonus / 100.0f;
     float additionalRessourceFactor = 1.0f + (float)additionalBonusRessources / 100.0f;
     float shipFactor = 1.0f + shipBonus / 100.0f;
+    float amFactor = 1.0f + bonusAM / 100.0f;
+    float discovererFactor = 1.0f + bonusDiscoverer / 100.0f;
 
-    dataDiscoveries[DiscoveryType::Metal].bonusFactor = ressourceFactor * additionalRessourceFactor;
-    dataDiscoveries[DiscoveryType::Cristal].bonusFactor = ressourceFactor * additionalRessourceFactor;
-    dataDiscoveries[DiscoveryType::Deut].bonusFactor = ressourceFactor * additionalRessourceFactor;
-    dataDiscoveries[DiscoveryType::Antimatter].bonusFactor = 1.0f;
+    float totalRessourceFactor = ressourceFactor * additionalRessourceFactor * discovererFactor;
+
+    dataDiscoveries[DiscoveryType::Metal].bonusFactor = totalRessourceFactor;
+    dataDiscoveries[DiscoveryType::Cristal].bonusFactor = totalRessourceFactor;
+    dataDiscoveries[DiscoveryType::Deut].bonusFactor = totalRessourceFactor;
+    dataDiscoveries[DiscoveryType::Antimatter].bonusFactor = amFactor;
 
     dataDiscoveries[DiscoveryType::Fleat].bonusFactor = shipFactor;
 }

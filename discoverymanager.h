@@ -96,7 +96,7 @@ public:
     void addDiscover(DiscoveryType type, Ressources<float> value, int count = 1);
     void loadInit();
     bool loadSave(QString path);
-    void loadBonusFactor(float ressourcesBonus, float shipBonus);
+    void loadBonusFactor(float ressourcesBonus, float shipBonus, float bonusAM, float bonusDiscoverer);
     bool save(QString path);
     void refresh();
     void computeRentability();
@@ -109,6 +109,7 @@ public:
     inline int getTempBonusRessources() const {return additionalBonusRessources;}
     inline const SummaryPerDay& getSummary() const {return summary;}
     inline float getTimeToPos16() const {return timeToPos16; }
+
     inline void setDiscoveryPerDay(float value) {discoveryPerDay = value;}
     inline void setDeutConsumption(int deut) {deutConsumption = deut;}
     inline void setPositionDiscovery(int position) {positionDiscovery = position;}
@@ -128,13 +129,13 @@ private:
 
 private:
     std::map<DiscoveryManager::DiscoveryType, Discovery> dataDiscoveries;
-    float discoveryPerDay = 0.0f;
-    int deutConsumption = 0;
-    int positionDiscovery = 1;
-    int additionalBonusRessources = 0;
+    float discoveryPerDay {0.0f};
+    int deutConsumption {0};
+    int positionDiscovery {1};
+    int additionalBonusRessources {0};
 
-    float _bonusSpeedPercent;
-    float timeToPos16;
+    float _bonusSpeedPercent {0.0f};
+    float timeToPos16 {3600.0f};
 
     SummaryPerDay summary;
 };

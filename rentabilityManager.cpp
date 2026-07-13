@@ -258,8 +258,13 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
                 break;
             }
             case BonusLifeForm::ExpeditionRessourcesIncrease:
-                bonusRessources += bonusFactor * DiscoveryManager::instance().getSummary().meanRessourceFound;
+            {
+                Ressources<float> ressourcesBase = DiscoveryManager::instance().getSummary().meanRessourceFound;
+                float percentDiscover = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExploratorClass);
+                float factorDiscover = 1.0f + percentDiscover / 100.0f;
+                bonusRessources += bonusFactor * factorDiscover * ressourcesBase;
                 break;
+            }
             case BonusLifeForm::ExpeditionShipIncrease:
                 bonusRessources += bonusFactor * DiscoveryManager::instance().getSummary().meanShipFound;
                 break;
@@ -268,6 +273,13 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
             case BonusLifeForm::SpeedAllShips:
                 bonusRessources += DiscoveryManager::instance().computeReductionTimeDiscovery(bonusFactor * 100.0f);
                 break;
+            case BonusLifeForm::ExploratorClass:
+            {
+                Ressources<float> ressourcesBase = DiscoveryManager::instance().getSummary().meanRessourceFound;
+                float percentRessources = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionRessourcesIncrease);
+                float factorRessources = 1.0f + percentRessources / 100.0f;
+                bonusRessources += bonusFactor * factorRessources * ressourcesBase;
+            }
             }
         }
 
