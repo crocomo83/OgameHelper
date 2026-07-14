@@ -4,28 +4,20 @@
 
 #include <QDebug>
 
+Planet::Planet()
+    : _name("Empty")
+    , _position(PlanetPosition())
+{
+    initEmptyPlanet();
+}
+
 Planet::Planet(const QString& name, const PlanetPosition& position, int temperature, Species species)
     : _name(name)
     , _position(position)
     , _temperature(temperature)
     , _species(species)
-    , _crawlerNumber(0)
 {
-    for (int i = 1; i < static_cast<int>(TechType::Count); ++i)
-    {
-        TechType current = static_cast<TechType>(i);
-        if (current != TechType::CommonResearch)
-        {
-            int numberTechs = TechManager::instance().getNumberTechs(current);
-            _techs[current].assign(numberTechs, 0);
-        }
-    }
-    int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
-    _choicesLifeFormResearch.assign(numberLifeFormReseach, Species::None);
-
-    computeLifeFormBuildingBonus();
-    computeBonusPos();
-    computeProduction();
+    initEmptyPlanet();
 }
 
 Planet::Planet(const Planet* planet)
@@ -54,9 +46,24 @@ Planet::Planet(const Planet* planet)
         _choicesLifeFormResearch.push_back(planet->getChoiceLifeFormResearch(i));
     }
 
-    computeLifeFormBuildingBonus();
-    computeBonusPos();
-    computeProduction();
+    refresh();
+}
+
+void Planet::initEmptyPlanet()
+{
+    for (int i = 1; i < static_cast<int>(TechType::Count); ++i)
+    {
+        TechType current = static_cast<TechType>(i);
+        if (current != TechType::CommonResearch)
+        {
+            int numberTechs = TechManager::instance().getNumberTechs(current);
+            _techs[current].assign(numberTechs, 0);
+        }
+    }
+    int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
+    _choicesLifeFormResearch.assign(numberLifeFormReseach, Species::None);
+
+    refresh();
 }
 
 void Planet::computeBonusPos()

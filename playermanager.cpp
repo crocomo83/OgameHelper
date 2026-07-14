@@ -26,64 +26,7 @@ PlayerManager::PlayerManager()
         loadInitSave();
     }
 
-    computeLifeFormResearch();
-    computeProduction();
-    computeLabsLevel();
-}
-
-int PlayerManager::getNumberPlanets() const
-{
-    return _planets.size();
-}
-
-int PlayerManager::getNumberResearch() const
-{
-    return _levelResearch.size();
-}
-
-const QString& PlayerManager::getPlanetName(int index) const
-{
-    return _planets.at(index)->getName();
-}
-
-Class PlayerManager::getClass() const
-{
-    return _class;
-}
-
-AllianceClass PlayerManager::getAllianceClass() const
-{
-    return _allianceClass;
-}
-
-int PlayerManager::getScrapRate() const
-{
-    return _scrapRate;
-}
-
-int PlayerManager::getUniverseSpecific(UniverseSpecifics universeSpecific) const
-{
-    return _universeSpecifics.at(universeSpecific);
-}
-
-bool PlayerManager::getOfficerValue(Officers officer) const
-{
-    return _officers.at(officer);
-}
-
-Ressources<float> PlayerManager::getConversionRate() const
-{
-    return _conversionRates;
-}
-
-int PlayerManager::getResearchLevel(ResearchType researchType) const
-{
-    return _levelResearch.at(researchType);
-}
-
-int PlayerManager::getSpecies(Species species) const
-{
-    return _levelSpecies.at(species);
+    refresh();
 }
 
 float PlayerManager::getResearchTime(int indexTech, int level) const
@@ -103,20 +46,26 @@ float PlayerManager::getResearchTime(int indexTech, int level) const
     return timeDays;
 }
 
-Planet* PlayerManager::getPlanet(int index) const
+Planet& PlayerManager::getPlanifPlanet(const Species& species)
 {
-    return _planets.at(index);
+    auto it = _planificationFDV.find(species);
+    if (it != _planificationFDV.end())
+    {
+        return it->second;
+    }
+    else
+    {
+        Planet planet;
+        planet.setSpecies(species);
+        _planificationFDV.emplace(species, std::move(planet));
+        return _planificationFDV.at(species);
+    }
 }
 
 Ressources<float> PlayerManager::getPlasmaBonus() const
 {
     float levelPlasma = (float)getResearchLevel(ResearchType::Plasma);
     return Ressources<float>(levelPlasma, 0.66f * levelPlasma, 0.33f * levelPlasma);
-}
-
-float PlayerManager::getLifeFormBonus(BonusLifeForm bonus) const
-{
-    return _lifeFormBonuses.at(bonus);
 }
 
 Ressources<float> PlayerManager::getLifeFormProdBonus() const
@@ -184,16 +133,16 @@ void PlayerManager::computeLifeFormResearch()
     int numberPlanet = getNumberPlanets();
     for (int i = 0; i < numberPlanet; ++i)
     {
-        const Planet* planet = getPlanet(i);
+        const Planet& planet = getPlanet(i);
 
         int lifeFormBuildingNumber = TechManager::instance().getNumberTechs(TechType::HumanResearch);
         for (int j = 0; j < lifeFormBuildingNumber; j++)
         {
-            Species choice = planet->getChoiceLifeFormResearch(j);
+            Species choice = planet.getChoiceLifeFormResearch(j);
             if (choice != Species::None)
             {
                 TechType lifeFormReasearch = speciesToTechLifeForm.at(choice);
-                int level = planet->getTechLevel(lifeFormReasearch, j);
+                int level = planet.getTechLevel(lifeFormReasearch, j);
 
                 const LifeFormTech* lifeFormTech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(lifeFormReasearch, j));
                 for (auto itr = lifeFormTech->bonuses.begin(); itr != lifeFormTech->bonuses.end(); ++itr)
@@ -214,12 +163,12 @@ void PlayerManager::computeProduction()
     Ressources<int> base, prodMines, prodCrawler, prodBuildingLifeForm;
     for (int i = 0; i < numberPlanet; ++i)
     {
-        const Planet* planet = getPlanet(i);
+        const Planet& planet = getPlanet(i);
 
-        base                    += planet->getProductionStat(Planet::ProductionStat::Base);
-        prodMines               += planet->getProductionStat(Planet::ProductionStat::Mines);
-        prodBuildingLifeForm    += planet->getProductionStat(Planet::ProductionStat::BuildingLifeForm);
-        prodCrawler             += planet->getProductionStat(Planet::ProductionStat::Crawlers);
+        base                    += planet.getProductionStat(Planet::ProductionStat::Base);
+        prodMines               += planet.getProductionStat(Planet::ProductionStat::Mines);
+        prodBuildingLifeForm    += planet.getProductionStat(Planet::ProductionStat::BuildingLifeForm);
+        prodCrawler             += planet.getProductionStat(Planet::ProductionStat::Crawlers);
     }
 
     _productionStats[ProductionStat::Base]                  = base;
@@ -251,9 +200,9 @@ void PlayerManager::computeLabsLevel()
     std::vector<int> labLevels;
     for (int i = 0; i < getNumberPlanets(); ++i)
     {
-        const Planet* planet = getPlanet(i);
+        const Planet& planet = getPlanet(i);
         int labIndex = static_cast<int>(CommonBuildingType::LaboRecherche);
-        labLevels.push_back(planet->getTechLevel(TechType::CommonBuilding, labIndex));
+        labLevels.push_back(planet.getTechLevel(TechType::CommonBuilding, labIndex));
     }
     std::sort(labLevels.begin(), labLevels.end(), std::greater<int>());
 
@@ -336,7 +285,7 @@ bool PlayerManager::loadSave(const QString& path)
     readClassData(root);
     readOfficersData(root);
     readConversionData(root);
-    readPlanetData(root);
+    readAllPlanetData(root);
 
     qDebug() << "Loading done : " << path;
 
@@ -466,53 +415,63 @@ void PlayerManager::readConversionData(const QJsonObject& parent)
     _scrapRate = level;
 }
 
-void PlayerManager:: readPlanetData(const QJsonObject& parent)
+void PlayerManager:: readAllPlanetData(const QJsonObject& parent)
 {
     QJsonArray planets = parent["planets"].toArray();
 
-    int indexPlanet = -1;
-
     for (const QJsonValue& value : planets) {
-        indexPlanet++;
         QJsonObject planetObj = value.toObject();
+        Planet planet = readPlanetData(planetObj);
+        _planets.push_back(std::move(planet));
+    }
 
-        QString name = planetObj["name"].toString();
-        int species = planetObj["species"].toInt();
-        int temperatureMax = planetObj["temperatureMax"].toInt();
+    QJsonArray planetsPlanif = parent["planetPlanification"].toArray();
+    for (const QJsonValue& value : planetsPlanif) {
+        QJsonObject planetObj = value.toObject();
+        Planet planet = readPlanetData(planetObj);
+        Species species = planet.getSpecies();
+        _planificationFDV[species] = std::move(planet);
+    }
+}
 
-        std::array<int, 3> filePosition;
-        QJsonArray positionArray = planetObj["position"].toArray();
-        int indexPos = 0;
-        for (const QJsonValue& b : positionArray) {
-            filePosition[indexPos++] = b.toInt();
-        }
+Planet PlayerManager::readPlanetData(const QJsonObject& planetObj)
+{
+    QString name = planetObj["name"].toString();
+    int species = planetObj["species"].toInt();
+    int temperatureMax = planetObj["temperatureMax"].toInt();
 
-        PlanetPosition planetPosition(filePosition[0], filePosition[1], filePosition[2]);
-        Planet* planet = new Planet(name, planetPosition, temperatureMax, static_cast<Species>(species));
+    std::array<int, 3> filePosition;
+    QJsonArray positionArray = planetObj["position"].toArray();
+    int indexPos = 0;
+    for (const QJsonValue& b : positionArray) {
+        filePosition[indexPos++] = b.toInt();
+    }
 
-        for (int i = 1; i < static_cast<int>(TechType::Count); ++i)
-        {
-            TechType techType = static_cast<TechType>(i);
-            if (techType == TechType::CommonResearch) continue;
+    PlanetPosition planetPosition(filePosition[0], filePosition[1], filePosition[2]);
+    Planet planet(name, planetPosition, temperatureMax, static_cast<Species>(species));
 
-            QJsonArray techArray = planetObj[techTypeToString[i]].toArray();
-            int index = 0;
-            for (const QJsonValue& b : techArray) {
-                planet->setTechLevel(techType, index, b.toInt());
-                index++;
-            }
-        }
+    for (int i = 1; i < static_cast<int>(TechType::Count); ++i)
+    {
+        TechType techType = static_cast<TechType>(i);
+        if (techType == TechType::CommonResearch) continue;
 
-        QJsonArray choiceLifeFormResearchArray = planetObj["choiceLifeFormResearch"].toArray();
+        QJsonArray techArray = planetObj[techTypeToString[i]].toArray();
         int index = 0;
-        for (const QJsonValue& b : choiceLifeFormResearchArray) {
-            planet->setChoiceLifeFormResearch(index, static_cast<Species>(b.toInt()));
+        for (const QJsonValue& b : techArray) {
+            planet.setTechLevel(techType, index, b.toInt());
             index++;
         }
-
-        planet->setCrawlerNumber(planetObj["crawlers"].toInt(0));
-        _planets.push_back(planet);
     }
+
+    QJsonArray choiceLifeFormResearchArray = planetObj["choiceLifeFormResearch"].toArray();
+    int index = 0;
+    for (const QJsonValue& b : choiceLifeFormResearchArray) {
+        planet.setChoiceLifeFormResearch(index, static_cast<Species>(b.toInt()));
+        index++;
+    }
+
+    planet.setCrawlerNumber(planetObj["crawlers"].toInt(0));
+    return planet;
 }
 
 QJsonDocument PlayerManager::generateGameDataJson()
@@ -530,10 +489,20 @@ QJsonDocument PlayerManager::generateGameDataJson()
     QJsonArray planetsArray;
     for (int i = 0; i < _planets.size(); ++i)
     {
-        writePlanetData(planetsArray, i);
+        const Planet& planet = _planets.at(i);
+        QJsonObject planetObj = writePlanetData(planet);
+        planetsArray.append(planetObj);
     }
-
     root["planets"] = planetsArray;
+
+    // Planets planification life form update array
+    QJsonArray planetsPlanifArray;
+    for (const auto& [key, planet] : _planificationFDV)
+    {
+        QJsonObject planetObj = writePlanetData(planet);
+        planetsPlanifArray.append(planetObj);
+    }
+    root["planetPlanification"] = planetsPlanifArray;
 
     return QJsonDocument(root);
 }
@@ -640,20 +609,18 @@ void PlayerManager::writeConversionData(QJsonObject& parent)
     parent["scrapRate"] = scrapParent;
 }
 
-void PlayerManager::writePlanetData(QJsonArray &parent, int indexPlanet)
+QJsonObject PlayerManager::writePlanetData(const Planet& planet)
 {
-    Planet* planet = _planets.at(indexPlanet);
-
     QJsonObject planetObj;
-    planetObj["name"] = planet->getName();
+    planetObj["name"] = planet.getName();
 
-    PlanetPosition planetPosition = planet->getPosition();
+    PlanetPosition planetPosition = planet.getPosition();
     QJsonArray positionArray;
     positionArray << planetPosition.galaxy << planetPosition.solarSystem << planetPosition.position;
     planetObj["position"] = positionArray;
 
-    planetObj["species"] = static_cast<int>(planet->getSpecies());
-    planetObj["temperatureMax"] = static_cast<int>(planet->getTemperatureMax());
+    planetObj["species"] = static_cast<int>(planet.getSpecies());
+    planetObj["temperatureMax"] = static_cast<int>(planet.getTemperatureMax());
 
     for (int i = 1; i < static_cast<int>(TechType::Count); ++i)
     {
@@ -662,9 +629,9 @@ void PlayerManager::writePlanetData(QJsonArray &parent, int indexPlanet)
 
         QJsonArray techArray;
 
-        for (int j = 0; j < planet->getNumberTech(techType); ++j)
+        for (int j = 0; j < planet.getNumberTech(techType); ++j)
         {
-            techArray << planet->getTechLevel(techType, j);
+            techArray << planet.getTechLevel(techType, j);
         }
 
         planetObj[techTypeToString[i]] = techArray;
@@ -674,16 +641,14 @@ void PlayerManager::writePlanetData(QJsonArray &parent, int indexPlanet)
     int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
     for (int i = 0; i < numberLifeFormReseach; ++i)
     {
-        Species choice = planet->getChoiceLifeFormResearch(i);
+        Species choice = planet.getChoiceLifeFormResearch(i);
         choiceLifeFormResearchArray << static_cast<int>(choice);
     }
+
     planetObj["choiceLifeFormResearch"] = choiceLifeFormResearchArray;
-
-    planetObj["crawlers"] = planet->getCrawlerNumber();
-
+    planetObj["crawlers"] = planet.getCrawlerNumber();
     planetObj["defenses"] = QJsonArray{};
-
-    parent.append(planetObj);
+    return std::move(planetObj);
 }
 
 QString PlayerManager::getSavePath()

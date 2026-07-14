@@ -22,10 +22,11 @@ public:
         Count
     };
 
+    Planet();
     Planet(const QString& name, const PlanetPosition& position, int temperature, Species species = Species::None);
     Planet(const Planet* planet);
 
-    void computeBonusPos();
+    void                    initEmptyPlanet();
 
     inline const QString&   getName() const {return _name;}
     inline Species          getSpecies() const {return _species;}
@@ -50,6 +51,7 @@ public:
     float                   getTime(TechType techType, int indexTech, int level) const; //time in days
 
     void                    refresh();
+    void                    computeBonusPos();
     void                    computeLifeFormBuildingBonus();
     void                    computeProduction();
 
@@ -65,12 +67,12 @@ public:
 private:
     QString                                     _name;
     PlanetPosition                              _position;
-    int                                         _temperature;
-    Species                                     _species;
+    int                                         _temperature {0};
+    Species                                     _species {Species::None};
     std::map<TechType, std::vector<int>>        _techs;
     std::vector<Species>                        _choicesLifeFormResearch;
     Ressources<float>                           _bonusProdPositionCoeff;
-    int                                         _crawlerNumber;
+    int                                         _crawlerNumber {0};
 
     std::map<ProductionStat, Ressources<int>> _productionStats;
     std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;

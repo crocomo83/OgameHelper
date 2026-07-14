@@ -469,10 +469,10 @@ inline static const QStringList officerToString = {"Conseil", "Amiral", "Ingéni
 
 struct PlanetPosition
 {
-    int galaxy;
-    int solarSystem;
-    int position;
+    int galaxy {1};
+    int solarSystem {1};
+    int position {1};
 
-    PlanetPosition() : galaxy(1), solarSystem(1), position(1) {}
+    PlanetPosition() = default;
     PlanetPosition(int g, int s, int p) : galaxy(g), solarSystem(s), position(p) {}
 };

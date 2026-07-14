@@ -60,31 +60,33 @@ public:
         "Alliance bonus percent"
     };
 
-    int                 getNumberPlanets() const;
-    int                 getNumberResearch() const;
-    const QString&      getPlanetName(int index) const;
-    Planet *            getPlanet(int index) const;
-    Ressources<float>   getPlasmaBonus() const;
-    float               getLifeFormBonus(BonusLifeForm bonus) const;
-    Ressources<float>   getLifeFormProdBonus() const;
-    Ressources<float>   getGeologBonus() const;
-    Ressources<float>   getClassBonus() const;
-    Ressources<float>   getAllianceClassBonus() const;
-    Class               getClass() const;
-    AllianceClass       getAllianceClass() const;
-    int                 getScrapRate() const;
-    int                 getUniverseSpecific(UniverseSpecifics universeSpecific) const;
-    bool                getOfficerValue(Officers officer) const;
-    Ressources<float>   getConversionRate() const;
-    int                 getResearchLevel(ResearchType researchType) const;
-    int                 getSpecies(Species species) const;
-    float               getResearchTime(int indexTech, int level) const;
+    inline int              getNumberPlanets() const {return _planets.size();}
+    inline int              getNumberResearch() const {return _levelResearch.size();}
+    inline const QString&   getPlanetName(int index) const {return _planets.at(index).getName();}
+    inline Planet&          getPlanet(int index) {return _planets[index];}
+    inline float            getLifeFormBonus(BonusLifeForm bonus) const {return _lifeFormBonuses.at(bonus);}
+    inline Class            getClass() const {return _class;}
+    inline AllianceClass    getAllianceClass() const {return _allianceClass;}
+    inline int              getScrapRate() const {return _scrapRate;}
+    inline int              getUniverseSpecific(UniverseSpecifics universeSpecific) const { return _universeSpecifics.at(universeSpecific);}
+    inline bool             getOfficerValue(Officers officer) const {return _officers.at(officer);}
+    inline Ressources<float> getConversionRate() const {return _conversionRates;}
+    inline int              getResearchLevel(ResearchType researchType) const {return _levelResearch.at(researchType);}
+    inline int              getSpecies(Species species) const {return _levelSpecies.at(species);}
 
-    void                refresh();
-    void                computeLifeFormResearch();
-    void                computeProduction();
-    void                computeLabsLevel();
-    void                computeConversionRate();
+    Ressources<float>       getPlasmaBonus() const;
+    Ressources<float>       getLifeFormProdBonus() const;
+    Ressources<float>       getGeologBonus() const;
+    Ressources<float>       getClassBonus() const;
+    Ressources<float>       getAllianceClassBonus() const;
+    float                   getResearchTime(int indexTech, int level) const;
+    Planet&                 getPlanifPlanet(const Species& species);
+
+    void                    refresh();
+    void                    computeLifeFormResearch();
+    void                    computeProduction();
+    void                    computeLabsLevel();
+    void                    computeConversionRate();
 
     inline const Ressources<float>& getProduction(ProductionStat stat) const {return _productionStats.at(stat);}
     inline const Ressources<float>& getProductionPercent(ProductionStatPercent stat) const {return _productionStatsPercent.at(stat);}
@@ -112,7 +114,8 @@ private:
     void            readClassData(const QJsonObject& parent);
     void            readOfficersData(const QJsonObject& parent);
     void            readConversionData(const QJsonObject& parent);
-    void            readPlanetData(const QJsonObject& parent);
+    void            readAllPlanetData(const QJsonObject& parent);
+    Planet          readPlanetData(const QJsonObject& planetObj);
 
     void            writeUniverses(QJsonObject& parent);
     void            writeSpecies(QJsonObject& parent);
@@ -120,7 +123,7 @@ private:
     void            writeClassData(QJsonObject& parent);
     void            writeOfficersData(QJsonObject& parent);
     void            writeConversionData(QJsonObject& parent);
-    void            writePlanetData(QJsonArray& parent, int indexPlanet);
+    QJsonObject     writePlanetData(const Planet& planet);
 
     QJsonDocument   generateGameDataJson();
     QString         getSavePath();
@@ -135,20 +138,20 @@ private:
     PlayerManager(const PlayerManager&) = delete;
     PlayerManager& operator=(const PlayerManager&) = delete;
 
-    Class                                       _class;
-    AllianceClass                               _allianceClass;
-    int                                         _scrapRate {35};
+    Class                               _class {Class::None};
+    AllianceClass                       _allianceClass {AllianceClass::None};
+    int                                 _scrapRate {35};
+    int                                 _labsLevel {0};
 
-    std::map<UniverseSpecifics, int>            _universeSpecifics;
-    std::map<Officers, bool>                    _officers;
-    Ressources<float>                           _conversionRates;
-    std::map<ResearchType, int>                 _levelResearch;
-    std::map<Species, int>                      _levelSpecies;
-    std::vector<Planet*>                        _planets;
-    std::map<BonusLifeForm, float>              _lifeFormBonuses;
+    std::map<UniverseSpecifics, int>    _universeSpecifics;
+    std::map<Officers, bool>            _officers;
+    Ressources<float>                   _conversionRates;
+    std::map<ResearchType, int>         _levelResearch;
+    std::map<Species, int>              _levelSpecies;
+    std::vector<Planet>                 _planets;
+    std::unordered_map<Species, Planet> _planificationFDV;
+    std::map<BonusLifeForm, float>      _lifeFormBonuses;
 
     std::map<ProductionStat, Ressources<float>> _productionStats;
     std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;
-
-    int                                         _labsLevel {0};
 };

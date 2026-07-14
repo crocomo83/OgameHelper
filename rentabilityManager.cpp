@@ -33,7 +33,7 @@ int RentabilityManager::refresh()
     {
         if (!_filterPlanet.at(i)) continue;
 
-        const Planet* planet = PlayerManager::instance().getPlanet(i);
+        const Planet& planet = PlayerManager::instance().getPlanet(i);
 
         if (_typeFilter.at(TypeFilter::BuildingFilter))
             addMinesRentability(planet, i);
@@ -110,18 +110,18 @@ void RentabilityManager::addReasearchRentability()
     addNewLevelUp(std::move(levelUpCombu));
 }
 
-void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlanet)
+void RentabilityManager::addMinesRentability(const Planet& planet, int indexPlanet)
 {
-    int temperatureMax = planet->getTemperatureMax();
-    Ressources<float> bonus = planet->getBonusMine();
+    int temperatureMax = planet.getTemperatureMax();
+    Ressources<float> bonus = planet.getBonusMine();
 
     int indexMetal = static_cast<int>(CommonBuildingType::MineMetal);
     int indexCristal = static_cast<int>(CommonBuildingType::MineCristal);
     int indexDeut = static_cast<int>(CommonBuildingType::MineDeut);
 
-    int levelMetal = planet->getTechLevel(TechType::CommonBuilding, indexMetal) + 1;
-    int levelCristal = planet->getTechLevel(TechType::CommonBuilding, indexCristal) + 1;
-    int levelDeut = planet->getTechLevel(TechType::CommonBuilding, indexDeut) + 1;
+    int levelMetal = planet.getTechLevel(TechType::CommonBuilding, indexMetal) + 1;
+    int levelCristal = planet.getTechLevel(TechType::CommonBuilding, indexCristal) + 1;
+    int levelDeut = planet.getTechLevel(TechType::CommonBuilding, indexDeut) + 1;
 
     Ressources<float> prodMinesLevelUp;
 
@@ -133,8 +133,8 @@ void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlan
         - TechManager::instance().getProductionMine(CommonBuildingType::MineDeut, levelDeut - 1, bonus.deut, temperatureMax);
 
     Ressources<float> bonusPercent;
-    bonusPercent += planet->getProductionStatPercent(Planet::ProductionStatPercent::BuildingLifeFormPercent);
-    bonusPercent += planet->getProductionStatPercent(Planet::ProductionStatPercent::CrawlersPercent);
+    bonusPercent += planet.getProductionStatPercent(Planet::ProductionStatPercent::BuildingLifeFormPercent);
+    bonusPercent += planet.getProductionStatPercent(Planet::ProductionStatPercent::CrawlersPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::PlasmaPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::LifeFormBonusPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::GeologPercent);
@@ -147,32 +147,32 @@ void RentabilityManager::addMinesRentability(const Planet* planet, int indexPlan
     levelUpMetal.name = "Mine de métal";
     levelUpMetal.levelToUpdate = levelMetal;
     levelUpMetal.rentaPerDay = Ressources<float>(prodMinesLevelUp.metal, 0, 0);
-    levelUpMetal.cost = planet->getCost(TechType::CommonBuilding, indexMetal, levelMetal);
-    levelUpMetal.timeToCompleteDay = planet->getTime(TechType::CommonBuilding, indexMetal, levelMetal);
+    levelUpMetal.cost = planet.getCost(TechType::CommonBuilding, indexMetal, levelMetal);
+    levelUpMetal.timeToCompleteDay = planet.getTime(TechType::CommonBuilding, indexMetal, levelMetal);
     addNewLevelUp(std::move(levelUpMetal), indexPlanet);
 
     LevelUp levelUpCristal;
     levelUpCristal.name = "Mine de cristal";
     levelUpCristal.levelToUpdate = levelCristal;
     levelUpCristal.rentaPerDay = Ressources<float>(0, prodMinesLevelUp.cristal, 0);
-    levelUpCristal.cost = planet->getCost(TechType::CommonBuilding, indexCristal, levelCristal);
-    levelUpCristal.timeToCompleteDay = planet->getTime(TechType::CommonBuilding, indexCristal, levelCristal);
+    levelUpCristal.cost = planet.getCost(TechType::CommonBuilding, indexCristal, levelCristal);
+    levelUpCristal.timeToCompleteDay = planet.getTime(TechType::CommonBuilding, indexCristal, levelCristal);
     addNewLevelUp(std::move(levelUpCristal), indexPlanet);
 
     LevelUp levelUpDeut;
     levelUpDeut.name = "Mine de deut";
     levelUpDeut.levelToUpdate = levelDeut;
     levelUpDeut.rentaPerDay = Ressources<float>(0, 0, prodMinesLevelUp.deut);
-    levelUpDeut.cost = planet->getCost(TechType::CommonBuilding, indexDeut, levelDeut);
-    levelUpDeut.timeToCompleteDay = planet->getTime(TechType::CommonBuilding, indexDeut, levelDeut);
+    levelUpDeut.cost = planet.getCost(TechType::CommonBuilding, indexDeut, levelDeut);
+    levelUpDeut.timeToCompleteDay = planet.getTime(TechType::CommonBuilding, indexDeut, levelDeut);
     addNewLevelUp(std::move(levelUpDeut), indexPlanet);
 }
 
-void RentabilityManager::addLifeFormBuilding(const Planet *planet, int indexPlanet)
+void RentabilityManager::addLifeFormBuilding(const Planet& planet, int indexPlanet)
 {
-    Ressources<float> prodMines = planet->getProductionStat(Planet::ProductionStat::Mines);
+    Ressources<float> prodMines = planet.getProductionStat(Planet::ProductionStat::Mines);
 
-    TechType buildingType = speciesToBuildingLifeForm.at(planet->getSpecies());
+    TechType buildingType = speciesToBuildingLifeForm.at(planet.getSpecies());
     int numberBuildingLifeForm = TechManager::instance().getNumberTechs(buildingType);
     for (int i = 0; i < numberBuildingLifeForm; i++)
     {
@@ -205,26 +205,26 @@ void RentabilityManager::addLifeFormBuilding(const Planet *planet, int indexPlan
 
         Ressources bonusProd = prodMines * bonusProdPercent * 0.01f;
 
-        int levelUpBatiment = planet->getTechLevel(buildingType, i) + 1;
+        int levelUpBatiment = planet.getTechLevel(buildingType, i) + 1;
 
         LevelUp levelUpBuilding;
         levelUpBuilding.name = tech->name;
         levelUpBuilding.levelToUpdate = levelUpBatiment;
         levelUpBuilding.rentaPerDay = bonusProd;
-        levelUpBuilding.cost = planet->getCost(buildingType, i, levelUpBatiment);
-        levelUpBuilding.timeToCompleteDay = planet->getTime(buildingType, i, levelUpBatiment);
+        levelUpBuilding.cost = planet.getCost(buildingType, i, levelUpBatiment);
+        levelUpBuilding.timeToCompleteDay = planet.getTime(buildingType, i, levelUpBatiment);
         addNewLevelUp(std::move(levelUpBuilding), indexPlanet);
     }
 }
 
-void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlanet)
+void RentabilityManager::addLifeFormResearch(const Planet& planet, int indexPlanet)
 {
     Ressources<float> prodMines = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Mines);
 
     int numberResearchLifeForm = TechManager::instance().getNumberTechs(TechType::HumanResearch);
     for (int i = 0; i < numberResearchLifeForm; i++)
     {
-        Species speciesLifeForm = planet->getChoiceLifeFormResearch(i);
+        Species speciesLifeForm = planet.getChoiceLifeFormResearch(i);
         if (speciesLifeForm == Species::None)
         {
             continue;
@@ -234,7 +234,7 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
 
         int levelSpecies = PlayerManager::instance().getSpecies(tech->species);
         float factorSpecies = 1.0f + (float)levelSpecies / 1000.0f;
-        int levelUpResearch = planet->getTechLevel(researchLifeFormType, i) + 1;
+        int levelUpResearch = planet.getTechLevel(researchLifeFormType, i) + 1;
 
         Ressources<float> bonusRessources;
         for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
@@ -289,8 +289,8 @@ void RentabilityManager::addLifeFormResearch(const Planet *planet, int indexPlan
             levelUpLifeFormResearch.name                = tech->name;
             levelUpLifeFormResearch.levelToUpdate       = levelUpResearch;
             levelUpLifeFormResearch.rentaPerDay         = bonusRessources;
-            levelUpLifeFormResearch.cost                = planet->getCost(researchLifeFormType, i, levelUpResearch);
-            levelUpLifeFormResearch.timeToCompleteDay   = planet->getTime(researchLifeFormType, i, levelUpResearch);
+            levelUpLifeFormResearch.cost                = planet.getCost(researchLifeFormType, i, levelUpResearch);
+            levelUpLifeFormResearch.timeToCompleteDay   = planet.getTime(researchLifeFormType, i, levelUpResearch);
             addNewLevelUp(std::move(levelUpLifeFormResearch), indexPlanet);
         }
     }

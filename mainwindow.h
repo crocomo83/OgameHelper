@@ -38,6 +38,8 @@ public:
     ComboBoxItem* addComboBoxItem(QTableWidget* tableWidget, QString str, QStringList names, int row, int column, int defaultValue);
     PositionItem* addPositionItem(QTableWidget* tableWidget, int row, int column, const PlanetPosition &planetPosition);
     LifeFormSelectItem* addLifeFormSelectItem(QTableWidget* tableWidget, int row, int column, Species species, int level);
+    std::unordered_set<Species> getAllAvailableSpecies();
+
     QLabel* createPlanetsLabel(std::vector<int> indexPlanets);
 
     void buildResumeOutputs(QTableWidget* tableWidget);
@@ -48,6 +50,7 @@ public:
     void buildTradeImputs(QTableWidget* tableWidget, int column);
     void buildPlanetImputs(QTableWidget* tableWidget, int column);
     void buildDiscoveryImputs(QTableWidget* tableWidget);
+    void buildLevelUpLifeForm(QTableWidget* tableWidget);
 
 private slots:
     void onPlanetsChanged();
@@ -67,4 +70,5 @@ private:
     QTableWidget* _planetTable;
     QTableWidget* _overviewTable;
     QTableWidget* _discoveryTab;
+    QTableWidget* _lvlUpFdvTab;
 };

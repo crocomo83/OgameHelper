@@ -54,9 +54,9 @@ public:
 private:
     void addNewLevelUp(LevelUp levelUp, std::optional<int> indexPlanet = std::nullopt);
     void addReasearchRentability();
-    void addMinesRentability(const Planet *planet, int indexPlanet);
-    void addLifeFormBuilding(const Planet *planet, int indexPlanet);
-    void addLifeFormResearch(const Planet *planet, int indexPlanet);
+    void addMinesRentability(const Planet& planet, int indexPlanet);
+    void addLifeFormBuilding(const Planet& planet, int indexPlanet);
+    void addLifeFormResearch(const Planet& planet, int indexPlanet);
 
 private:
     RentabilityManager();
