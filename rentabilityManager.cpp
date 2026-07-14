@@ -43,6 +43,8 @@ int RentabilityManager::refresh()
 
         if (_typeFilter.at(TypeFilter::LifeFormResearchFilter))
             addLifeFormResearch(planet, i);
+
+        addLevelUpLifeForm(planet, i);
     }
 
     std::sort(rentaLevelUp.begin(), rentaLevelUp.end(),
@@ -51,6 +53,63 @@ int RentabilityManager::refresh()
               });
 
     return rentaLevelUp.size();
+}
+
+Ressources<float> RentabilityManager::getGain(const LifeFormTech* tech) const
+{
+    Ressources<float> bonusRessources;
+
+    int levelSpecies = PlayerManager::instance().getSpecies(tech->species);
+    float factorSpecies = 1.0f + (float)levelSpecies / 1000.0f;
+    Ressources<float> prodMines = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Mines);
+
+    for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
+    {
+        float bonusFactor = itr->second / 100.0f * factorSpecies;
+        switch(itr->first)
+        {
+        case BonusLifeForm::Metal:
+            bonusRessources += bonusFactor * Ressources(prodMines.metal, 0.0f, 0.0f);
+            break;
+        case BonusLifeForm::Cristal:
+            bonusRessources += bonusFactor * Ressources(0.0f, prodMines.cristal, 0.0f);
+            break;
+        case BonusLifeForm::Deuterium:
+            bonusRessources += bonusFactor * Ressources(0.0f, 0.0f, prodMines.deut);
+            break;
+        case BonusLifeForm::Antimatter:
+        {
+            float antimatterMean = DiscoveryManager::instance().getSummary().meanRessourceFound.antimatter;
+            bonusRessources = bonusFactor * Ressources(0.0f, 0.0f, 0.0f, 0.0f, antimatterMean);
+            break;
+        }
+        case BonusLifeForm::ExpeditionRessourcesIncrease:
+        {
+            Ressources<float> ressourcesBase = DiscoveryManager::instance().getSummary().meanRessourceFound;
+            float percentDiscover = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExploratorClass);
+            float factorDiscover = 1.0f + percentDiscover / 100.0f;
+            bonusRessources += bonusFactor * factorDiscover * ressourcesBase;
+            break;
+        }
+        case BonusLifeForm::ExpeditionShipIncrease:
+            bonusRessources += bonusFactor * DiscoveryManager::instance().getSummary().meanShipFound;
+            break;
+        case BonusLifeForm::LargeCargoUpdate:
+        case BonusLifeForm::SpeedCivilianShips:
+        case BonusLifeForm::SpeedAllShips:
+            bonusRessources += DiscoveryManager::instance().computeReductionTimeDiscovery(bonusFactor * 100.0f);
+            break;
+        case BonusLifeForm::ExploratorClass:
+        {
+            Ressources<float> ressourcesBase = DiscoveryManager::instance().getSummary().meanRessourceFound;
+            float percentRessources = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionRessourcesIncrease);
+            float factorRessources = 1.0f + percentRessources / 100.0f;
+            bonusRessources += bonusFactor * factorRessources * ressourcesBase;
+        }
+        }
+    }
+
+    return bonusRessources;
 }
 
 void RentabilityManager::addNewLevelUp(LevelUp levelUp, std::optional<int> indexPlanet)
@@ -219,72 +278,21 @@ void RentabilityManager::addLifeFormBuilding(const Planet& planet, int indexPlan
 
 void RentabilityManager::addLifeFormResearch(const Planet& planet, int indexPlanet)
 {
-    Ressources<float> prodMines = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Mines);
-
     int numberResearchLifeForm = TechManager::instance().getNumberTechs(TechType::HumanResearch);
     for (int i = 0; i < numberResearchLifeForm; i++)
     {
         Species speciesLifeForm = planet.getChoiceLifeFormResearch(i);
-        if (speciesLifeForm == Species::None)
-        {
-            continue;
-        }
+        if (speciesLifeForm == Species::None) continue;
+
         TechType researchLifeFormType = speciesToTechLifeForm.at(speciesLifeForm);
         const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
-
-        int levelSpecies = PlayerManager::instance().getSpecies(tech->species);
-        float factorSpecies = 1.0f + (float)levelSpecies / 1000.0f;
         int levelUpResearch = planet.getTechLevel(researchLifeFormType, i) + 1;
 
-        Ressources<float> bonusRessources;
-        for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
-        {
-            float bonusFactor = itr->second / 100.0f * factorSpecies;
-            switch(itr->first)
-            {
-            case BonusLifeForm::Metal:
-                bonusRessources += bonusFactor * Ressources(prodMines.metal, 0.0f, 0.0f);
-                break;
-            case BonusLifeForm::Cristal:
-                bonusRessources += bonusFactor * Ressources(0.0f, prodMines.cristal, 0.0f);
-                break;
-            case BonusLifeForm::Deuterium:
-                bonusRessources += bonusFactor * Ressources(0.0f, 0.0f, prodMines.deut);
-                break;
-            case BonusLifeForm::Antimatter:
-            {
-                float antimatterMean = DiscoveryManager::instance().getSummary().meanRessourceFound.antimatter;
-                bonusRessources = bonusFactor * Ressources(0.0f, 0.0f, 0.0f, 0.0f, antimatterMean);
-                break;
-            }
-            case BonusLifeForm::ExpeditionRessourcesIncrease:
-            {
-                Ressources<float> ressourcesBase = DiscoveryManager::instance().getSummary().meanRessourceFound;
-                float percentDiscover = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExploratorClass);
-                float factorDiscover = 1.0f + percentDiscover / 100.0f;
-                bonusRessources += bonusFactor * factorDiscover * ressourcesBase;
-                break;
-            }
-            case BonusLifeForm::ExpeditionShipIncrease:
-                bonusRessources += bonusFactor * DiscoveryManager::instance().getSummary().meanShipFound;
-                break;
-            case BonusLifeForm::LargeCargoUpdate:
-            case BonusLifeForm::SpeedCivilianShips:
-            case BonusLifeForm::SpeedAllShips:
-                bonusRessources += DiscoveryManager::instance().computeReductionTimeDiscovery(bonusFactor * 100.0f);
-                break;
-            case BonusLifeForm::ExploratorClass:
-            {
-                Ressources<float> ressourcesBase = DiscoveryManager::instance().getSummary().meanRessourceFound;
-                float percentRessources = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionRessourcesIncrease);
-                float factorRessources = 1.0f + percentRessources / 100.0f;
-                bonusRessources += bonusFactor * factorRessources * ressourcesBase;
-            }
-            }
-        }
-
+        Ressources<float> bonusRessources = getGain(tech);
         if (!bonusRessources.empty())
         {
+            const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
+
             LevelUp levelUpLifeFormResearch;
             levelUpLifeFormResearch.name                = tech->name;
             levelUpLifeFormResearch.levelToUpdate       = levelUpResearch;
@@ -294,6 +302,65 @@ void RentabilityManager::addLifeFormResearch(const Planet& planet, int indexPlan
             addNewLevelUp(std::move(levelUpLifeFormResearch), indexPlanet);
         }
     }
+}
+
+void RentabilityManager::addLevelUpLifeForm(const Planet& planet, int indexPlanet)
+{
+    const Planet& planifPlanet = PlayerManager::instance().getPlanifPlanet(planet.getSpecies());
+    Ressources<float> globalCost;
+    Ressources<float> globalGain;
+    float globalTime;
+
+    // All building cost
+    std::vector<TechType> techTypes = planet.getAvailableBuildings();
+    for (TechType techType : techTypes)
+    {
+        if (techType == TechType::None) { continue;}
+
+        int numberTechs = TechManager::instance().getNumberTechs(techType);
+        for (int i = 0; i < numberTechs; ++i)
+        {
+            int level = planet.getTechLevel(techType, i);
+            int levelPlanif = planifPlanet.getTechLevel(techType, i);
+
+            if (level >= levelPlanif) continue;
+
+            for (int j = level + 1; j <= levelPlanif; ++j)
+            {
+                globalCost += planifPlanet.getCost(techType, i, j);
+                globalTime += planifPlanet.getTime(techType, i, j);
+            }
+        }
+    }
+
+    // Life form research
+    int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
+    for (int i = 0; i < numberLifeFormReseach; ++i)
+    {
+        Species speciesChoice = planifPlanet.getChoiceLifeFormResearch(i);
+        int level = planifPlanet.getLevelLifeFormResearch(speciesChoice, i);
+        TechType lifeFormResearch = speciesToTechLifeForm.at(speciesChoice);
+
+        for (int j = 1; j <= level; ++j)
+        {
+            TechType researchLifeFormType = speciesToTechLifeForm.at(speciesChoice);
+            const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
+
+            globalGain += getGain(tech);
+            globalCost += planifPlanet.getCost(lifeFormResearch, i, j);
+        }
+    }
+
+    //qDebug() << "globalGain : " << globalGain.metal << " / " << globalGain.cristal << " / " << globalGain.deut;
+    //qDebug() << "globalCost : " << globalCost.metal << " / " << globalCost.cristal << " / " << globalCost.deut;
+
+    LevelUp levelUpLifeForm;
+    levelUpLifeForm.name                = "Level up LF";
+    levelUpLifeForm.levelToUpdate       = 0;
+    levelUpLifeForm.rentaPerDay         = globalGain;
+    levelUpLifeForm.cost                = globalCost;
+    levelUpLifeForm.timeToCompleteDay   = globalTime;
+    addNewLevelUp(std::move(levelUpLifeForm), indexPlanet);
 }
 
 QString RentabilityManager::rentaToString(float timeToRecover) const

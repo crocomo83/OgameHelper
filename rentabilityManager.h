@@ -47,6 +47,9 @@ public:
     inline const RentabilityManager::LevelUp& getLevelUp(int index) const {return rentaLevelUp.at(index);}
     inline bool getFilterPlanet(int index) const {return _filterPlanet.at(index);}
     inline bool getFilterType(TypeFilter index) const {return _typeFilter.at(index);}
+
+    Ressources<float> getGain(const LifeFormTech* tech) const;
+
     inline void setFilterPlanet(int index, bool state) {_filterPlanet[index] = state;}
     inline void setFilterType(TypeFilter index, bool state) {_typeFilter[index] = state;}
     QString rentaToString(float timeToRecover) const;
@@ -57,6 +60,7 @@ private:
     void addMinesRentability(const Planet& planet, int indexPlanet);
     void addLifeFormBuilding(const Planet& planet, int indexPlanet);
     void addLifeFormResearch(const Planet& planet, int indexPlanet);
+    void addLevelUpLifeForm(const Planet& planet, int indexPlanet);
 
 private:
     RentabilityManager();

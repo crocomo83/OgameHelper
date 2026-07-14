@@ -652,7 +652,27 @@ void MainWindow::buildLevelUpLifeForm(QTableWidget* tableWidget)
 
         addLabel(tableWidget, "Planification " + speciesToString.at(static_cast<int>(currentSpecies)) + " : ", currentRow++, column);
 
-        // Buildings
+        // Common buildings
+        addLabel(tableWidget, "Common buildings : ", currentRow++, column);
+
+        int indexRobots = static_cast<int>(CommonBuildingType::UsineRobots);
+        int baseLevelRobots = planifPlanet.getTechLevel(TechType::CommonBuilding, indexRobots);
+        Item* robotItem = addSpinBoxItem(tableWidget, "Robots", currentRow++, column, baseLevelRobots);
+        robotItem->setOnValueChanged([this, &planifPlanet, indexRobots](int value) {
+            planifPlanet.setTechLevel(TechType::CommonBuilding, indexRobots, value);
+            emit techChanged();
+        });
+
+        int indexNanites = static_cast<int>(CommonBuildingType::UsineNanite);
+        int baseLevelNanites = planifPlanet.getTechLevel(TechType::CommonBuilding, indexNanites);
+        Item* nanitesItem = addSpinBoxItem(tableWidget, "Nanites", currentRow++, column, baseLevelNanites);
+        nanitesItem->setOnValueChanged([this, &planifPlanet, indexNanites](int value) {
+            planifPlanet.setTechLevel(TechType::CommonBuilding, indexNanites, value);
+            emit techChanged();
+        });
+
+        // Life form buildings
+        currentRow++;
         addLabel(tableWidget, "Life form buildings : ", currentRow++, column);
 
         int numberTechs = TechManager::instance().getNumberTechs(techType);
