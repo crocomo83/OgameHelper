@@ -269,8 +269,8 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
         tableWidget->setCellWidget(i+1, 1, labelPlanets);
 
         addLabel(tableWidget, levelUp.name + " : " + QString::number(levelUp.levelToUpdate), i+1, 0);
-        addLabel(tableWidget, levelUp.timeToRecoverStr, i+1, 2);
-        addLabel(tableWidget, QString::number(levelUp.timeToCompleteDay), i+1, 3);
+        addLabel(tableWidget, utils::timeToString(levelUp.timeToRecover), i+1, 2);
+        addLabel(tableWidget, utils::timeToString(levelUp.timeToCompleteDay), i+1, 3);
     }
 
     for (int i = 0; i < PlayerManager::instance().getNumberPlanets(); ++i)
@@ -742,13 +742,6 @@ void MainWindow::onPlanetsChanged()
 
 void MainWindow::onTechChanged()
 {
-    int numberPlanet = PlayerManager::instance().getNumberPlanets();
-    for (int i = 0; i < numberPlanet; ++i)
-    {
-        Planet& planet = PlayerManager::instance().getPlanet(i);
-        planet.refresh();
-    }
-
     PlayerManager::instance().refresh();
     DiscoveryManager::instance().refresh();
 

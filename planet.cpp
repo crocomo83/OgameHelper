@@ -204,6 +204,11 @@ Ressources<float> Planet::getCost(TechType techType, int indexTech, int level) c
     case TechType::KaeleshBuilding:
     case TechType::RoctasBuilding:
         factor = 1.0f - _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::ReducLifeFormBuildingCostPercent) / 100.0f;
+        // Production of ressources
+        if (indexTech <= 1)
+        {
+            factor -= _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::ReducMineCostPercent) / 100.0f;
+        }
         break;
     case TechType::HumanResearch:
     case TechType::MechResearch:

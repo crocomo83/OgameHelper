@@ -116,6 +116,18 @@ Ressources<float> PlayerManager::getAllianceClassBonus() const
 
 void PlayerManager::refresh()
 {
+    int numberPlanet = getNumberPlanets();
+    for (int i = 0; i < numberPlanet; ++i)
+    {
+        Planet& planet = getPlanet(i);
+        planet.refresh();
+    }
+
+    for (auto& [key, planet] : _planificationFDV)
+    {
+        planet.refresh();
+    }
+
     computeLifeFormResearch();
     computeProduction();
     computeLabsLevel();

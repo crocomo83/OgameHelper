@@ -21,7 +21,6 @@ public:
         Ressources<float> rentaPerDay;
         float timeToCompleteDay;
         float timeToRecover = -1.0f;
-        QString timeToRecoverStr = "";
 
         void computeRenta(Ressources<float> tradeRate)
         {
@@ -52,7 +51,6 @@ public:
 
     inline void setFilterPlanet(int index, bool state) {_filterPlanet[index] = state;}
     inline void setFilterType(TypeFilter index, bool state) {_typeFilter[index] = state;}
-    QString rentaToString(float timeToRecover) const;
 
 private:
     void addNewLevelUp(LevelUp levelUp, std::optional<int> indexPlanet = std::nullopt);

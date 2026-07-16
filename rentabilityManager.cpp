@@ -115,7 +115,6 @@ Ressources<float> RentabilityManager::getGain(const LifeFormTech* tech) const
 void RentabilityManager::addNewLevelUp(LevelUp levelUp, std::optional<int> indexPlanet)
 {
     levelUp.computeRenta(PlayerManager::instance().getConversionRate());
-    levelUp.timeToRecoverStr = rentaToString(levelUp.timeToRecover);
 
     auto it = std::find_if(rentaLevelUp.begin(), rentaLevelUp.end(), [this, levelUp](const LevelUp& current)
     {
@@ -351,9 +350,6 @@ void RentabilityManager::addLevelUpLifeForm(const Planet& planet, int indexPlane
         }
     }
 
-    //qDebug() << "globalGain : " << globalGain.metal << " / " << globalGain.cristal << " / " << globalGain.deut;
-    //qDebug() << "globalCost : " << globalCost.metal << " / " << globalCost.cristal << " / " << globalCost.deut;
-
     LevelUp levelUpLifeForm;
     levelUpLifeForm.name                = "Level up LF";
     levelUpLifeForm.levelToUpdate       = 0;
@@ -361,24 +357,4 @@ void RentabilityManager::addLevelUpLifeForm(const Planet& planet, int indexPlane
     levelUpLifeForm.cost                = globalCost;
     levelUpLifeForm.timeToCompleteDay   = globalTime;
     addNewLevelUp(std::move(levelUpLifeForm), indexPlanet);
-}
-
-QString RentabilityManager::rentaToString(float timeToRecover) const
-{
-    if (timeToRecover < 7.0f)
-    {
-        return QString::number(timeToRecover) + "j";
-    }
-    else if (timeToRecover < 30.0f)
-    {
-        return QString::number(timeToRecover / 7.0f) + "s";
-    }
-    else if (timeToRecover < 365.0f)
-    {
-        return QString::number(timeToRecover / 30.0f) + "m";
-    }
-    else
-    {
-        return QString::number(timeToRecover / 365.0f) + "a";
-    }
 }
