@@ -49,6 +49,7 @@ public:
     Ressources<float>       getLifeFormProdBonus() const;
     Ressources<float>       getCost(TechType techType, int indexTech, int level) const;
     float                   getTime(TechType techType, int indexTech, int level) const; //time in days
+    int                     getDefense(UnitType uniType) const;
 
     void                    refresh();
     void                    computeBonusPos();
@@ -63,6 +64,7 @@ public:
     inline void             setChoiceLifeFormResearch(int index, Species species) {_choicesLifeFormResearch[index] = species;}
     void                    setTechLevel(TechType type, int index, int level);
     void                    setLevelLifeFormResearch(Species species, int index, int level);
+    void                    setDefense(UnitType unitType, int value) {_defenses[unitType] = value;}
 
 private:
     QString                                     _name;
@@ -73,6 +75,7 @@ private:
     std::vector<Species>                        _choicesLifeFormResearch;
     Ressources<float>                           _bonusProdPositionCoeff;
     int                                         _crawlerNumber {0};
+    std::map<UnitType, int>                     _defenses;
 
     std::map<ProductionStat, Ressources<int>> _productionStats;
     std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;

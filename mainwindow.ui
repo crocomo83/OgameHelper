@@ -244,7 +244,7 @@
              <bool>true</bool>
             </property>
             <property name="rowCount">
-             <number>60</number>
+             <number>61</number>
             </property>
             <property name="columnCount">
              <number>4</number>
@@ -258,6 +258,7 @@
             <attribute name="verticalHeaderHighlightSections">
              <bool>false</bool>
             </attribute>
+            <row/>
             <row/>
             <row/>
             <row/>
@@ -376,18 +377,18 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="lvlUpFdv">
+        <widget class="QWidget" name="planification">
          <attribute name="title">
-          <string>FDV lvl up</string>
+          <string>Planification</string>
          </attribute>
          <layout class="QHBoxLayout" name="horizontalLayout_8">
           <item>
-           <widget class="QTableWidget" name="lvlUpFdvTab">
+           <widget class="QTableWidget" name="planificationTab">
             <property name="showGrid">
              <bool>true</bool>
             </property>
             <property name="rowCount">
-             <number>39</number>
+             <number>60</number>
             </property>
             <property name="columnCount">
              <number>3</number>
@@ -401,6 +402,27 @@
             <attribute name="verticalHeaderVisible">
              <bool>false</bool>
             </attribute>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
             <row/>
             <row/>
             <row/>

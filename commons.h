@@ -433,6 +433,16 @@ enum class UnitType
     EspionageProbe,
     SolarSatellite,
     Crawler,
+    MissileLauncher,
+    LightLaser,
+    HeavyLaser,
+    Gauss,
+    Ion,
+    Plasma,
+    SmallShield,
+    LargeShield,
+    InterceptionMissile,
+    InterplanetMissile,
     Count
 };
 

@@ -81,6 +81,7 @@ public:
     Ressources<float>       getAllianceClassBonus() const;
     float                   getResearchTime(int indexTech, int level) const;
     Planet&                 getPlanifPlanet(const Species& species);
+    inline Planet&          getPlanifAstro() {return _planifAstro;}
 
     void                    refresh();
     void                    computeLifeFormResearch();
@@ -149,6 +150,7 @@ private:
     std::map<ResearchType, int>         _levelResearch;
     std::map<Species, int>              _levelSpecies;
     std::vector<Planet>                 _planets;
+    Planet                              _planifAstro {};
     std::unordered_map<Species, Planet> _planificationFDV;
     std::map<BonusLifeForm, float>      _lifeFormBonuses;
 

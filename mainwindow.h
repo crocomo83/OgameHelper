@@ -21,6 +21,7 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
+class Planet;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -41,6 +42,11 @@ public:
     std::unordered_set<Species> getAllAvailableSpecies();
 
     QLabel* createPlanetsLabel(std::vector<int> indexPlanets);
+    void createPlanetLifeFormChoice(QTableWidget* tableWidget, Planet &planet, int& row, int column);
+    void createPlanetCommonBuilding(QTableWidget* tableWidget, Planet &planet, int& row, int column);
+    void createPlanetLifeFormBuilding(QTableWidget* tableWidget, Planet &planet, int& row, int column);
+    void createPlanetLifeFormResearches(QTableWidget* tableWidget, Planet &planet, int& row, int column);
+    void createPlanetDefenses(QTableWidget* tableWidget, Planet &planet, int& row, int column);
 
     void buildResumeOutputs(QTableWidget* tableWidget);
     void buildRentaOutputs(QTableWidget* tableWidget);
@@ -50,17 +56,20 @@ public:
     void buildTradeImputs(QTableWidget* tableWidget, int column);
     void buildPlanetImputs(QTableWidget* tableWidget, int column);
     void buildDiscoveryImputs(QTableWidget* tableWidget);
-    void buildLevelUpLifeForm(QTableWidget* tableWidget);
+    void buildPlanificationAstro(QTableWidget* tableWidget, int& column);
+    void buildPlanificationFdv(QTableWidget* tableWidget, int& column);
 
 private slots:
     void onPlanetsChanged();
     void onTechChanged();
     void onRentaChanged();
+    void onPlanifChanged();
 
 signals:
     void planetsChanged();
     void techChanged();
     void rentaChanged();
+    void planifChanged();
 
 private:
     Ui::MainWindow *ui;
@@ -70,5 +79,5 @@ private:
     QTableWidget* _planetTable;
     QTableWidget* _overviewTable;
     QTableWidget* _discoveryTab;
-    QTableWidget* _lvlUpFdvTab;
+    QTableWidget* _planificationTab;
 };

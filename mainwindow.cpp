@@ -27,24 +27,24 @@ MainWindow::MainWindow(QWidget *parent)
     Q_ASSERT(ui->commonTab);
     Q_ASSERT(ui->planetsTab);
     Q_ASSERT(ui->discoveryTab);
-    Q_ASSERT(ui->lvlUpFdvTab);
+    Q_ASSERT(ui->planificationTab);
 
     _overviewTable = ui->overviewTab;
     _rentaTable = ui->renta;
     _generalTable = ui->commonTab;
     _planetTable = ui->planetsTab;
     _discoveryTab = ui->discoveryTab;
-    _lvlUpFdvTab = ui->lvlUpFdvTab;
+    _planificationTab = ui->planificationTab;
 
     _rentaTable->setRowCount(NUMBER_RENTA_MAX + 1);
     initTable(_overviewTable);
     initTable(_generalTable);
 
-    _lvlUpFdvTab->verticalHeader()->setVisible(false);
-    _lvlUpFdvTab->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    _lvlUpFdvTab->setFrameShape(QFrame::NoFrame);
-    _lvlUpFdvTab->setSelectionMode(QAbstractItemView::NoSelection);
-    _lvlUpFdvTab->setFocusPolicy(Qt::NoFocus);
+    _planificationTab->verticalHeader()->setVisible(false);
+    _planificationTab->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    _planificationTab->setFrameShape(QFrame::NoFrame);
+    _planificationTab->setSelectionMode(QAbstractItemView::NoSelection);
+    _planificationTab->setFocusPolicy(Qt::NoFocus);
 
     _planetTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     _planetTable->horizontalHeader()->setStretchLastSection(false);
@@ -59,7 +59,9 @@ MainWindow::MainWindow(QWidget *parent)
     buildSpecialisationImputs(_generalTable, 2);
     buildTradeImputs(_generalTable, 3);
     buildDiscoveryImputs(_discoveryTab);
-    buildLevelUpLifeForm(_lvlUpFdvTab);
+    int planifCol = 0;
+    buildPlanificationAstro(_planificationTab, planifCol);
+    buildPlanificationFdv(_planificationTab, planifCol);
 
     onPlanetsChanged();
     onTechChanged();
@@ -87,6 +89,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, &MainWindow::planetsChanged, this, &MainWindow::onPlanetsChanged);
     connect(this, &MainWindow::techChanged, this, &MainWindow::onTechChanged);
     connect(this, &MainWindow::rentaChanged, this, &MainWindow::onRentaChanged);
+    connect(this, &MainWindow::planifChanged, this, &MainWindow::onPlanifChanged);
 }
 
 MainWindow::~MainWindow()
@@ -214,6 +217,111 @@ QLabel* MainWindow::createPlanetsLabel(std::vector<int> indexPlanets)
         labelPlanets->setToolTip(listPlanets);
     }
     return labelPlanets;
+}
+
+void MainWindow::createPlanetLifeFormChoice(QTableWidget* tableWidget, Planet &planet, int& row, int column)
+{
+    addLabel(tableWidget, "Forme de vie", row++, column);
+    int speciesIndex = static_cast<int>(planet.getSpecies());
+    ComboBoxItem* speciesItem = addComboBoxItem(tableWidget, "Choix : ", speciesToString, row++, column, speciesIndex);
+    speciesItem->setOnValueChanged([this, &planet](int value) {
+        planet.setSpecies(static_cast<Species>(value));
+        emit techChanged();
+        emit planetsChanged();
+        emit planifChanged();
+    });
+    row++; //blank
+}
+
+void MainWindow::createPlanetCommonBuilding(QTableWidget* tableWidget, Planet &planet, int& row, int column)
+{
+    TechType techType = TechType::CommonBuilding;
+    addLabel(tableWidget, techTypeToString[static_cast<int>(techType)] + " : ", row++, column);
+
+    int numberTechs = TechManager::instance().getNumberTechs(techType);
+    for (int i = 0; i < numberTechs; ++i)
+    {
+        int level = planet.getTechLevel(techType, i);
+        const CommonTech* tech = TechManager::instance().getTech(techType, i);
+        if (tech->isValid())
+        {
+            Item* buildingItem = addSpinBoxItem(tableWidget, tech->name, row++, column, level);
+            buildingItem->setOnValueChanged([this, techType, &planet, i](int value) {
+                planet.setTechLevel(techType, i, value);
+                emit techChanged();
+            });
+        }
+        else
+        {
+            qWarning() << "Tech not found : " << i;
+        }
+    }
+    row++; // blank
+}
+
+void MainWindow::createPlanetLifeFormBuilding(QTableWidget* tableWidget, Planet &planet, int& row, int column)
+{
+    TechType techType = planet.getLifeFormBuilding();
+
+    if (techType == TechType::None) { return;}
+
+    addLabel(tableWidget, techTypeToString[static_cast<int>(techType)] + " : ", row++, column);
+
+    int numberTechs = TechManager::instance().getNumberTechs(techType);
+    for (int i = 0; i < numberTechs; ++i)
+    {
+        int level = planet.getTechLevel(techType, i);
+        const CommonTech* tech = TechManager::instance().getTech(techType, i);
+        if (tech->isValid())
+        {
+            Item* buildingItem = addSpinBoxItem(tableWidget, tech->name, row++, column, level);
+            buildingItem->setOnValueChanged([this, techType, &planet, i](int value) {
+                planet.setTechLevel(techType, i, value);
+                emit techChanged();
+            });
+        }
+        else
+        {
+            qWarning() << "Tech not found : " << i;
+        }
+    }
+    row++; // blank
+}
+
+void MainWindow::createPlanetLifeFormResearches(QTableWidget* tableWidget, Planet &planet, int& row, int column)
+{
+    int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
+    for (int i = 0; i < numberLifeFormReseach; ++i)
+    {
+        Species speciesChoice = planet.getChoiceLifeFormResearch(i);
+        int levelInit = planet.getLevelLifeFormResearch(speciesChoice, i);
+        LifeFormSelectItem* item = addLifeFormSelectItem(tableWidget, row++, column, speciesChoice, levelInit);
+        item->setOnIndexChanged([this, &planet, i, item](int value) {
+            Species speciesSelected = static_cast<Species>(value);
+            planet.setChoiceLifeFormResearch(i, speciesSelected);
+            item->setEnabled(speciesSelected != Species::None);
+            item->setLevel(speciesSelected != Species::None ? planet.getLevelLifeFormResearch(speciesSelected, i) : 0);
+            emit techChanged();
+        });
+        item->setOnLevelChanged([this, &planet, i](int level) {
+            Species speciesSelected = planet.getChoiceLifeFormResearch(i);
+            planet.setLevelLifeFormResearch(speciesSelected, i, level);
+            emit techChanged();
+        });
+
+        if ((i+1)%6 == 0)
+            row++;
+    }
+}
+
+void MainWindow::createPlanetDefenses(QTableWidget* tableWidget, Planet &planet, int& row, int column)
+{
+    for (int i = static_cast<int>(UnitType::MissileLauncher); i <= static_cast<int>(UnitType::Plasma); ++i)
+    {
+        UnitType unitType = static_cast<UnitType>(i);
+        Unit unit = TechManager::instance().getUnit(unitType);
+        Item* item = addSpinBoxItem(tableWidget, unit.name, row, column, 0, 0, 999999999);
+    }
 }
 
 void MainWindow::buildResumeOutputs(QTableWidget* tableWidget)
@@ -435,73 +543,19 @@ void MainWindow::buildPlanetImputs(QTableWidget* tableWidget, int column)
         planet.setTemperatureMax(value);
         emit techChanged();
     });
-
-    // Life form
     currentRow++;
-    addLabel(tableWidget, "Forme de vie", currentRow++, column);
-    int speciesIndex = static_cast<int>(planet.getSpecies());
-    ComboBoxItem* speciesItem = addComboBoxItem(tableWidget, "Choix : ", speciesToString, currentRow++, column, speciesIndex);
-    speciesItem->setOnValueChanged([this, &planet](int value) {
-        planet.setSpecies(static_cast<Species>(value));
-        emit techChanged();
-        emit planetsChanged();
-    });
 
-    currentRow++; //blank
+    // Life form choice
+    createPlanetLifeFormChoice(tableWidget, planet, currentRow, column);
 
     // Buildings
-    std::vector<TechType> techTypes = planet.getAvailableBuildings();
-    for (TechType techType : techTypes)
-    {
-        if (techType == TechType::None) { continue;}
-
-        addLabel(tableWidget, techTypeToString[static_cast<int>(techType)] + " : ", currentRow++, column);
-
-        int numberTechs = TechManager::instance().getNumberTechs(techType);
-        for (int i = 0; i < numberTechs; ++i)
-        {
-            int level = planet.getTechLevel(techType, i);
-            const CommonTech* tech = TechManager::instance().getTech(techType, i);
-            if (tech->isValid())
-            {
-                Item* buildingItem = addSpinBoxItem(tableWidget, tech->name, currentRow++, column, level);
-                buildingItem->setOnValueChanged([this, techType, &planet, i](int value) {
-                    planet.setTechLevel(techType, i, value);
-                    emit techChanged();
-                });
-            }
-            else
-            {
-                qWarning() << "Tech not found : " << i;
-            }
-        }
-        currentRow++; // blank
-    }
+    createPlanetCommonBuilding(tableWidget, planet, currentRow, column);
+    createPlanetLifeFormBuilding(tableWidget, planet, currentRow, column);
 
     // Life form research
-    int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
-    for (int i = 0; i < numberLifeFormReseach; ++i)
-    {
-        Species speciesChoice = planet.getChoiceLifeFormResearch(i);
-        int levelInit = planet.getLevelLifeFormResearch(speciesChoice, i);
-        LifeFormSelectItem* item = addLifeFormSelectItem(tableWidget, currentRow++, column, speciesChoice, levelInit);
-        item->setOnIndexChanged([this, &planet, i, item](int value) {
-            Species speciesSelected = static_cast<Species>(value);
-            planet.setChoiceLifeFormResearch(i, speciesSelected);
-            item->setEnabled(speciesSelected != Species::None);
-            item->setLevel(speciesSelected != Species::None ? planet.getLevelLifeFormResearch(speciesSelected, i) : 0);
-            emit techChanged();
-        });
-        item->setOnLevelChanged([this, &planet, i](int level) {
-            Species speciesSelected = planet.getChoiceLifeFormResearch(i);
-            planet.setLevelLifeFormResearch(speciesSelected, i, level);
-            emit techChanged();
-        });
+    createPlanetLifeFormResearches(tableWidget, planet, currentRow, column);
 
-        if ((i+1)%6 == 0)
-            currentRow++;
-    }
-
+    // Crawlers
     QString label = "Foreuses (max=" + QString::number(planet.getMaxActiveCrawler()) + ")";
     Item* crawlerItem = addSpinBoxItem(tableWidget, label, currentRow++, column, planet.getCrawlerNumber(), 0, 9999);
     crawlerItem->setOnValueChanged([this, &planet](int value) {
@@ -611,25 +665,35 @@ void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
     }
 
     QPushButton* addButton = new QPushButton("Ajouter");
-    tableWidget->setCellWidget(2, 0, addButton);
-    connect(addButton, &QPushButton::clicked, this, [tableWidget]() {
+    int row = 2;
+    tableWidget->setCellWidget(row, 0, addButton);
+    connect(addButton, &QPushButton::clicked, this, [tableWidget, row]() {
         for (int i = 1; i < static_cast<int>(DiscoveryManager::DiscoveryType::Count); ++i)
         {
+            int indexRow = i + row;
+
             DiscoveryManager::DiscoveryType type = static_cast<DiscoveryManager::DiscoveryType>(i);
             Ressources<float> ressources;
 
-            QSpinBox* number = static_cast<QSpinBox*>(tableWidget->cellWidget(i+1, 2));
-            QLineEdit* metalValue = static_cast<QLineEdit*>(tableWidget->cellWidget(i+1, 3));
-            QLineEdit* cristalValue = static_cast<QLineEdit*>(tableWidget->cellWidget(i+1, 4));
-            QLineEdit* deutValue = static_cast<QLineEdit*>(tableWidget->cellWidget(i+1, 5));
-            QLineEdit* amValue = static_cast<QLineEdit*>(tableWidget->cellWidget(i+1, 6));
+            QSpinBox* number = qobject_cast<QSpinBox*>(tableWidget->cellWidget(indexRow, 2));
+            QLineEdit* metalValue = qobject_cast<QLineEdit*>(tableWidget->cellWidget(indexRow, 3));
+            QLineEdit* cristalValue = qobject_cast<QLineEdit*>(tableWidget->cellWidget(indexRow, 4));
+            QLineEdit* deutValue = qobject_cast<QLineEdit*>(tableWidget->cellWidget(indexRow, 5));
+            QLineEdit* amValue = qobject_cast<QLineEdit*>(tableWidget->cellWidget(indexRow, 6));
 
-            ressources.metal = metalValue->text().toFloat() * 1000000;
-            ressources.cristal = cristalValue->text().toFloat() * 1000000;
-            ressources.deut = deutValue->text().toFloat() * 1000000;
-            ressources.antimatter = amValue->text().toFloat() * 1000;
+            if (number && metalValue && cristalValue && deutValue && amValue)
+            {
+                ressources.metal = metalValue->text().toFloat() * 1000000.f;
+                ressources.cristal = cristalValue->text().toFloat() * 1000000.f;
+                ressources.deut = deutValue->text().toFloat() * 1000000.f;
+                ressources.antimatter = amValue->text().toFloat() * 1000.f;
 
-            DiscoveryManager::instance().addDiscover(type, ressources, number->value());
+                DiscoveryManager::instance().addDiscover(type, ressources, number->value());
+            }
+            else
+            {
+                qWarning() << "Invalid widgets for validate discoveries";
+            }
 
             number->clear();
             metalValue->clear();
@@ -640,9 +704,46 @@ void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
     });
 }
 
-void MainWindow::buildLevelUpLifeForm(QTableWidget* tableWidget)
+void MainWindow::buildPlanificationAstro(QTableWidget* tableWidget, int& column)
 {
-    int column = 0;
+    Planet& planet = PlayerManager::instance().getPlanifAstro();
+    int currentRow = 0;
+
+    addLabel(tableWidget, "Planif astro :", currentRow++, column);
+
+    // Position
+    PositionItem* positionItem = addPositionItem(tableWidget, currentRow++, column, planet.getPosition());
+    positionItem->setOnValueChanged([this, &planet](int g, int s, int p) {
+        planet.setPosition(PlanetPosition(g, s, p));
+        emit planifChanged();
+    });
+
+    // Temperature
+    Item* temperatureItem = addSpinBoxItem(tableWidget, "Temp max : ", currentRow++, column, planet.getTemperatureMax(), -99, 99);
+    temperatureItem->setOnValueChanged([this, &planet](int value){
+        planet.setTemperatureMax(value);
+        emit planifChanged();
+    });
+    currentRow++;
+
+    // Life form choice
+    createPlanetLifeFormChoice(tableWidget, planet, currentRow, column);
+
+    // Common buildings
+    createPlanetCommonBuilding(tableWidget, planet, currentRow, column);
+
+    // Life form buildings
+    createPlanetLifeFormBuilding(tableWidget, planet, currentRow, column);
+
+    // Life form research
+    addLabel(tableWidget, "Life form research : ", currentRow++, column);
+    createPlanetLifeFormResearches(tableWidget, planet, currentRow, column);
+
+    column++;
+}
+
+void MainWindow::buildPlanificationFdv(QTableWidget* tableWidget, int& column)
+{
     std::unordered_set<Species> availableSpecies = getAllAvailableSpecies();
 
     for (const Species& currentSpecies : availableSpecies) {
@@ -671,56 +772,18 @@ void MainWindow::buildLevelUpLifeForm(QTableWidget* tableWidget)
             emit techChanged();
         });
 
-        // Life form buildings
         currentRow++;
-        addLabel(tableWidget, "Life form buildings : ", currentRow++, column);
 
-        int numberTechs = TechManager::instance().getNumberTechs(techType);
-        for (int i = 0; i < numberTechs; ++i)
-        {
-            const CommonTech* tech = TechManager::instance().getTech(techType, i);
-            if (tech->isValid())
-            {
-                int baseLevel = planifPlanet.getTechLevel(techType, i);
-                Item* buildingItem = addSpinBoxItem(tableWidget, tech->name, currentRow++, column, baseLevel);
-                buildingItem->setOnValueChanged([this, &planifPlanet, techType, i](int value) {
-                    planifPlanet.setTechLevel(techType, i, value);
-                    emit techChanged();
-                });
-            }
-            else
-            {
-                qWarning() << "Tech not found : " << i;
-            }
-        }
+        // Life form buildings
+        addLabel(tableWidget, "Life form buildings : ", currentRow++, column);
+        createPlanetLifeFormBuilding(tableWidget, planifPlanet, currentRow, column);
 
         // Life form research
         addLabel(tableWidget, "Life form research : ", currentRow++, column);
-        int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
-        for (int i = 0; i < numberLifeFormReseach; ++i)
-        {
-            Species speciesChoice = planifPlanet.getChoiceLifeFormResearch(i);
-            int levelInit = planifPlanet.getLevelLifeFormResearch(speciesChoice, i);
-            LifeFormSelectItem* item = addLifeFormSelectItem(tableWidget, currentRow++, column, speciesChoice, levelInit);
-            item->setOnIndexChanged([this, &planifPlanet, i, item](int value) {
-                Species speciesSelected = static_cast<Species>(value);
-                planifPlanet.setChoiceLifeFormResearch(i, speciesSelected);
-                item->setEnabled(speciesSelected != Species::None);
-                item->setLevel(speciesSelected != Species::None ? planifPlanet.getLevelLifeFormResearch(speciesSelected, i) : 0);
-                emit techChanged();
-            });
-            item->setOnLevelChanged([this, &planifPlanet, i](int level) {
-                Species speciesSelected = planifPlanet.getChoiceLifeFormResearch(i);
-                planifPlanet.setLevelLifeFormResearch(speciesSelected, i, level);
-                emit techChanged();
-            });
+        createPlanetLifeFormResearches(tableWidget, planifPlanet, currentRow, column);
 
-            if ((i+1)%6 == 0)
-                currentRow++;
-        }
         column++;
     }
-
 }
 
 void MainWindow::onPlanetsChanged()
@@ -753,4 +816,13 @@ void MainWindow::onTechChanged()
 void MainWindow::onRentaChanged()
 {
     buildRentaOutputs(_rentaTable);
+}
+
+void MainWindow::onPlanifChanged()
+{
+    _planificationTab->clear();
+
+    int planifCol = 0;
+    buildPlanificationAstro(_planificationTab, planifCol);
+    buildPlanificationFdv(_planificationTab, planifCol);
 }
