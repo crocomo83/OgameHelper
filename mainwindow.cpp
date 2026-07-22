@@ -314,14 +314,16 @@ void MainWindow::createPlanetLifeFormResearches(QTableWidget* tableWidget, Plane
     }
 }
 
-void MainWindow::createPlanetDefenses(QTableWidget* tableWidget, Planet &planet, int& row, int column)
+void MainWindow::createPlanetDefenses(QTableWidget* tableWidget, FixUnitType unitType, Planet &planet, int& row, int column)
 {
-    for (int i = static_cast<int>(UnitType::MissileLauncher); i <= static_cast<int>(UnitType::Plasma); ++i)
-    {
-        UnitType unitType = static_cast<UnitType>(i);
-        Unit unit = TechManager::instance().getUnit(unitType);
-        Item* item = addSpinBoxItem(tableWidget, unit.name, row, column, 0, 0, 999999999);
-    }
+    Unit unit = TechManager::instance().getFixUnit(unitType);
+    int initValue = planet.getDefense(unitType);
+    Item* item = addSpinBoxItem(tableWidget, unit.name, row++, column, initValue, 0, 999999999);
+    item->setOnValueChanged([this, &planet, unitType](int value) {
+        planet.setDefense(unitType, value);
+        emit techChanged();
+        emit rentaChanged();
+    });
 }
 
 void MainWindow::buildResumeOutputs(QTableWidget* tableWidget)
@@ -376,7 +378,7 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
         QLabel* labelPlanets = createPlanetsLabel(levelUp.indexPlanets);
         tableWidget->setCellWidget(i+1, 1, labelPlanets);
 
-        addLabel(tableWidget, levelUp.name + " : " + QString::number(levelUp.levelToUpdate), i+1, 0);
+        addLabel(tableWidget, levelUp._name + " : " + QString::number(levelUp._levelToUpdate), i+1, 0);
         addLabel(tableWidget, utils::timeToString(levelUp.timeToRecover), i+1, 2);
         addLabel(tableWidget, utils::timeToString(levelUp.timeToCompleteDay), i+1, 3);
     }
@@ -553,15 +555,16 @@ void MainWindow::buildPlanetImputs(QTableWidget* tableWidget, int column)
     createPlanetLifeFormBuilding(tableWidget, planet, currentRow, column);
 
     // Life form research
+    addLabel(tableWidget, "Life form research : ", currentRow++, column);
     createPlanetLifeFormResearches(tableWidget, planet, currentRow, column);
 
-    // Crawlers
-    QString label = "Foreuses (max=" + QString::number(planet.getMaxActiveCrawler()) + ")";
-    Item* crawlerItem = addSpinBoxItem(tableWidget, label, currentRow++, column, planet.getCrawlerNumber(), 0, 9999);
-    crawlerItem->setOnValueChanged([this, &planet](int value) {
-        planet.setCrawlerNumber(value);
-        emit techChanged();
-    });
+    // Units
+    addLabel(tableWidget, "Units : ", currentRow++, column);
+    for (int i = 0; i < static_cast<int>(FixUnitType::Count); ++i)
+    {
+        FixUnitType unitType = static_cast<FixUnitType>(i);
+        createPlanetDefenses(tableWidget, unitType, planet, currentRow, column);
+    }
 }
 
 void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
@@ -738,6 +741,14 @@ void MainWindow::buildPlanificationAstro(QTableWidget* tableWidget, int& column)
     // Life form research
     addLabel(tableWidget, "Life form research : ", currentRow++, column);
     createPlanetLifeFormResearches(tableWidget, planet, currentRow, column);
+
+    // Units
+    addLabel(tableWidget, "Units : ", currentRow++, column);
+    for (int i = 0; i < static_cast<int>(FixUnitType::Count); ++i)
+    {
+        FixUnitType unitType = static_cast<FixUnitType>(i);
+        createPlanetDefenses(tableWidget, unitType, planet, currentRow, column);
+    }
 
     column++;
 }

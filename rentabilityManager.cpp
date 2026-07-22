@@ -55,12 +55,12 @@ int RentabilityManager::refresh()
     return rentaLevelUp.size();
 }
 
-Ressources<float> RentabilityManager::getGain(const LifeFormTech* tech) const
+Ressources<float> RentabilityManager::getGain(const LifeFormTech* tech, int numberOfLevels) const
 {
     Ressources<float> bonusRessources;
 
     int levelSpecies = PlayerManager::instance().getSpecies(tech->species);
-    float factorSpecies = 1.0f + (float)levelSpecies / 1000.0f;
+    float factorSpecies = 1.0f + levelSpecies / 1000.0f;
     Ressources<float> prodMines = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Mines);
 
     for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
@@ -69,18 +69,18 @@ Ressources<float> RentabilityManager::getGain(const LifeFormTech* tech) const
         switch(itr->first)
         {
         case BonusLifeForm::Metal:
-            bonusRessources += bonusFactor * Ressources(prodMines.metal, 0.0f, 0.0f);
+            bonusRessources += numberOfLevels * bonusFactor * Ressources(prodMines.metal, 0.0f, 0.0f);
             break;
         case BonusLifeForm::Cristal:
-            bonusRessources += bonusFactor * Ressources(0.0f, prodMines.cristal, 0.0f);
+            bonusRessources += numberOfLevels * bonusFactor * Ressources(0.0f, prodMines.cristal, 0.0f);
             break;
         case BonusLifeForm::Deuterium:
-            bonusRessources += bonusFactor * Ressources(0.0f, 0.0f, prodMines.deut);
+            bonusRessources += numberOfLevels * bonusFactor * Ressources(0.0f, 0.0f, prodMines.deut);
             break;
         case BonusLifeForm::Antimatter:
         {
             float antimatterMean = DiscoveryManager::instance().getSummary().meanRessourceFound.antimatter;
-            bonusRessources = bonusFactor * Ressources(0.0f, 0.0f, 0.0f, 0.0f, antimatterMean);
+            bonusRessources = numberOfLevels * bonusFactor * Ressources(0.0f, 0.0f, 0.0f, 0.0f, antimatterMean);
             break;
         }
         case BonusLifeForm::ExpeditionRessourcesIncrease:
@@ -88,23 +88,23 @@ Ressources<float> RentabilityManager::getGain(const LifeFormTech* tech) const
             Ressources<float> ressourcesBase = DiscoveryManager::instance().getSummary().meanRessourceFound;
             float percentDiscover = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExploratorClass);
             float factorDiscover = 1.0f + percentDiscover / 100.0f;
-            bonusRessources += bonusFactor * factorDiscover * ressourcesBase;
+            bonusRessources += numberOfLevels * bonusFactor * factorDiscover * ressourcesBase;
             break;
         }
         case BonusLifeForm::ExpeditionShipIncrease:
-            bonusRessources += bonusFactor * DiscoveryManager::instance().getSummary().meanShipFound;
+            bonusRessources += numberOfLevels * bonusFactor * DiscoveryManager::instance().getSummary().meanShipFound;
             break;
         case BonusLifeForm::LargeCargoUpdate:
         case BonusLifeForm::SpeedCivilianShips:
         case BonusLifeForm::SpeedAllShips:
-            bonusRessources += DiscoveryManager::instance().computeReductionTimeDiscovery(bonusFactor * 100.0f);
+            bonusRessources += DiscoveryManager::instance().computeReductionTimeDiscovery(numberOfLevels * bonusFactor * 100.0f);
             break;
         case BonusLifeForm::ExploratorClass:
         {
             Ressources<float> ressourcesBase = DiscoveryManager::instance().getSummary().meanRessourceFound;
             float percentRessources = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionRessourcesIncrease);
             float factorRessources = 1.0f + percentRessources / 100.0f;
-            bonusRessources += bonusFactor * factorRessources * ressourcesBase;
+            bonusRessources += numberOfLevels * bonusFactor * factorRessources * ressourcesBase;
         }
         }
     }
@@ -118,8 +118,8 @@ void RentabilityManager::addNewLevelUp(LevelUp levelUp, std::optional<int> index
 
     auto it = std::find_if(rentaLevelUp.begin(), rentaLevelUp.end(), [this, levelUp](const LevelUp& current)
     {
-        return current.name == levelUp.name
-                && current.levelToUpdate == levelUp.levelToUpdate
+        return current._name == levelUp._name
+                && current._levelToUpdate == levelUp._levelToUpdate
                 && std::abs(current.timeToRecover - levelUp.timeToRecover) < 1.0f;
     });
 
@@ -147,9 +147,7 @@ void RentabilityManager::addReasearchRentability()
     int indexPlasma = static_cast<int>(ResearchType::Plasma);
     int levelPlasma = PlayerManager::instance().getResearchLevel(ResearchType::Plasma) + 1;
 
-    LevelUp levelUpPlasma;
-    levelUpPlasma.name = "Plasma";
-    levelUpPlasma.levelToUpdate = levelPlasma;
+    LevelUp levelUpPlasma ("Plasma", levelPlasma);
     levelUpPlasma.rentaPerDay = bonusProdPercent;
     levelUpPlasma.cost = TechManager::instance().getCost(TechType::CommonResearch, indexPlasma, levelPlasma);
     levelUpPlasma.timeToCompleteDay = PlayerManager::instance().getResearchTime(indexPlasma, levelPlasma);
@@ -159,13 +157,121 @@ void RentabilityManager::addReasearchRentability()
     int indexCombu = static_cast<int>(ResearchType::PropCombusion);
     int levelCombu = PlayerManager::instance().getResearchLevel(ResearchType::PropCombusion) + 1;
 
-    LevelUp levelUpCombu;
-    levelUpCombu.name = "Combustion";
-    levelUpCombu.levelToUpdate = levelCombu;
+    LevelUp levelUpCombu ("Combustion", levelCombu);
     levelUpCombu.rentaPerDay = DiscoveryManager::instance().computeReductionTimeDiscovery(10.0f);
     levelUpCombu.cost = TechManager::instance().getCost(TechType::CommonResearch, indexCombu, levelCombu);
     levelUpCombu.timeToCompleteDay = PlayerManager::instance().getResearchTime(indexCombu, levelCombu);
     addNewLevelUp(std::move(levelUpCombu));
+
+    addAstroRentability();
+}
+
+void RentabilityManager::addAstroRentability()
+{
+    Planet& planet = PlayerManager::instance().getPlanifAstro();
+    planet.computeLifeFormResearch(PlayerManager::instance().getAllSpecies());
+    planet.refresh();
+    Ressources<float> globalCost, globalGain;
+
+    // Compute life form bonuses
+    std::map<BonusLifeForm, float> bonusAstro;
+    std::map<BonusLifeForm, float> bonusTotal;
+    for (int j = 0; j < static_cast<int>(BonusLifeForm::Count); ++j)
+    {
+        BonusLifeForm typeBonus = static_cast<BonusLifeForm>(j);
+        bonusAstro[typeBonus] += planet.getLifeFormBonus(typeBonus);
+        bonusTotal[typeBonus] += bonusAstro[typeBonus];
+        bonusTotal[typeBonus] += PlayerManager::instance().getLifeFormBonus(typeBonus);
+    }
+
+    // Compute mines gain
+    Ressources<float> bonusPercent;
+    bonusPercent += planet.getProductionStatPercent(Planet::ProductionStatPercent::BuildingLifeFormPercent);
+    bonusPercent += planet.getProductionStatPercent(Planet::ProductionStatPercent::CrawlersPercent);
+    bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::PlasmaPercent);
+    bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::LifeFormBonusPercent);
+    bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::GeologPercent);
+    bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::ClassBonusPercent);
+    bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::AllianceBonusPercent);
+
+    int indexMetal = static_cast<int>(CommonBuildingType::MineMetal);
+    int indexCristal = static_cast<int>(CommonBuildingType::MineCristal);
+    int indexDeut = static_cast<int>(CommonBuildingType::MineDeut);
+
+    int levelMetal = planet.getTechLevel(TechType::CommonBuilding, indexMetal);
+    int levelCristal = planet.getTechLevel(TechType::CommonBuilding, indexCristal);
+    int levelDeut = planet.getTechLevel(TechType::CommonBuilding, indexDeut);
+
+    int temperatureMax = planet.getTemperatureMax();
+    Ressources<float> bonus = planet.getBonusMine();
+    Ressources<float> gainMinesRaw;
+    gainMinesRaw.metal     = TechManager::instance().getProductionMine(CommonBuildingType::MineMetal, levelMetal, bonus.metal);
+    gainMinesRaw.cristal   = TechManager::instance().getProductionMine(CommonBuildingType::MineCristal, levelCristal, bonus.cristal);
+    gainMinesRaw.deut      = TechManager::instance().getProductionMine(CommonBuildingType::MineDeut, levelDeut, bonus.deut, temperatureMax);
+    globalGain = gainMinesRaw + gainMinesRaw * bonusPercent * 0.01f;
+
+    // All building cost
+    std::vector<TechType> techTypes = planet.getAvailableBuildings();
+    for (TechType techType : techTypes)
+    {
+        int numberTechs = TechManager::instance().getNumberTechs(techType);
+        for (int i = 0; i < numberTechs; ++i)
+        {
+            int level = planet.getTechLevel(techType, i);
+            for (int j = 1; j <= level; ++j)
+            {
+                globalCost += planet.getCost(techType, i, j);
+            }
+        }
+    }
+
+    // Life form research cost
+    int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
+    for (int i = 0; i < numberLifeFormReseach; ++i)
+    {
+        Species speciesChoice = planet.getChoiceLifeFormResearch(i);
+
+        if (speciesChoice == Species::None) {continue;}
+
+        TechType lifeFormResearch = speciesToTechLifeForm.at(speciesChoice);
+        int level = planet.getLevelLifeFormResearch(speciesChoice, i);
+        for (int j = 1; j <= level; ++j)
+        {
+            globalCost += planet.getCost(lifeFormResearch, i, j);
+        }
+
+        TechType researchLifeFormType = speciesToTechLifeForm.at(speciesChoice);
+        const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
+        globalGain += getGain(tech, level);
+    }
+
+    // Units cost
+    for (int i = 0; i < static_cast<int>(FixUnitType::Count); ++i)
+    {
+        FixUnitType unitType = static_cast<FixUnitType>(i);
+        Unit unit = TechManager::instance().getFixUnit(unitType);
+        int number = planet.getDefense(unitType);
+
+        globalCost += number * unit.cost;
+    }
+
+    int indexAstro = static_cast<int>(ResearchType::Astrophysique);
+    int levelAstro = PlayerManager::instance().getResearchLevel(ResearchType::Astrophysique) + 1;
+
+    float time = PlayerManager::instance().getResearchTime(indexAstro, levelAstro);
+    globalCost += TechManager::instance().getCost(TechType::CommonResearch, indexAstro, levelAstro);
+    if (levelAstro % 2 == 0)
+    {
+        levelAstro++;
+        time += PlayerManager::instance().getResearchTime(indexAstro, levelAstro);
+        globalCost += TechManager::instance().getCost(TechType::CommonResearch, indexAstro, levelAstro);
+    }
+
+    LevelUp levelUpAstro ("Astro", levelAstro);
+    levelUpAstro.rentaPerDay = globalGain;
+    levelUpAstro.cost = globalCost;
+    levelUpAstro.timeToCompleteDay = time;
+    addNewLevelUp(std::move(levelUpAstro));
 }
 
 void RentabilityManager::addMinesRentability(const Planet& planet, int indexPlanet)
@@ -201,25 +307,19 @@ void RentabilityManager::addMinesRentability(const Planet& planet, int indexPlan
 
     prodMinesLevelUp += prodMinesLevelUp * bonusPercent * 0.01f;
 
-    LevelUp levelUpMetal;
-    levelUpMetal.name = "Mine de métal";
-    levelUpMetal.levelToUpdate = levelMetal;
+    LevelUp levelUpMetal("Mine de métal", levelMetal);
     levelUpMetal.rentaPerDay = Ressources<float>(prodMinesLevelUp.metal, 0, 0);
     levelUpMetal.cost = planet.getCost(TechType::CommonBuilding, indexMetal, levelMetal);
     levelUpMetal.timeToCompleteDay = planet.getTime(TechType::CommonBuilding, indexMetal, levelMetal);
     addNewLevelUp(std::move(levelUpMetal), indexPlanet);
 
-    LevelUp levelUpCristal;
-    levelUpCristal.name = "Mine de cristal";
-    levelUpCristal.levelToUpdate = levelCristal;
+    LevelUp levelUpCristal("Mine de cristal", levelCristal);
     levelUpCristal.rentaPerDay = Ressources<float>(0, prodMinesLevelUp.cristal, 0);
     levelUpCristal.cost = planet.getCost(TechType::CommonBuilding, indexCristal, levelCristal);
     levelUpCristal.timeToCompleteDay = planet.getTime(TechType::CommonBuilding, indexCristal, levelCristal);
     addNewLevelUp(std::move(levelUpCristal), indexPlanet);
 
-    LevelUp levelUpDeut;
-    levelUpDeut.name = "Mine de deut";
-    levelUpDeut.levelToUpdate = levelDeut;
+    LevelUp levelUpDeut("Mine de deut", levelDeut);
     levelUpDeut.rentaPerDay = Ressources<float>(0, 0, prodMinesLevelUp.deut);
     levelUpDeut.cost = planet.getCost(TechType::CommonBuilding, indexDeut, levelDeut);
     levelUpDeut.timeToCompleteDay = planet.getTime(TechType::CommonBuilding, indexDeut, levelDeut);
@@ -265,9 +365,7 @@ void RentabilityManager::addLifeFormBuilding(const Planet& planet, int indexPlan
 
         int levelUpBatiment = planet.getTechLevel(buildingType, i) + 1;
 
-        LevelUp levelUpBuilding;
-        levelUpBuilding.name = tech->name;
-        levelUpBuilding.levelToUpdate = levelUpBatiment;
+        LevelUp levelUpBuilding(tech->name, levelUpBatiment);
         levelUpBuilding.rentaPerDay = bonusProd;
         levelUpBuilding.cost = planet.getCost(buildingType, i, levelUpBatiment);
         levelUpBuilding.timeToCompleteDay = planet.getTime(buildingType, i, levelUpBatiment);
@@ -292,9 +390,7 @@ void RentabilityManager::addLifeFormResearch(const Planet& planet, int indexPlan
         {
             const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
 
-            LevelUp levelUpLifeFormResearch;
-            levelUpLifeFormResearch.name                = tech->name;
-            levelUpLifeFormResearch.levelToUpdate       = levelUpResearch;
+            LevelUp levelUpLifeFormResearch(tech->name, levelUpResearch);
             levelUpLifeFormResearch.rentaPerDay         = bonusRessources;
             levelUpLifeFormResearch.cost                = planet.getCost(researchLifeFormType, i, levelUpResearch);
             levelUpLifeFormResearch.timeToCompleteDay   = planet.getTime(researchLifeFormType, i, levelUpResearch);
@@ -350,9 +446,7 @@ void RentabilityManager::addLevelUpLifeForm(const Planet& planet, int indexPlane
         }
     }
 
-    LevelUp levelUpLifeForm;
-    levelUpLifeForm.name                = "Level up LF";
-    levelUpLifeForm.levelToUpdate       = 0;
+    LevelUp levelUpLifeForm ("Level up LF", 0);
     levelUpLifeForm.rentaPerDay         = globalGain;
     levelUpLifeForm.cost                = globalCost;
     levelUpLifeForm.timeToCompleteDay   = globalTime;

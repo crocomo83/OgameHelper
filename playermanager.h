@@ -72,6 +72,7 @@ public:
     inline bool             getOfficerValue(Officers officer) const {return _officers.at(officer);}
     inline Ressources<float> getConversionRate() const {return _conversionRates;}
     inline int              getResearchLevel(ResearchType researchType) const {return _levelResearch.at(researchType);}
+    inline const std::map<Species, int>& getAllSpecies() const {return _levelSpecies;}
     inline int              getSpecies(Species species) const {return _levelSpecies.at(species);}
 
     Ressources<float>       getPlasmaBonus() const;

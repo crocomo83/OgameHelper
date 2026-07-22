@@ -308,7 +308,7 @@ void DiscoveryManager::computeDiscoverySpeed()
 
 float DiscoveryManager::computeTimeToPos16(float bonusSpeedPercent)
 {
-    const Unit& largeCargo = TechManager::instance().getUnit(UnitType::LargeCargo);
+    const Unit& largeCargo = TechManager::instance().getMovingUnit(MovingUnitType::LargeCargo);
     int initSpeed = largeCargo.speed;
     float speed = (float)initSpeed * (1.0f + bonusSpeedPercent / 100.0f);
 

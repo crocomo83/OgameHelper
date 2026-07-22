@@ -35,10 +35,10 @@ public:
     inline int              getTechLevel(TechType type, int index) const {return _techs.at(type).at(index);}
     inline Ressources<float> getBonusMine() const {return _bonusProdPositionCoeff;}
     inline PlanetPosition   getPosition() const {return _position;}
-    inline int              getCrawlerNumber() const {return _crawlerNumber;}
     inline const Ressources<int>& getProductionStat(ProductionStat stat) const {return _productionStats.at(stat);}
     inline const Ressources<float>& getProductionStatPercent(ProductionStatPercent stat) const {return _productionStatsPercent.at(stat);}
     inline float            getLifeFormBuildingBonus(BonusLifeFormBuilding bonus) const {return _lifeFormBuildingBonuses.at(bonus);}
+    float                   getLifeFormBonus(BonusLifeForm bonus) const;
     int                     getMaxActiveCrawler() const;
     float                   getCrawlerBonus() const;
     Ressources<float>       getLifeFormBuildingProduction() const;
@@ -49,9 +49,10 @@ public:
     Ressources<float>       getLifeFormProdBonus() const;
     Ressources<float>       getCost(TechType techType, int indexTech, int level) const;
     float                   getTime(TechType techType, int indexTech, int level) const; //time in days
-    int                     getDefense(UnitType uniType) const;
+    int                     getDefense(FixUnitType uniType) const;
 
     void                    refresh();
+    void                    computeLifeFormResearch(const std::map<Species, int>& levelSpecies);
     void                    computeBonusPos();
     void                    computeLifeFormBuildingBonus();
     void                    computeProduction();
@@ -59,12 +60,11 @@ public:
     inline void             setName(QString name) {_name = name;}
     inline void             setTemperatureMax(int tempMax) {_temperature = tempMax;}
     inline void             setSpecies(Species species) {_species = species;}
-    inline void             setCrawlerNumber(int crawlers) {_crawlerNumber = crawlers;}
     inline void             setPosition(const PlanetPosition& planetPosition) {_position = planetPosition;}
     inline void             setChoiceLifeFormResearch(int index, Species species) {_choicesLifeFormResearch[index] = species;}
     void                    setTechLevel(TechType type, int index, int level);
     void                    setLevelLifeFormResearch(Species species, int index, int level);
-    void                    setDefense(UnitType unitType, int value) {_defenses[unitType] = value;}
+    void                    setDefense(FixUnitType unitType, int value) {_defenses[unitType] = value;}
 
 private:
     QString                                     _name;
@@ -74,8 +74,8 @@ private:
     std::map<TechType, std::vector<int>>        _techs;
     std::vector<Species>                        _choicesLifeFormResearch;
     Ressources<float>                           _bonusProdPositionCoeff;
-    int                                         _crawlerNumber {0};
-    std::map<UnitType, int>                     _defenses;
+    std::map<FixUnitType, int>                  _defenses;
+    std::map<BonusLifeForm, float>              _lifeFormBonuses;
 
     std::map<ProductionStat, Ressources<int>> _productionStats;
     std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;

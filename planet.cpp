@@ -25,7 +25,6 @@ Planet::Planet(const Planet* planet)
     , _position(planet->getPosition())
     , _temperature(planet->getTemperatureMax())
     , _species(planet->getSpecies())
-    , _crawlerNumber(planet->getCrawlerNumber())
 {
     for (int i = 1; i < static_cast<int>(TechType::Count); ++i)
     {
@@ -101,6 +100,29 @@ void Planet::refresh()
     computeLifeFormBuildingBonus();
     computeBonusPos();
     computeProduction();
+}
+
+void Planet::computeLifeFormResearch(const std::map<Species, int> &levelSpecies)
+{
+    _lifeFormBonuses.clear();
+    int lifeFormBuildingNumber = TechManager::instance().getNumberTechs(TechType::HumanResearch);
+    for (int j = 0; j < lifeFormBuildingNumber; j++)
+    {
+        Species choice = getChoiceLifeFormResearch(j);
+        if (choice != Species::None)
+        {
+            TechType lifeFormReasearch = speciesToTechLifeForm.at(choice);
+            int level = getTechLevel(lifeFormReasearch, j);
+
+            const LifeFormTech* lifeFormTech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(lifeFormReasearch, j));
+            for (auto itr = lifeFormTech->bonuses.begin(); itr != lifeFormTech->bonuses.end(); ++itr)
+            {
+                float bonusLevelSpecies = 1.0f + (float)levelSpecies.at(lifeFormTech->species) * 0.001f;
+                float bonus = level * itr->second * bonusLevelSpecies;
+                _lifeFormBonuses[itr->first] += bonus;
+            }
+        }
+    }
 }
 
 void Planet::computeLifeFormBuildingBonus()
@@ -263,7 +285,7 @@ float Planet::getTime(TechType techType, int indexTech, int level) const
     return timeDays;
 }
 
-int Planet::getDefense(UnitType uniType) const
+int Planet::getDefense(FixUnitType uniType) const
 {
     auto it = _defenses.find(uniType);
     return it == _defenses.end() ? 0 : it->second;
@@ -275,6 +297,11 @@ void Planet::setTechLevel(TechType type, int index, int level)
     computeProduction();
 }
 
+float Planet::getLifeFormBonus(BonusLifeForm bonus) const
+{
+    auto it = _lifeFormBonuses.find(bonus);
+    return it != _lifeFormBonuses.end() ? _lifeFormBonuses.at(bonus) : 0.0f;
+}
 
 int Planet::getMaxActiveCrawler() const
 {
@@ -288,7 +315,7 @@ int Planet::getMaxActiveCrawler() const
 float Planet::getCrawlerBonus() const
 {
     int maxCrawler = getMaxActiveCrawler();
-    int activeCrawlers = std::min(maxCrawler, _crawlerNumber);
+    int activeCrawlers = std::min(maxCrawler, getDefense(FixUnitType::Crawler));
     return std::min(50.0f, 0.02f * activeCrawlers);
 }
 

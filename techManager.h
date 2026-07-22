@@ -12,7 +12,8 @@ public:
     static TechManager& instance();
 
     bool loadConfig(TechType techType, const QString& path);
-    bool loadUnits(const QString& path);
+    bool loadMovingUnits(const QString& path);
+    bool loadFixUnits(const QString& path);
 
     int getNumberTechs(TechType techType) const;
     const CommonTech* getTech(TechType techType, int type) const;
@@ -24,7 +25,8 @@ public:
     Species getAssociatedSpecies(TechType techType) const;
     TechType getBuildingTech(Species species) const;
     TechType getResearchTech(Species species) const;
-    const Unit& getUnit(UnitType type) const;
+    const Unit& getMovingUnit(MovingUnitType type) const;
+    const Unit& getFixUnit(FixUnitType type) const;
 
     std::map<BonusLifeFormBuilding, double> extractBonusesBuilding(const QJsonObject& obj) const;
     std::map<BonusLifeForm, double> extractBonuses(const QJsonObject& obj) const;
@@ -37,5 +39,6 @@ private:
     TechManager& operator=(const TechManager&) = delete;
 
     std::map<TechType, std::map<int, std::unique_ptr<CommonTech>>> _techs;
-    std::map<UnitType, Unit> _units;
+    std::map<MovingUnitType, Unit> _movingUnits;
+    std::map<FixUnitType, Unit> _fixUnits;
 };

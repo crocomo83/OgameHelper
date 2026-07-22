@@ -3,6 +3,7 @@
         <file>config/buildings.json</file>
         <file>config/researches.json</file>
         <file>config/units.json</file>
+        <file>config/planetUnits.json</file>
         <file>config/lifeFormBuildingsHuman.json</file>
         <file>config/lifeFormBuildingsMech.json</file>
         <file>config/lifeFormBuildingsKaelesh.json</file>

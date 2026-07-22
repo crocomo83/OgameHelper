@@ -58,7 +58,7 @@
       <item>
        <widget class="QTabWidget" name="tabGeneral">
         <property name="currentIndex">
-         <number>5</number>
+         <number>3</number>
         </property>
         <widget class="QWidget" name="overview">
          <attribute name="title">
@@ -244,7 +244,7 @@
              <bool>true</bool>
             </property>
             <property name="rowCount">
-             <number>61</number>
+             <number>75</number>
             </property>
             <property name="columnCount">
              <number>4</number>
@@ -258,6 +258,20 @@
             <attribute name="verticalHeaderHighlightSections">
              <bool>false</bool>
             </attribute>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
             <row/>
             <row/>
             <row/>
@@ -388,7 +402,7 @@
              <bool>true</bool>
             </property>
             <property name="rowCount">
-             <number>60</number>
+             <number>75</number>
             </property>
             <property name="columnCount">
              <number>3</number>
@@ -402,6 +416,21 @@
             <attribute name="verticalHeaderVisible">
              <bool>false</bool>
             </attribute>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
             <row/>
             <row/>
             <row/>

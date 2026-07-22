@@ -325,7 +325,7 @@ struct LifeFormTech : public CommonTech{
 
 struct Unit{
     QString name = "";
-    Ressources<float> cost;
+    Ressources<int> cost;
     int speed;
 };
 
@@ -414,7 +414,7 @@ enum class ResearchType
     Count
 };
 
-enum class UnitType
+enum class MovingUnitType
 {
     LightFighter,
     HeavyFighter,
@@ -431,6 +431,11 @@ enum class UnitType
     ColonyShip,
     Recycler,
     EspionageProbe,
+    Count
+};
+
+enum class FixUnitType
+{
     SolarSatellite,
     Crawler,
     MissileLauncher,

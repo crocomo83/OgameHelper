@@ -1,1 +1,0 @@
-- Bug fixed : scrap rate does not actualise resume

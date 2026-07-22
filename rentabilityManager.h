@@ -15,12 +15,14 @@ public:
     struct LevelUp
     {
         std::vector<int> indexPlanets;
-        QString name;
-        int levelToUpdate;
+        QString _name;
+        int _levelToUpdate;
         Ressources<float> cost;
         Ressources<float> rentaPerDay;
         float timeToCompleteDay;
         float timeToRecover = -1.0f;
+
+        LevelUp(const QString& name, int level) : _name(name), _levelToUpdate(level) {}
 
         void computeRenta(Ressources<float> tradeRate)
         {
@@ -47,7 +49,7 @@ public:
     inline bool getFilterPlanet(int index) const {return _filterPlanet.at(index);}
     inline bool getFilterType(TypeFilter index) const {return _typeFilter.at(index);}
 
-    Ressources<float> getGain(const LifeFormTech* tech) const;
+    Ressources<float> getGain(const LifeFormTech* tech, int numberOfLevels = 1) const;
 
     inline void setFilterPlanet(int index, bool state) {_filterPlanet[index] = state;}
     inline void setFilterType(TypeFilter index, bool state) {_typeFilter[index] = state;}
@@ -55,6 +57,7 @@ public:
 private:
     void addNewLevelUp(LevelUp levelUp, std::optional<int> indexPlanet = std::nullopt);
     void addReasearchRentability();
+    void addAstroRentability();
     void addMinesRentability(const Planet& planet, int indexPlanet);
     void addLifeFormBuilding(const Planet& planet, int indexPlanet);
     void addLifeFormResearch(const Planet& planet, int indexPlanet);

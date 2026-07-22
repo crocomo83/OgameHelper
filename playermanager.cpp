@@ -116,6 +116,8 @@ Ressources<float> PlayerManager::getAllianceClassBonus() const
 
 void PlayerManager::refresh()
 {
+    computeLifeFormResearch();
+
     int numberPlanet = getNumberPlanets();
     for (int i = 0; i < numberPlanet; ++i)
     {
@@ -130,7 +132,6 @@ void PlayerManager::refresh()
         planet.refresh();
     }
 
-    computeLifeFormResearch();
     computeProduction();
     computeLabsLevel();
     computeConversionRate();
@@ -138,35 +139,29 @@ void PlayerManager::refresh()
 
 void PlayerManager::computeLifeFormResearch()
 {
+    // Clear
     _lifeFormBonuses.clear();
     for (int i = 0; i < static_cast<int>(BonusLifeForm::Count); i++)
     {
         _lifeFormBonuses[static_cast<BonusLifeForm>(i)];
     }
 
+    // Compute for each planet
     int numberPlanet = getNumberPlanets();
     for (int i = 0; i < numberPlanet; ++i)
     {
+        Planet& planet = getPlanet(i);
+        planet.computeLifeFormResearch(_levelSpecies);
+    }
+
+    // Factorise
+    for (int i = 0; i < numberPlanet; ++i)
+    {
         const Planet& planet = getPlanet(i);
-
-        int lifeFormBuildingNumber = TechManager::instance().getNumberTechs(TechType::HumanResearch);
-        for (int j = 0; j < lifeFormBuildingNumber; j++)
+        for (int j = 0; j < static_cast<int>(BonusLifeForm::Count); ++j)
         {
-            Species choice = planet.getChoiceLifeFormResearch(j);
-            if (choice != Species::None)
-            {
-                TechType lifeFormReasearch = speciesToTechLifeForm.at(choice);
-                int level = planet.getTechLevel(lifeFormReasearch, j);
-
-                const LifeFormTech* lifeFormTech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(lifeFormReasearch, j));
-                for (auto itr = lifeFormTech->bonuses.begin(); itr != lifeFormTech->bonuses.end(); ++itr)
-                {
-                    float bonusLevelSpecies = 1.0f + (float)_levelSpecies[lifeFormTech->species] * 0.001f;
-                    float rawBonus = level * itr->second * bonusLevelSpecies;
-                    float bonus = std::round(rawBonus * 100.0f) / 100.0f;
-                    _lifeFormBonuses[itr->first] += bonus;
-                }
-            }
+            BonusLifeForm typeBonus = static_cast<BonusLifeForm>(j);
+            _lifeFormBonuses[typeBonus] += planet.getLifeFormBonus(typeBonus);
         }
     }
 }
@@ -474,7 +469,7 @@ Planet PlayerManager::readPlanetData(const QJsonObject& planetObj)
         QJsonArray techArray = planetObj[techTypeToString[i]].toArray();
         int index = 0;
         for (const QJsonValue& b : techArray) {
-            planet.setTechLevel(techType, index, b.toInt());
+            planet.setTechLevel(techType, index, b.toInt(0));
             index++;
         }
     }
@@ -482,11 +477,17 @@ Planet PlayerManager::readPlanetData(const QJsonObject& planetObj)
     QJsonArray choiceLifeFormResearchArray = planetObj["choiceLifeFormResearch"].toArray();
     int index = 0;
     for (const QJsonValue& b : choiceLifeFormResearchArray) {
-        planet.setChoiceLifeFormResearch(index, static_cast<Species>(b.toInt()));
+        planet.setChoiceLifeFormResearch(index, static_cast<Species>(b.toInt(0)));
         index++;
     }
 
-    planet.setCrawlerNumber(planetObj["crawlers"].toInt(0));
+    QJsonArray defensesArray = planetObj["defenses"].toArray();
+    index = 0;
+    for (const QJsonValue& val : defensesArray) {
+        planet.setDefense(static_cast<FixUnitType>(index), val.toInt(0));
+        index++;
+    }
+
     return planet;
 }
 
@@ -631,6 +632,7 @@ void PlayerManager::writeConversionData(QJsonObject& parent)
 QJsonObject PlayerManager::writePlanetData(const Planet& planet)
 {
     QJsonObject planetObj;
+
     planetObj["name"] = planet.getName();
 
     PlanetPosition planetPosition = planet.getPosition();
@@ -656,6 +658,7 @@ QJsonObject PlayerManager::writePlanetData(const Planet& planet)
         planetObj[techTypeToString[i]] = techArray;
     }
 
+    // Choice life form
     QJsonArray choiceLifeFormResearchArray;
     int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
     for (int i = 0; i < numberLifeFormReseach; ++i)
@@ -663,10 +666,17 @@ QJsonObject PlayerManager::writePlanetData(const Planet& planet)
         Species choice = planet.getChoiceLifeFormResearch(i);
         choiceLifeFormResearchArray << static_cast<int>(choice);
     }
-
     planetObj["choiceLifeFormResearch"] = choiceLifeFormResearchArray;
-    planetObj["crawlers"] = planet.getCrawlerNumber();
-    planetObj["defenses"] = QJsonArray{};
+
+    // Defenses
+    QJsonArray defenses;
+    for (int i = 0; i < static_cast<int>(FixUnitType::Count); ++i)
+    {
+        FixUnitType unitType = static_cast<FixUnitType>(i);
+        defenses << planet.getDefense(unitType);
+    }
+    planetObj["defenses"] = defenses;
+
     return std::move(planetObj);
 }
 
