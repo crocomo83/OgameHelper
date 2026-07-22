@@ -13,8 +13,9 @@ public:
 
     bool value() const;
     void setValue(bool b);
+    bool getValue() const {return _checkBox->isChecked();}
 
-    void setOnValueChanged(std::function<void(bool)> callback);
+    void addOnValueChanged(std::function<void(bool)> callback);
 
 private slots:
     void onCheckBoxChanged(bool value);
@@ -22,5 +23,5 @@ private slots:
 private:
     QLabel* _label;
     QCheckBox* _checkBox;
-    std::function<void(bool)> m_onValueChanged;
+    std::vector<std::function<void(bool)>> m_onValueChanged;
 };

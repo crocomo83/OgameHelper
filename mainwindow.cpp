@@ -388,7 +388,7 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
         const Planet& planet = PlayerManager::instance().getPlanet(i);
         bool state = RentabilityManager::instance().getFilterPlanet(i);
         CheckBoxItem* planetFilterItem = addCheckBoxItem(tableWidget, planet.getName(), i + 1, 5, state);
-        planetFilterItem->setOnValueChanged([this, i](bool value) {
+        planetFilterItem->addOnValueChanged([this, i](bool value) {
             RentabilityManager::instance().setFilterPlanet(i, value);
             emit rentaChanged();
         });
@@ -400,7 +400,7 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
         bool state = RentabilityManager::instance().getFilterType(typeFilter);
 
         CheckBoxItem* typeFilterItem = addCheckBoxItem(tableWidget, RentabilityManager::typeFilterString.at(i), i + 1, 6, state);
-        typeFilterItem->setOnValueChanged([this, typeFilter](bool value) {
+        typeFilterItem->addOnValueChanged([this, typeFilter](bool value) {
             RentabilityManager::instance().setFilterType(typeFilter, value);
             emit rentaChanged();
         });
@@ -456,34 +456,62 @@ void MainWindow::buildResearchImputs(QTableWidget* tableWidget, int column)
 
 void MainWindow::buildSpecialisationImputs(QTableWidget* tableWidget, int column)
 {
-    addLabel(tableWidget, "Classes : ", 0, column);
+    int currentRow = 0;
+    addLabel(tableWidget, "Classes : ", currentRow++, column);
 
     int indexClass = static_cast<int>(PlayerManager::instance().getClass());
-    ComboBoxItem* classBox = addComboBoxItem(tableWidget, "Classe", classToString, 1, column, indexClass);
+    ComboBoxItem* classBox = addComboBoxItem(tableWidget, "Classe", classToString, currentRow++, column, indexClass);
     classBox->setOnValueChanged([this](int index) {
         PlayerManager::instance().setClass(static_cast<Class>(index));
         emit techChanged();
     });
 
     int indexAllianceClass = static_cast<int>(PlayerManager::instance().getAllianceClass());
-    ComboBoxItem* alliClassBox = addComboBoxItem(tableWidget, "Classe alli", allianceClassToString, 2, column, indexAllianceClass);
+    ComboBoxItem* alliClassBox = addComboBoxItem(tableWidget, "Classe alli", allianceClassToString, currentRow++, column, indexAllianceClass);
     alliClassBox->setOnValueChanged([this](int index) {
         PlayerManager::instance().setAllianceClass(static_cast<AllianceClass>(index));
         emit techChanged();
     });
 
-    addLabel(tableWidget, "Officiers : ", 4, column);
+    // Officers
+    currentRow++;
+    addLabel(tableWidget, "Officiers : ", currentRow++, column);
 
+    std::map<Officers, CheckBoxItem*> officerWidgets;
     for (int i = 0; i < static_cast<int>(Officers::Count); ++i)
     {
         Officers officer = static_cast<Officers>(i);
         bool initValue = PlayerManager::instance().getOfficerValue(officer);
-        CheckBoxItem* officerCheckBox = addCheckBoxItem(tableWidget, officerToString[i], i+5, column, initValue);
-        officerCheckBox->setOnValueChanged([this, officer](bool value) {
+        CheckBoxItem* officerCheckBox = addCheckBoxItem(tableWidget, officerToString[i], currentRow++, column, initValue);
+        officerCheckBox->addOnValueChanged([this, officer](bool value) {
             PlayerManager::instance().setOfficerActivated(officer, value);
             emit techChanged();
         });
+        officerWidgets[officer] = officerCheckBox;
     }
+
+    auto hideOrShowOfficers = [this, officerWidgets](bool value) {
+        for (int i = 0; i < static_cast<int>(Officers::Count); ++i)
+        {
+            Officers officer = static_cast<Officers>(i);
+            if (officer != Officers::Concil)
+            {
+                if (value)
+                {
+                    officerWidgets.at(officer)->setValue(true);
+                    PlayerManager::instance().setOfficerActivated(officer, true);
+                }
+                officerWidgets.at(officer)->setEnabled(!value);
+            }
+        }
+    };
+
+    CheckBoxItem* concilWidget = officerWidgets[Officers::Concil];
+    if (concilWidget->getValue())
+    {
+        hideOrShowOfficers(true);
+    }
+    concilWidget->addOnValueChanged(hideOrShowOfficers);
 }
 
 void MainWindow::buildTradeImputs(QTableWidget* tableWidget, int column)

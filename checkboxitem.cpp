@@ -38,12 +38,13 @@ void CheckBoxItem::setValue(bool value)
 
 void CheckBoxItem::onCheckBoxChanged(bool value)
 {
-    if (m_onValueChanged) {
-        m_onValueChanged(value);
+    for (auto it = m_onValueChanged.begin(); it != m_onValueChanged.end(); ++it)
+    {
+        (*it)(value);
     }
 }
 
-void CheckBoxItem::setOnValueChanged(std::function<void(bool)> callback)
+void CheckBoxItem::addOnValueChanged(std::function<void(bool)> callback)
 {
-    m_onValueChanged = std::move(callback);
+    m_onValueChanged.push_back(std::move(callback));
 }
