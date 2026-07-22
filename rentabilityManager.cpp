@@ -404,7 +404,7 @@ void RentabilityManager::addLevelUpLifeForm(const Planet& planet, int indexPlane
     const Planet& planifPlanet = PlayerManager::instance().getPlanifPlanet(planet.getSpecies());
     Ressources<float> globalCost;
     Ressources<float> globalGain;
-    float globalTime;
+    float globalTime = 0.0f;
 
     // All building cost
     std::vector<TechType> techTypes = planet.getAvailableBuildings();
