@@ -49,7 +49,7 @@ public:
     inline bool getFilterPlanet(int index) const {return _filterPlanet.at(index);}
     inline bool getFilterType(TypeFilter index) const {return _typeFilter.at(index);}
 
-    Ressources<float> getGainBuilding(const Planet& planet, const LifeFormTech* tech, int numberOfLevels = 1) const;
+    Ressources<float> getGainBuilding(const Planet& planet, const LifeFormBuilding* tech, int numberOfLevels = 1) const;
     Ressources<float> getGainResearch(const LifeFormTech* tech, int numberOfLevels = 1) const;
 
     inline void setFilterPlanet(int index, bool state) {_filterPlanet[index] = state;}
@@ -59,7 +59,7 @@ private:
     void addNewLevelUp(LevelUp levelUp, std::optional<int> indexPlanet = std::nullopt);
     void addReasearchRentability();
     void addAstroRentability();
-    void addChangeSpeciesRentability();
+    void addChangeSpeciesRentability(const Planet& planet, int indexPlanet);
     void addMinesRentability(const Planet& planet, int indexPlanet);
     void addLifeFormBuilding(const Planet& planet, int indexPlanet);
     void addLifeFormResearch(const Planet& planet, int indexPlanet);
