@@ -55,7 +55,43 @@ int RentabilityManager::refresh()
     return rentaLevelUp.size();
 }
 
-Ressources<float> RentabilityManager::getGain(const LifeFormTech* tech, int numberOfLevels) const
+Ressources<float> RentabilityManager::getGainBuilding(const Planet& planet, const LifeFormTech* tech, int numberOfLevels) const
+{
+    Ressources<float> bonusRessources;
+    Ressources<float> prodMines = planet.getProductionStat(Planet::ProductionStat::Mines);
+    for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
+    {
+        switch(itr->first)
+        {
+        case BonusLifeFormBuilding::Metal:
+            bonusRessources += numberOfLevels * prodMines * Ressources<float>(itr->second, 0.0f, 0.0f) * 0.01f;
+            break;
+        case BonusLifeFormBuilding::Cristal:
+            bonusRessources += numberOfLevels * prodMines * Ressources<float>(0.0f, itr->second, 0.0f) * 0.01f;
+            break;
+        case BonusLifeFormBuilding::Deut:
+            bonusRessources += numberOfLevels * prodMines * Ressources<float>(0.0f, 0.0f, itr->second) * 0.01f;
+            break;
+        case BonusLifeFormBuilding::IncreaseLifeForm:
+            // Life form research cost
+            int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
+            for (int i = 0; i < numberLifeFormReseach; ++i)
+            {
+                Species speciesChoice = planet.getChoiceLifeFormResearch(i);
+
+                if (speciesChoice == Species::None) {continue;}
+
+                TechType researchLifeFormType = speciesToTechLifeForm.at(speciesChoice);
+                const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
+                int level = planet.getLevelLifeFormResearch(speciesChoice, i);
+                bonusRessources += numberOfLevels * itr->second * 0.01f * getGainResearch(tech, level);
+            }
+            break;
+        }
+    }
+}
+
+Ressources<float> RentabilityManager::getGainResearch(const LifeFormTech* tech, int numberOfLevels) const
 {
     Ressources<float> bonusRessources;
 
@@ -245,7 +281,7 @@ void RentabilityManager::addAstroRentability()
 
         TechType researchLifeFormType = speciesToTechLifeForm.at(speciesChoice);
         const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
-        globalGain += getGain(tech, level);
+        globalGain += getGainResearch(tech, level);
     }
 
     // Units cost
@@ -275,6 +311,58 @@ void RentabilityManager::addAstroRentability()
     levelUpAstro.cost = globalCost;
     levelUpAstro.timeToCompleteDay = time;
     addNewLevelUp(std::move(levelUpAstro));
+}
+
+void RentabilityManager::addChangeSpeciesRentability(const Planet& planet, int indexPlanet)
+{
+    Planet& planet = PlayerManager::instance().getPlanifChgtSpecies();
+    planet.computeLifeFormResearch(PlayerManager::instance().getAllSpecies());
+    planet.refresh();
+    Ressources<float> globalCost, globalGain;
+
+    // All building cost
+    std::vector<TechType> techTypes = planet.getAvailableBuildings();
+    for (TechType techType : techTypes)
+    {
+        int numberTechs = TechManager::instance().getNumberTechs(techType);
+        for (int i = 0; i < numberTechs; ++i)
+        {
+            int level = planet.getTechLevel(techType, i);
+            for (int j = 1; j <= level; ++j)
+            {
+                globalCost += planet.getCost(techType, i, j);
+            }
+        }
+    }
+
+    // Life form new buildings
+
+
+    // Life form research cost
+    int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
+    for (int i = 0; i < numberLifeFormReseach; ++i)
+    {
+        Species speciesChoice = planet.getChoiceLifeFormResearch(i);
+
+        if (speciesChoice == Species::None) {continue;}
+
+        TechType lifeFormResearch = speciesToTechLifeForm.at(speciesChoice);
+        int level = planet.getLevelLifeFormResearch(speciesChoice, i);
+        for (int j = 1; j <= level; ++j)
+        {
+            globalCost += planet.getCost(lifeFormResearch, i, j);
+        }
+
+        TechType researchLifeFormType = speciesToTechLifeForm.at(speciesChoice);
+        const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
+        globalGain += getGainResearch(tech, level);
+    }
+
+    LevelUp levelUpChangeSpecies ("Change species", levelAstro);
+    levelUpChangeSpecies.rentaPerDay = globalGain;
+    levelUpChangeSpecies.cost = globalCost;
+    levelUpChangeSpecies.timeToCompleteDay = time;
+    addNewLevelUp(std::move(levelUpChangeSpecies));
 }
 
 void RentabilityManager::addMinesRentability(const Planet& planet, int indexPlanet)
@@ -331,48 +419,22 @@ void RentabilityManager::addMinesRentability(const Planet& planet, int indexPlan
 
 void RentabilityManager::addLifeFormBuilding(const Planet& planet, int indexPlanet)
 {
-    Ressources<float> prodMines = planet.getProductionStat(Planet::ProductionStat::Mines);
-
     TechType buildingType = speciesToBuildingLifeForm.at(planet.getSpecies());
     int numberBuildingLifeForm = TechManager::instance().getNumberTechs(buildingType);
     for (int i = 0; i < numberBuildingLifeForm; i++)
     {
-        Ressources<float> bonusProdPercent;
-        bool bonusFound = false;
         const LifeFormBuilding* tech = dynamic_cast<const LifeFormBuilding*>(TechManager::instance().getTech(buildingType, i));
-        for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
+        Ressources<float> bonusRessources = getGainBuilding(planet, tech);
+        if (!bonusRessources.empty())
         {
-            switch(itr->first)
-            {
-            case BonusLifeFormBuilding::Metal:
-                bonusProdPercent += Ressources<float>(itr->second, 0.0f, 0.0f);
-                bonusFound = true;
-                break;
-            case BonusLifeFormBuilding::Cristal:
-                bonusProdPercent += Ressources<float>(0.0f, itr->second, 0.0f);
-                bonusFound = true;
-                break;
-            case BonusLifeFormBuilding::Deut:
-                bonusProdPercent += Ressources<float>(0.0f, 0.0f, itr->second);
-                bonusFound = true;
-                break;
-            }
+            int levelUpBatiment = planet.getTechLevel(buildingType, i) + 1;
+
+            LevelUp levelUpBuilding(tech->name, levelUpBatiment);
+            levelUpBuilding.rentaPerDay = bonusRessources;
+            levelUpBuilding.cost = planet.getCost(buildingType, i, levelUpBatiment);
+            levelUpBuilding.timeToCompleteDay = planet.getTime(buildingType, i, levelUpBatiment);
+            addNewLevelUp(std::move(levelUpBuilding), indexPlanet);
         }
-
-        if (!bonusFound)
-        {
-            continue;
-        }
-
-        Ressources bonusProd = prodMines * bonusProdPercent * 0.01f;
-
-        int levelUpBatiment = planet.getTechLevel(buildingType, i) + 1;
-
-        LevelUp levelUpBuilding(tech->name, levelUpBatiment);
-        levelUpBuilding.rentaPerDay = bonusProd;
-        levelUpBuilding.cost = planet.getCost(buildingType, i, levelUpBatiment);
-        levelUpBuilding.timeToCompleteDay = planet.getTime(buildingType, i, levelUpBatiment);
-        addNewLevelUp(std::move(levelUpBuilding), indexPlanet);
     }
 }
 
@@ -386,12 +448,12 @@ void RentabilityManager::addLifeFormResearch(const Planet& planet, int indexPlan
 
         TechType researchLifeFormType = speciesToTechLifeForm.at(speciesLifeForm);
         const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
-        int levelUpResearch = planet.getTechLevel(researchLifeFormType, i) + 1;
 
-        Ressources<float> bonusRessources = getGain(tech);
+        Ressources<float> bonusRessources = getGainResearch(tech);
         if (!bonusRessources.empty())
         {
             const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
+            int levelUpResearch = planet.getTechLevel(researchLifeFormType, i) + 1;
 
             LevelUp levelUpLifeFormResearch(tech->name, levelUpResearch);
             levelUpLifeFormResearch.rentaPerDay         = bonusRessources;
@@ -444,7 +506,7 @@ void RentabilityManager::addLevelUpLifeForm(const Planet& planet, int indexPlane
             TechType researchLifeFormType = speciesToTechLifeForm.at(speciesChoice);
             const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
 
-            globalGain += getGain(tech);
+            globalGain += getGainResearch(tech);
             globalCost += planifPlanet.getCost(lifeFormResearch, i, j);
         }
     }

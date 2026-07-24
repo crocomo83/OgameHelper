@@ -126,6 +126,7 @@ void PlayerManager::refresh()
     }
 
     _planifAstro.refresh();
+    _planifChangeSpecies.refresh();
 
     for (auto& [key, planet] : _planificationFDV)
     {
@@ -442,6 +443,7 @@ void PlayerManager:: readAllPlanetData(const QJsonObject& parent)
         _planificationFDV[species] = std::move(planet);
     }
 
+    _planifChangeSpecies = readPlanetData(parent["planetPlanificationChangeSpecies"].toObject());
     _planifAstro = readPlanetData(parent["planetPlanifAstro"].toObject());
 }
 
@@ -513,15 +515,15 @@ QJsonDocument PlayerManager::generateGameDataJson()
     root["planets"] = planetsArray;
 
     // Planets planification life form update array
+    root["planetPlanifAstro"] = writePlanetData(_planifAstro);
+    root["planetPlanificationChangeSpecies"] = writePlanetData(_planifChangeSpecies);
+
     QJsonArray planetsPlanifArray;
     for (const auto& [key, planet] : _planificationFDV)
     {
         QJsonObject planetObj = writePlanetData(planet);
         planetsPlanifArray.append(planetObj);
     }
-
-    root["planetPlanifAstro"] = writePlanetData(_planifAstro);
-
     root["planetPlanification"] = planetsPlanifArray;
 
     return QJsonDocument(root);

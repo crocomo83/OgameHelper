@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_6">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
@@ -58,7 +58,7 @@
       <item>
        <widget class="QTabWidget" name="tabGeneral">
         <property name="currentIndex">
-         <number>3</number>
+         <number>5</number>
         </property>
         <widget class="QWidget" name="overview">
          <attribute name="title">
@@ -175,7 +175,7 @@
          <attribute name="title">
           <string>Général</string>
          </attribute>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
            <widget class="QTableWidget" name="commonTab">
             <property name="enabled">
@@ -345,7 +345,7 @@
          <attribute name="title">
           <string>Expéditions</string>
          </attribute>
-         <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
            <widget class="QTableWidget" name="discoveryTab">
             <property name="rowCount">
@@ -395,7 +395,7 @@
          <attribute name="title">
           <string>Planification</string>
          </attribute>
-         <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
            <widget class="QTableWidget" name="planificationTab">
             <property name="showGrid">

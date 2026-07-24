@@ -83,6 +83,7 @@ public:
     float                   getResearchTime(int indexTech, int level) const;
     Planet&                 getPlanifPlanet(const Species& species);
     inline Planet&          getPlanifAstro() {return _planifAstro;}
+    inline Planet&          getPlanifChgtSpecies() {return _planifChangeSpecies;}
 
     void                    refresh();
     void                    computeLifeFormResearch();
@@ -103,6 +104,7 @@ public:
     inline void     setConversionRateAt(RessourceType type, float conversionRate) {_conversionRates.setRessource(type, conversionRate);}
     inline void     setResearchLevel(ResearchType researchType, int level) {_levelResearch[researchType] = level;}
     inline void     setSpecies(Species species, int level) {_levelSpecies[species] = level;}
+    inline void     setChgtSpecies(Species species) {_planifChangeSpecies.setSpecies(species);}
 
     void            addPlanet(const QString& name, const PlanetPosition& position, int temperature, Species species = Species::None);
     void            duplicatePlanet();
@@ -153,6 +155,7 @@ private:
     std::vector<Planet>                 _planets;
     Planet                              _planifAstro {};
     std::unordered_map<Species, Planet> _planificationFDV;
+    Planet                              _planifChangeSpecies;
     std::map<BonusLifeForm, float>      _lifeFormBonuses;
 
     std::map<ProductionStat, Ressources<float>> _productionStats;
