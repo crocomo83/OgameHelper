@@ -792,6 +792,21 @@ void MainWindow::buildPlanificationFdv(QTableWidget* tableWidget, int& column)
 
         addLabel(tableWidget, "Planification " + speciesToString.at(static_cast<int>(currentSpecies)) + " : ", currentRow++, column);
 
+        // Position
+        PositionItem* positionItem = addPositionItem(tableWidget, currentRow++, column, planifPlanet.getPosition());
+        positionItem->setOnValueChanged([this, &planifPlanet](int g, int s, int p) {
+            planifPlanet.setPosition(PlanetPosition(g, s, p));
+            emit planifChanged();
+        });
+
+        // Temperature
+        Item* temperatureItem = addSpinBoxItem(tableWidget, "Temp max : ", currentRow++, column, planifPlanet.getTemperatureMax(), -99, 99);
+        temperatureItem->setOnValueChanged([this, &planifPlanet](int value){
+            planifPlanet.setTemperatureMax(value);
+            emit planifChanged();
+        });
+        currentRow++;
+
         // Common buildings
         addLabel(tableWidget, "Common buildings : ", currentRow++, column);
 
@@ -834,9 +849,25 @@ void MainWindow::buildPlanificationChangeSpecies(QTableWidget* tableWidget, int&
     speciesChoice->setOnValueChanged([this](int value) {
         PlayerManager::instance().setChgtSpecies(static_cast<Species>(value));
         emit planifChanged();
+        emit rentaChanged();
     });
 
     if (currentSpecies == Species::None) return;
+
+    // Position
+    PositionItem* positionItem = addPositionItem(tableWidget, currentRow++, column, planifPlanet.getPosition());
+    positionItem->setOnValueChanged([this, &planifPlanet](int g, int s, int p) {
+        planifPlanet.setPosition(PlanetPosition(g, s, p));
+        emit planifChanged();
+    });
+
+    // Temperature
+    Item* temperatureItem = addSpinBoxItem(tableWidget, "Temp max : ", currentRow++, column, planifPlanet.getTemperatureMax(), -99, 99);
+    temperatureItem->setOnValueChanged([this, &planifPlanet](int value){
+        planifPlanet.setTemperatureMax(value);
+        emit planifChanged();
+    });
+    currentRow++;
 
     // Common buildings
     addLabel(tableWidget, "Common buildings : ", currentRow++, column);

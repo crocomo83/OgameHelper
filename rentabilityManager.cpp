@@ -227,7 +227,6 @@ void RentabilityManager::addAstroRentability()
 
     // Compute mines gain
     Ressources<float> bonusPercent;
-    bonusPercent += planet.getProductionStatPercent(Planet::ProductionStatPercent::BuildingLifeFormPercent);
     bonusPercent += planet.getProductionStatPercent(Planet::ProductionStatPercent::CrawlersPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::PlasmaPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::LifeFormBonusPercent);
@@ -266,7 +265,17 @@ void RentabilityManager::addAstroRentability()
         }
     }
 
-    // Life form research cost
+    // Life form buildings gain
+    TechType buildingType = speciesToBuildingLifeForm.at(planet.getSpecies());
+    int numberBuildingLifeForm = TechManager::instance().getNumberTechs(buildingType);
+    for (int i = 0; i < numberBuildingLifeForm; i++)
+    {
+        const LifeFormBuilding* tech = dynamic_cast<const LifeFormBuilding*>(TechManager::instance().getTech(buildingType, i));
+        int level = planet.getTechLevel(buildingType, i);
+        globalGain += getGainBuilding(planet, tech, level);
+    }
+
+    // Life form research cost & gain
     int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
     for (int i = 0; i < numberLifeFormReseach; ++i)
     {
@@ -319,7 +328,7 @@ void RentabilityManager::addChangeSpeciesRentability(const Planet& planet, int i
 {
     Planet& newPlanet = PlayerManager::instance().getPlanifChgtSpecies();
 
-    if (newPlanet.getSpecies() == planet.getSpecies()) return;
+    if (newPlanet.getSpecies() == planet.getSpecies() || newPlanet.getSpecies() == Species::None) return;
 
     newPlanet.computeLifeFormResearch(PlayerManager::instance().getAllSpecies());
     newPlanet.refresh();
