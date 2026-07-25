@@ -88,7 +88,7 @@
 		"cristal": 20000,
 		"deut": 25000,
 		"energie": 0,
-		"increaseFactor": 2,
+		"increaseFactor": 1.09,
 		"durationBase" : 40000,
 		"durationFactor" : 1.2
 	},

@@ -45,6 +45,7 @@ int RentabilityManager::refresh()
             addLifeFormResearch(planet, i);
 
         addLevelUpLifeForm(planet, i);
+        addChangeSpeciesRentability(planet, i);
     }
 
     std::sort(rentaLevelUp.begin(), rentaLevelUp.end(),
@@ -317,9 +318,13 @@ void RentabilityManager::addAstroRentability()
 void RentabilityManager::addChangeSpeciesRentability(const Planet& planet, int indexPlanet)
 {
     Planet& newPlanet = PlayerManager::instance().getPlanifChgtSpecies();
+
+    if (newPlanet.getSpecies() == planet.getSpecies()) return;
+
     newPlanet.computeLifeFormResearch(PlayerManager::instance().getAllSpecies());
     newPlanet.refresh();
     Ressources<float> globalCost, globalGain;
+    float time = 0.0f;
 
     // All building cost
     std::vector<TechType> techTypes = newPlanet.getAvailableBuildings();
@@ -337,7 +342,25 @@ void RentabilityManager::addChangeSpeciesRentability(const Planet& planet, int i
     }
 
     // Life form new buildings
+    TechType buildingType = speciesToBuildingLifeForm.at(newPlanet.getSpecies());
+    int numberBuildingLifeForm = TechManager::instance().getNumberTechs(buildingType);
+    for (int i = 0; i < numberBuildingLifeForm; i++)
+    {
+        const LifeFormBuilding* tech = dynamic_cast<const LifeFormBuilding*>(TechManager::instance().getTech(buildingType, i));
+        int level = newPlanet.getTechLevel(buildingType, i);
+        globalGain += getGainBuilding(planet, tech, level);
+        time += newPlanet.getTime(buildingType, i, level);
+    }
 
+    // Life form old buildings
+    TechType buildingTypeOld = speciesToBuildingLifeForm.at(planet.getSpecies());
+    int numberBuildingLifeFormOld = TechManager::instance().getNumberTechs(buildingTypeOld);
+    for (int i = 0; i < numberBuildingLifeFormOld; i++)
+    {
+        const LifeFormBuilding* tech = dynamic_cast<const LifeFormBuilding*>(TechManager::instance().getTech(buildingType, i));
+        int level = planet.getTechLevel(buildingType, i);
+        globalGain -= getGainBuilding(planet, tech, level);
+    }
 
     // Life form research cost
     int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
@@ -362,8 +385,8 @@ void RentabilityManager::addChangeSpeciesRentability(const Planet& planet, int i
     LevelUp levelUpChangeSpecies ("Change species", 0);
     levelUpChangeSpecies.rentaPerDay = globalGain;
     levelUpChangeSpecies.cost = globalCost;
-    levelUpChangeSpecies.timeToCompleteDay = 0;
-    addNewLevelUp(std::move(levelUpChangeSpecies));
+    levelUpChangeSpecies.timeToCompleteDay = time;
+    addNewLevelUp(std::move(levelUpChangeSpecies), indexPlanet);
 }
 
 void RentabilityManager::addMinesRentability(const Planet& planet, int indexPlanet)

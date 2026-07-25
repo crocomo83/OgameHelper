@@ -828,7 +828,8 @@ void MainWindow::buildPlanificationFdv(QTableWidget* tableWidget, int& column)
 void MainWindow::buildPlanificationChangeSpecies(QTableWidget* tableWidget, int& column)
 {
     int currentRow = 0;
-    Species currentSpecies = PlayerManager::instance().getPlanifChgtSpecies().getSpecies();
+    Planet& planifPlanet = PlayerManager::instance().getPlanifChgtSpecies();
+    Species currentSpecies = planifPlanet.getSpecies();
     ComboBoxItem* speciesChoice = addComboBoxItem(tableWidget, "Chgt species : ", speciesToString, currentRow++, column, static_cast<int>(currentSpecies));
     speciesChoice->setOnValueChanged([this](int value) {
         PlayerManager::instance().setChgtSpecies(static_cast<Species>(value));
@@ -836,8 +837,6 @@ void MainWindow::buildPlanificationChangeSpecies(QTableWidget* tableWidget, int&
     });
 
     if (currentSpecies == Species::None) return;
-
-    Planet& planifPlanet = PlayerManager::instance().getPlanifPlanet(currentSpecies);
 
     // Common buildings
     addLabel(tableWidget, "Common buildings : ", currentRow++, column);
