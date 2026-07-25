@@ -39,6 +39,20 @@ public:
         Count
     };
 
+    enum class PlanificationType{
+        NewColony,
+        LevelUpFDV,
+        ChangeSpecies,
+        Count
+    };
+
+    struct Planification{
+        PlanificationType type;
+        Planet planet;
+
+        Planification(PlanificationType _type) : type(_type), planet() {}
+    };
+
     const QStringList _prods = {
         "Base",
         "Mines",
@@ -61,9 +75,11 @@ public:
     };
 
     inline int              getNumberPlanets() const {return _planets.size();}
+    inline int              getNumberPlanifs() const {return _planifPlanets.size();}
     inline int              getNumberResearch() const {return _levelResearch.size();}
     inline const QString&   getPlanetName(int index) const {return _planets.at(index).getName();}
     inline Planet&          getPlanet(int index) {return _planets[index];}
+    inline Planet&          getPlanifPlanet(int index) {return _planifPlanets[index];}
     inline float            getLifeFormBonus(BonusLifeForm bonus) const {return _lifeFormBonuses.at(bonus);}
     inline Class            getClass() const {return _class;}
     inline AllianceClass    getAllianceClass() const {return _allianceClass;}
@@ -81,9 +97,6 @@ public:
     Ressources<float>       getClassBonus() const;
     Ressources<float>       getAllianceClassBonus() const;
     float                   getResearchTime(int indexTech, int level) const;
-    Planet&                 getPlanifPlanet(const Species& species);
-    inline Planet&          getPlanifAstro() {return _planifAstro;}
-    inline Planet&          getPlanifChgtSpecies() {return _planifChangeSpecies;}
 
     void                    refresh();
     void                    computeLifeFormResearch();
@@ -104,9 +117,9 @@ public:
     inline void     setConversionRateAt(RessourceType type, float conversionRate) {_conversionRates.setRessource(type, conversionRate);}
     inline void     setResearchLevel(ResearchType researchType, int level) {_levelResearch[researchType] = level;}
     inline void     setSpecies(Species species, int level) {_levelSpecies[species] = level;}
-    inline void     setChgtSpecies(Species species) {_planifChangeSpecies.setSpecies(species);}
 
     void            addPlanet(const QString& name, const PlanetPosition& position, int temperature, Species species = Species::None);
+    inline void     addPlanif(PlanificationType type) {_planifPlanets.push_back(Planification(type));}
     void            duplicatePlanet();
 
     bool            saveGameData();
@@ -153,9 +166,7 @@ private:
     std::map<ResearchType, int>         _levelResearch;
     std::map<Species, int>              _levelSpecies;
     std::vector<Planet>                 _planets;
-    Planet                              _planifAstro {};
-    std::unordered_map<Species, Planet> _planificationFDV;
-    Planet                              _planifChangeSpecies;
+    std::vector<Planification>          _planifPlanets;
     std::map<BonusLifeForm, float>      _lifeFormBonuses;
 
     std::map<ProductionStat, Ressources<float>> _productionStats;

@@ -59,11 +59,8 @@ MainWindow::MainWindow(QWidget *parent)
     buildSpecialisationImputs(_generalTable, 2);
     buildTradeImputs(_generalTable, 3);
     buildDiscoveryImputs(_discoveryTab);
-    int planifCol = 0;
-    buildPlanificationAstro(_planificationTab, planifCol);
-    buildPlanificationFdv(_planificationTab, planifCol);
-    buildPlanificationChangeSpecies(_planificationTab, planifCol);
 
+    onPlanifChanged();
     onPlanetsChanged();
     onTechChanged();
 
@@ -85,6 +82,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(duplicatePlanet, &QPushButton::clicked, this, [this]() {
         PlayerManager::instance().duplicatePlanet();
         emit planetsChanged();
+    });
+
+    QPushButton* addPlanif = ui->addPlanif;
+    connect(addPlanif, &QPushButton::clicked, this, [this]() {
+        PlayerManager::instance().addPlanif();
+        emit planifChanged();
     });
 
     connect(this, &MainWindow::planetsChanged, this, &MainWindow::onPlanetsChanged);
@@ -736,7 +739,7 @@ void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
     });
 }
 
-void MainWindow::buildPlanificationAstro(QTableWidget* tableWidget, int& column)
+void MainWindow::buildPlanification(QTableWidget* tableWidget, int& column)
 {
     Planet& planet = PlayerManager::instance().getPlanifAstro();
     int currentRow = 0;
@@ -782,125 +785,6 @@ void MainWindow::buildPlanificationAstro(QTableWidget* tableWidget, int& column)
     column++;
 }
 
-void MainWindow::buildPlanificationFdv(QTableWidget* tableWidget, int& column)
-{
-    std::unordered_set<Species> availableSpecies = getAllAvailableSpecies();
-
-    for (const Species& currentSpecies : availableSpecies) {
-        int currentRow = 0;
-        Planet& planifPlanet = PlayerManager::instance().getPlanifPlanet(currentSpecies);
-
-        addLabel(tableWidget, "Planification " + speciesToString.at(static_cast<int>(currentSpecies)) + " : ", currentRow++, column);
-
-        // Position
-        PositionItem* positionItem = addPositionItem(tableWidget, currentRow++, column, planifPlanet.getPosition());
-        positionItem->setOnValueChanged([this, &planifPlanet](int g, int s, int p) {
-            planifPlanet.setPosition(PlanetPosition(g, s, p));
-            emit planifChanged();
-        });
-
-        // Temperature
-        Item* temperatureItem = addSpinBoxItem(tableWidget, "Temp max : ", currentRow++, column, planifPlanet.getTemperatureMax(), -99, 99);
-        temperatureItem->setOnValueChanged([this, &planifPlanet](int value){
-            planifPlanet.setTemperatureMax(value);
-            emit planifChanged();
-        });
-        currentRow++;
-
-        // Common buildings
-        addLabel(tableWidget, "Common buildings : ", currentRow++, column);
-
-        int indexRobots = static_cast<int>(CommonBuildingType::UsineRobots);
-        int baseLevelRobots = planifPlanet.getTechLevel(TechType::CommonBuilding, indexRobots);
-        Item* robotItem = addSpinBoxItem(tableWidget, "Robots", currentRow++, column, baseLevelRobots);
-        robotItem->setOnValueChanged([this, &planifPlanet, indexRobots](int value) {
-            planifPlanet.setTechLevel(TechType::CommonBuilding, indexRobots, value);
-            emit techChanged();
-        });
-
-        int indexNanites = static_cast<int>(CommonBuildingType::UsineNanite);
-        int baseLevelNanites = planifPlanet.getTechLevel(TechType::CommonBuilding, indexNanites);
-        Item* nanitesItem = addSpinBoxItem(tableWidget, "Nanites", currentRow++, column, baseLevelNanites);
-        nanitesItem->setOnValueChanged([this, &planifPlanet, indexNanites](int value) {
-            planifPlanet.setTechLevel(TechType::CommonBuilding, indexNanites, value);
-            emit techChanged();
-        });
-
-        currentRow++;
-
-        // Life form buildings
-        addLabel(tableWidget, "Life form buildings : ", currentRow++, column);
-        createPlanetLifeFormBuilding(tableWidget, planifPlanet, currentRow, column);
-
-        // Life form research
-        addLabel(tableWidget, "Life form research : ", currentRow++, column);
-        createPlanetLifeFormResearches(tableWidget, planifPlanet, currentRow, column);
-
-        column++;
-    }
-}
-
-void MainWindow::buildPlanificationChangeSpecies(QTableWidget* tableWidget, int& column)
-{
-    int currentRow = 0;
-    Planet& planifPlanet = PlayerManager::instance().getPlanifChgtSpecies();
-    Species currentSpecies = planifPlanet.getSpecies();
-    ComboBoxItem* speciesChoice = addComboBoxItem(tableWidget, "Chgt species : ", speciesToString, currentRow++, column, static_cast<int>(currentSpecies));
-    speciesChoice->setOnValueChanged([this](int value) {
-        PlayerManager::instance().setChgtSpecies(static_cast<Species>(value));
-        emit planifChanged();
-        emit rentaChanged();
-    });
-
-    if (currentSpecies == Species::None) return;
-
-    // Position
-    PositionItem* positionItem = addPositionItem(tableWidget, currentRow++, column, planifPlanet.getPosition());
-    positionItem->setOnValueChanged([this, &planifPlanet](int g, int s, int p) {
-        planifPlanet.setPosition(PlanetPosition(g, s, p));
-        emit planifChanged();
-    });
-
-    // Temperature
-    Item* temperatureItem = addSpinBoxItem(tableWidget, "Temp max : ", currentRow++, column, planifPlanet.getTemperatureMax(), -99, 99);
-    temperatureItem->setOnValueChanged([this, &planifPlanet](int value){
-        planifPlanet.setTemperatureMax(value);
-        emit planifChanged();
-    });
-    currentRow++;
-
-    // Common buildings
-    addLabel(tableWidget, "Common buildings : ", currentRow++, column);
-
-    int indexRobots = static_cast<int>(CommonBuildingType::UsineRobots);
-    int baseLevelRobots = planifPlanet.getTechLevel(TechType::CommonBuilding, indexRobots);
-    Item* robotItem = addSpinBoxItem(tableWidget, "Robots", currentRow++, column, baseLevelRobots);
-    robotItem->setOnValueChanged([this, &planifPlanet, indexRobots](int value) {
-        planifPlanet.setTechLevel(TechType::CommonBuilding, indexRobots, value);
-        emit techChanged();
-    });
-
-    int indexNanites = static_cast<int>(CommonBuildingType::UsineNanite);
-    int baseLevelNanites = planifPlanet.getTechLevel(TechType::CommonBuilding, indexNanites);
-    Item* nanitesItem = addSpinBoxItem(tableWidget, "Nanites", currentRow++, column, baseLevelNanites);
-    nanitesItem->setOnValueChanged([this, &planifPlanet, indexNanites](int value) {
-        planifPlanet.setTechLevel(TechType::CommonBuilding, indexNanites, value);
-        emit techChanged();
-    });
-
-    currentRow++;
-
-    // Life form buildings
-    addLabel(tableWidget, "Life form buildings : ", currentRow++, column);
-    createPlanetLifeFormBuilding(tableWidget, planifPlanet, currentRow, column);
-
-    // Life form research
-    addLabel(tableWidget, "New life form research : ", currentRow++, column);
-    createPlanetLifeFormResearches(tableWidget, planifPlanet, currentRow, column);
-
-    column++;
-}
-
 void MainWindow::onPlanetsChanged()
 {
     _planetTable->clear();
@@ -937,8 +821,14 @@ void MainWindow::onPlanifChanged()
 {
     _planificationTab->clear();
 
-    int planifCol = 0;
-    buildPlanificationAstro(_planificationTab, planifCol);
-    buildPlanificationFdv(_planificationTab, planifCol);
-    buildPlanificationChangeSpecies(_planificationTab, planifCol);
+    int numberPlanet = PlayerManager::instance().getNumberPlanifs();
+    _planificationTab->setColumnCount(numberPlanet);
+    for (int i = 0; i < numberPlanet; ++i)
+    {
+        buildPlanification(_planificationTab, i);
+    }
+
+    for (int col = 0; col < _planificationTab->columnCount(); ++col) {
+        _planificationTab->setColumnWidth(col, 160); // width in pixel
+    }
 }

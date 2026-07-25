@@ -397,6 +397,33 @@
          </attribute>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QComboBox" name="choicePlanif"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="addPlanif">
+              <property name="text">
+               <string>Add planification</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
            <widget class="QTableWidget" name="planificationTab">
             <property name="showGrid">
              <bool>true</bool>
