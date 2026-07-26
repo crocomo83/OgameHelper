@@ -49,6 +49,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         lifeFormSelectItem.h lifeFormSelectItem.cpp
         discoverymanager.h discoverymanager.cpp
         utils.h
+        planetitem.h planetitem.cpp
 
 
 

@@ -56,7 +56,7 @@ public:
     void buildTradeImputs(QTableWidget* tableWidget, int column);
     void buildPlanetImputs(QTableWidget* tableWidget, int column);
     void buildDiscoveryImputs(QTableWidget* tableWidget);
-    void buildPlanification(QTableWidget* tableWidget, int& column);
+    void buildPlanification(QTableWidget* tableWidget, int indexPlanif);
 
 private slots:
     void onPlanetsChanged();

@@ -46,22 +46,6 @@ float PlayerManager::getResearchTime(int indexTech, int level) const
     return timeDays;
 }
 
-Planet& PlayerManager::getPlanifPlanet(const Species& species)
-{
-    auto it = _planificationFDV.find(species);
-    if (it != _planificationFDV.end())
-    {
-        return it->second;
-    }
-    else
-    {
-        Planet planet;
-        planet.setSpecies(species);
-        _planificationFDV.emplace(species, std::move(planet));
-        return _planificationFDV.at(species);
-    }
-}
-
 Ressources<float> PlayerManager::getPlasmaBonus() const
 {
     float levelPlasma = (float)getResearchLevel(ResearchType::Plasma);
@@ -125,12 +109,11 @@ void PlayerManager::refresh()
         planet.refresh();
     }
 
-    _planifAstro.refresh();
-    _planifChangeSpecies.refresh();
-
-    for (auto& [key, planet] : _planificationFDV)
+    int numberPlanif = getNumberPlanifs();
+    for (int i = 0; i < numberPlanif; ++i)
     {
-        planet.refresh();
+        Planification& planif = getPlanif(i);
+        planif.planet.refresh();
     }
 
     computeProduction();
@@ -428,23 +411,19 @@ void PlayerManager::readConversionData(const QJsonObject& parent)
 void PlayerManager:: readAllPlanetData(const QJsonObject& parent)
 {
     QJsonArray planets = parent["planets"].toArray();
-
     for (const QJsonValue& value : planets) {
         QJsonObject planetObj = value.toObject();
         Planet planet = readPlanetData(planetObj);
         _planets.push_back(std::move(planet));
     }
 
-    QJsonArray planetsPlanif = parent["planetPlanification"].toArray();
-    for (const QJsonValue& value : planetsPlanif) {
-        QJsonObject planetObj = value.toObject();
+    QJsonArray planifs = parent["planification"].toArray();
+    for (const QJsonValue& value : planifs) {
+        PlanificationType type = static_cast<PlanificationType>(value["type"].toInt());
+        QJsonObject planetObj = value["planet"].toObject();
         Planet planet = readPlanetData(planetObj);
-        Species species = planet.getSpecies();
-        _planificationFDV[species] = std::move(planet);
+        _planifPlanets.emplace_back(type, std::move(planet));
     }
-
-    _planifChangeSpecies = readPlanetData(parent["planetPlanificationChangeSpecies"].toObject());
-    _planifAstro = readPlanetData(parent["planetPlanifAstro"].toObject());
 }
 
 Planet PlayerManager::readPlanetData(const QJsonObject& planetObj)
@@ -503,28 +482,7 @@ QJsonDocument PlayerManager::generateGameDataJson()
     writeClassData(root);
     writeOfficersData(root);
     writeConversionData(root);
-
-    // Planets array
-    QJsonArray planetsArray;
-    for (int i = 0; i < _planets.size(); ++i)
-    {
-        const Planet& planet = _planets.at(i);
-        QJsonObject planetObj = writePlanetData(planet);
-        planetsArray.append(planetObj);
-    }
-    root["planets"] = planetsArray;
-
-    // Planets planification life form update array
-    root["planetPlanifAstro"] = writePlanetData(_planifAstro);
-    root["planetPlanificationChangeSpecies"] = writePlanetData(_planifChangeSpecies);
-
-    QJsonArray planetsPlanifArray;
-    for (const auto& [key, planet] : _planificationFDV)
-    {
-        QJsonObject planetObj = writePlanetData(planet);
-        planetsPlanifArray.append(planetObj);
-    }
-    root["planetPlanification"] = planetsPlanifArray;
+    writeAllPlanetData(root);
 
     return QJsonDocument(root);
 }
@@ -629,6 +587,32 @@ void PlayerManager::writeConversionData(QJsonObject& parent)
     scrapParent.append(scrapRate);
 
     parent["scrapRate"] = scrapParent;
+}
+
+void PlayerManager::writeAllPlanetData(QJsonObject& parent)
+{
+    // Planets array
+    QJsonArray planetsArray;
+    for (int i = 0; i < _planets.size(); ++i)
+    {
+        const Planet& planet = _planets.at(i);
+        QJsonObject planetObj = writePlanetData(planet);
+        planetsArray.append(planetObj);
+    }
+    parent["planets"] = planetsArray;
+
+    // Planets planification life form update array
+    QJsonArray planifArray;
+    for (int i = 0; i < _planifPlanets.size(); ++i)
+    {
+        QJsonObject planifObj;
+        const Planification& planif = _planifPlanets.at(i);
+        QJsonObject planetObj = writePlanetData(planif.planet);
+        planifObj["type"] = static_cast<int>(planif.type);
+        planifObj["planet"] = planetObj;
+        planifArray.append(planifObj);
+    }
+    parent["planification"] = planifArray;
 }
 
 QJsonObject PlayerManager::writePlanetData(const Planet& planet)

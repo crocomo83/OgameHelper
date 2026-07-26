@@ -23,6 +23,7 @@ public:
     };
 
     Planet();
+    Planet(const QString& name);
     Planet(const QString& name, const PlanetPosition& position, int temperature, Species species = Species::None);
     Planet(const Planet* planet);
 
@@ -50,6 +51,7 @@ public:
     Ressources<float>       getCost(TechType techType, int indexTech, int level) const;
     float                   getTime(TechType techType, int indexTech, int level) const; //time in days
     int                     getDefense(FixUnitType uniType) const;
+    Ressources<float>       getAllBuildingCost() const;
 
     void                    refresh();
     void                    computeLifeFormResearch(const std::map<Species, int>& levelSpecies);

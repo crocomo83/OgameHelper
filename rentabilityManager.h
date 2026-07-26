@@ -1,6 +1,7 @@
 #pragma once
 
 #include "commons.h"
+#include "playerManager.h"
 
 #include <map>
 #include <unordered_map>
@@ -49,6 +50,7 @@ public:
     inline bool getFilterPlanet(int index) const {return _filterPlanet.at(index);}
     inline bool getFilterType(TypeFilter index) const {return _typeFilter.at(index);}
 
+    Ressources<float> getGainMines(const Planet& planet) const;
     Ressources<float> getGainBuilding(const Planet& planet, const LifeFormBuilding* tech, int numberOfLevels = 1) const;
     Ressources<float> getGainResearch(const LifeFormTech* tech, int numberOfLevels = 1) const;
 
@@ -58,12 +60,12 @@ public:
 private:
     void addNewLevelUp(LevelUp levelUp, std::optional<int> indexPlanet = std::nullopt);
     void addReasearchRentability();
-    void addAstroRentability();
-    void addChangeSpeciesRentability(const Planet& planet, int indexPlanet);
-    void addMinesRentability(const Planet& planet, int indexPlanet);
-    void addLifeFormBuilding(const Planet& planet, int indexPlanet);
-    void addLifeFormResearch(const Planet& planet, int indexPlanet);
-    void addLevelUpLifeForm(const Planet& planet, int indexPlanet);
+    void addAstroRentability(Planet &planet);
+    void addPlanifChgtSpecies(PlayerManager::Planification& planif, int indexPlanet);
+    void addMinesRentability(int indexPlanet);
+    void addLifeFormBuilding(int indexPlanet);
+    void addLifeFormResearch(int indexPlanet);
+    void addLevelUpLifeForm(PlayerManager::Planification &planif, int indexPlanet);
 
 private:
     RentabilityManager();

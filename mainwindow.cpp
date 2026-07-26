@@ -6,6 +6,7 @@
 #include "playerManager.h"
 #include "rentabilityManager.h"
 #include "discoverymanager.h"
+#include "planetitem.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -84,9 +85,16 @@ MainWindow::MainWindow(QWidget *parent)
         emit planetsChanged();
     });
 
+    QComboBox* choicePlanif = ui->choicePlanif;
+    choicePlanif->addItems(PlayerManager::instance()._planificationStr);
+    static PlayerManager::PlanificationType planifType = PlayerManager::PlanificationType::NewColony;
+    connect(choicePlanif, &QComboBox::currentIndexChanged, this, [this](int index) {
+        planifType = static_cast<PlayerManager::PlanificationType>(index);
+    });
+
     QPushButton* addPlanif = ui->addPlanif;
     connect(addPlanif, &QPushButton::clicked, this, [this]() {
-        PlayerManager::instance().addPlanif();
+        PlayerManager::instance().addPlanif(planifType, Planet("New planification"));
         emit planifChanged();
     });
 
@@ -556,13 +564,12 @@ void MainWindow::buildPlanetImputs(QTableWidget* tableWidget, int column)
     int currentRow = 0;
     Planet& planet = PlayerManager::instance().getPlanet(column);
 
-    // Name
-    QLineEdit* lineEdit = new QLineEdit(planet.getName(), tableWidget);
-    connect(lineEdit, &QLineEdit::textChanged, this,
-            [&planet](const QString &text) {
-                planet.setName(text);
+    // Name + delete
+    PlanetItem* planetItem = new PlanetItem(planet.getName(), tableWidget);
+    planetItem->setOnValueChanged([&planet](const QString &text){
+        planet.setName(text);
     });
-    tableWidget->setCellWidget(currentRow++, column, lineEdit);
+    tableWidget->setCellWidget(currentRow++, column, planetItem);
 
     // Position
     PositionItem* positionItem = addPositionItem(tableWidget, currentRow++, column, planet.getPosition());
@@ -739,22 +746,28 @@ void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
     });
 }
 
-void MainWindow::buildPlanification(QTableWidget* tableWidget, int& column)
+void MainWindow::buildPlanification(QTableWidget* tableWidget, int indexPlanif)
 {
-    Planet& planet = PlayerManager::instance().getPlanifAstro();
+    Planet& planet = PlayerManager::instance().getPlanif(indexPlanif).planet;
     int currentRow = 0;
 
-    addLabel(tableWidget, "Planif astro :", currentRow++, column);
+    // Name
+    QLineEdit* lineEdit = new QLineEdit(planet.getName(), tableWidget);
+    connect(lineEdit, &QLineEdit::textChanged, this,
+            [&planet](const QString &text) {
+                planet.setName(text);
+            });
+    tableWidget->setCellWidget(currentRow++, indexPlanif, lineEdit);
 
     // Position
-    PositionItem* positionItem = addPositionItem(tableWidget, currentRow++, column, planet.getPosition());
+    PositionItem* positionItem = addPositionItem(tableWidget, currentRow++, indexPlanif, planet.getPosition());
     positionItem->setOnValueChanged([this, &planet](int g, int s, int p) {
         planet.setPosition(PlanetPosition(g, s, p));
         emit planifChanged();
     });
 
     // Temperature
-    Item* temperatureItem = addSpinBoxItem(tableWidget, "Temp max : ", currentRow++, column, planet.getTemperatureMax(), -99, 99);
+    Item* temperatureItem = addSpinBoxItem(tableWidget, "Temp max : ", currentRow++, indexPlanif, planet.getTemperatureMax(), -99, 99);
     temperatureItem->setOnValueChanged([this, &planet](int value){
         planet.setTemperatureMax(value);
         emit planifChanged();
@@ -762,27 +775,25 @@ void MainWindow::buildPlanification(QTableWidget* tableWidget, int& column)
     currentRow++;
 
     // Life form choice
-    createPlanetLifeFormChoice(tableWidget, planet, currentRow, column);
+    createPlanetLifeFormChoice(tableWidget, planet, currentRow, indexPlanif);
 
     // Common buildings
-    createPlanetCommonBuilding(tableWidget, planet, currentRow, column);
+    createPlanetCommonBuilding(tableWidget, planet, currentRow, indexPlanif);
 
     // Life form buildings
-    createPlanetLifeFormBuilding(tableWidget, planet, currentRow, column);
+    createPlanetLifeFormBuilding(tableWidget, planet, currentRow, indexPlanif);
 
     // Life form research
-    addLabel(tableWidget, "Life form research : ", currentRow++, column);
-    createPlanetLifeFormResearches(tableWidget, planet, currentRow, column);
+    addLabel(tableWidget, "Life form research : ", currentRow++, indexPlanif);
+    createPlanetLifeFormResearches(tableWidget, planet, currentRow, indexPlanif);
 
     // Units
-    addLabel(tableWidget, "Units : ", currentRow++, column);
+    addLabel(tableWidget, "Units : ", currentRow++, indexPlanif);
     for (int i = 0; i < static_cast<int>(FixUnitType::Count); ++i)
     {
         FixUnitType unitType = static_cast<FixUnitType>(i);
-        createPlanetDefenses(tableWidget, unitType, planet, currentRow, column);
+        createPlanetDefenses(tableWidget, unitType, planet, currentRow, indexPlanif);
     }
-
-    column++;
 }
 
 void MainWindow::onPlanetsChanged()

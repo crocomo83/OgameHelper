@@ -11,6 +11,13 @@ Planet::Planet()
     initEmptyPlanet();
 }
 
+Planet::Planet(const QString& name)
+    : _name(name)
+    , _position(PlanetPosition())
+{
+    initEmptyPlanet();
+}
+
 Planet::Planet(const QString& name, const PlanetPosition& position, int temperature, Species species)
     : _name(name)
     , _position(position)
@@ -289,6 +296,25 @@ int Planet::getDefense(FixUnitType uniType) const
 {
     auto it = _defenses.find(uniType);
     return it == _defenses.end() ? 0 : it->second;
+}
+
+Ressources<float> Planet::getAllBuildingCost() const
+{
+    Ressources<float> globalCost;
+    std::vector<TechType> techTypes = getAvailableBuildings();
+    for (TechType techType : techTypes)
+    {
+        int numberTechs = TechManager::instance().getNumberTechs(techType);
+        for (int i = 0; i < numberTechs; ++i)
+        {
+            int level = getTechLevel(techType, i);
+            for (int j = 1; j <= level; ++j)
+            {
+                globalCost += getCost(techType, i, j);
+            }
+        }
+    }
+    return globalCost;
 }
 
 void Planet::setTechLevel(TechType type, int index, int level)
