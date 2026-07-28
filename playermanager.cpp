@@ -46,6 +46,12 @@ float PlayerManager::getResearchTime(int indexTech, int level) const
     return timeDays;
 }
 
+int PlayerManager::getShip(MovingUnitType unitType) const
+{
+    auto it = _fleet.find(unitType);
+    return it == _fleet.end() ? 0 : it->second;
+}
+
 Planet* PlayerManager::getPlanet(int index)
 {
     if (index < _planets.size())
@@ -316,6 +322,7 @@ bool PlayerManager::loadSave(const QString& path)
     readOfficersData(root);
     readConversionData(root);
     readAllPlanetData(root);
+    readFleetData(root);
 
     qDebug() << "Loading done : " << path;
 
@@ -463,6 +470,16 @@ void PlayerManager:: readAllPlanetData(const QJsonObject& parent)
     }
 }
 
+void PlayerManager::readFleetData(const QJsonObject& parent)
+{
+    QJsonArray fleetArray = parent["fleet"].toArray();
+    int index = 0;
+    for (const QJsonValue& val : fleetArray) {
+        setShip(static_cast<MovingUnitType>(index), val.toInt(0));
+        index++;
+    }
+}
+
 Planet PlayerManager::readPlanetData(const QJsonObject& planetObj)
 {
     QString name = planetObj["name"].toString();
@@ -520,6 +537,7 @@ QJsonDocument PlayerManager::generateGameDataJson()
     writeOfficersData(root);
     writeConversionData(root);
     writeAllPlanetData(root);
+    writeFleetData(root);
 
     return QJsonDocument(root);
 }
@@ -650,6 +668,17 @@ void PlayerManager::writeAllPlanetData(QJsonObject& parent)
         planifArray.append(planifObj);
     }
     parent["planification"] = planifArray;
+}
+
+void PlayerManager::writeFleetData(QJsonObject& parent)
+{
+    QJsonArray fleet;
+    for (int i = 0; i < static_cast<int>(MovingUnitType::Count); ++i)
+    {
+        MovingUnitType unitType = static_cast<MovingUnitType>(i);
+        fleet << getShip(unitType);
+    }
+    parent["fleet"] = fleet;
 }
 
 QJsonObject PlayerManager::writePlanetData(const Planet& planet)

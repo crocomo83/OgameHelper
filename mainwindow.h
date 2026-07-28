@@ -46,6 +46,7 @@ public:
     void createPlanetCommonBuilding(QTableWidget* tableWidget, Planet *planet, int& row, int column);
     void createPlanetLifeFormBuilding(QTableWidget* tableWidget, Planet *planet, int& row, int column);
     void createPlanetLifeFormResearches(QTableWidget* tableWidget, Planet *planet, int& row, int column);
+    void createFleetUnit(QTableWidget* tableWidget, MovingUnitType unitType, int& row, int column);
     void createPlanetDefenses(QTableWidget* tableWidget, FixUnitType unitType, Planet* planet, int& row, int column);
 
     void buildResumeOutputs(QTableWidget* tableWidget);
@@ -57,18 +58,21 @@ public:
     void buildPlanetImputs(QTableWidget* tableWidget, int column);
     void buildDiscoveryImputs(QTableWidget* tableWidget);
     void buildPlanification(QTableWidget* tableWidget, int indexPlanif);
+    void buildFleetImputs(QTableWidget* tableWidget);
 
 private slots:
     void onPlanetsChanged();
     void onTechChanged();
     void onRentaChanged();
     void onPlanifChanged();
+    void onFleetChanged();
 
 signals:
     void planetsChanged();
     void techChanged();
     void rentaChanged();
     void planifChanged();
+    void fleetChanged();
 
 private:
     Ui::MainWindow *ui;
@@ -79,4 +83,5 @@ private:
     QTableWidget* _overviewTable;
     QTableWidget* _discoveryTab;
     QTableWidget* _planificationTab;
+    QTableWidget* _fleetTab;
 };

@@ -58,7 +58,7 @@
       <item>
        <widget class="QTabWidget" name="tabGeneral">
         <property name="currentIndex">
-         <number>5</number>
+         <number>6</number>
         </property>
         <widget class="QWidget" name="overview">
          <attribute name="title">
@@ -519,6 +519,64 @@
             <row/>
             <row/>
             <row/>
+            <column/>
+            <column/>
+            <column/>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="fleet">
+         <attribute name="title">
+          <string>Flotte</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QTableWidget" name="fleetTab">
+            <property name="rowCount">
+             <number>30</number>
+            </property>
+            <property name="columnCount">
+             <number>5</number>
+            </property>
+            <attribute name="horizontalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="verticalHeaderVisible">
+             <bool>false</bool>
+            </attribute>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <column/>
+            <column/>
             <column/>
             <column/>
             <column/>

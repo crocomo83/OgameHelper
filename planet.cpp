@@ -292,9 +292,9 @@ float Planet::getTime(TechType techType, int indexTech, int level) const
     return timeDays;
 }
 
-int Planet::getDefense(FixUnitType uniType) const
+int Planet::getDefense(FixUnitType unitType) const
 {
-    auto it = _defenses.find(uniType);
+    auto it = _defenses.find(unitType);
     return it == _defenses.end() ? 0 : it->second;
 }
 

@@ -36,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
     _planetTable = ui->planetsTab;
     _discoveryTab = ui->discoveryTab;
     _planificationTab = ui->planificationTab;
+    _fleetTab = ui->fleetTab;
 
     _rentaTable->setRowCount(NUMBER_RENTA_MAX + 1);
     _rentaTable->setColumnWidth(0, 140);
@@ -62,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
     buildTradeImputs(_generalTable, 3);
     buildDiscoveryImputs(_discoveryTab);
 
+    onFleetChanged();
     onPlanifChanged();
     onPlanetsChanged();
     onTechChanged();
@@ -328,6 +330,17 @@ void MainWindow::createPlanetLifeFormResearches(QTableWidget* tableWidget, Plane
         if ((i+1)%6 == 0)
             row++;
     }
+}
+
+void MainWindow::createFleetUnit(QTableWidget* tableWidget, MovingUnitType unitType, int& row, int column)
+{
+    Unit unit = TechManager::instance().getMovingUnit(unitType);
+    int initValue = PlayerManager::instance().getShip(unitType);
+    Item* item = addSpinBoxItem(tableWidget, unit.name, row++, column, initValue, 0, 999999999);
+    item->setOnValueChanged([this, unitType](int value) {
+        PlayerManager::instance().setShip(unitType, value);
+        emit fleetChanged();
+    });
 }
 
 void MainWindow::createPlanetDefenses(QTableWidget* tableWidget, FixUnitType unitType, Planet* planet, int& row, int column)
@@ -815,6 +828,19 @@ void MainWindow::buildPlanification(QTableWidget* tableWidget, int indexPlanif)
     }
 }
 
+void MainWindow::buildFleetImputs(QTableWidget* tableWidget)
+{
+    tableWidget->clear();
+
+    int currentRow = 0;
+    addLabel(tableWidget, "Fleet : ", currentRow++, 0);
+    for (int i = 0; i < static_cast<int>(MovingUnitType::Count); ++i)
+    {
+        MovingUnitType unitType = static_cast<MovingUnitType>(i);
+        createFleetUnit(tableWidget, unitType, currentRow, 0);
+    }
+}
+
 void MainWindow::onPlanetsChanged()
 {
     _planetTable->clear();
@@ -867,4 +893,10 @@ void MainWindow::onPlanifChanged()
     }
 
     emit rentaChanged();
+}
+
+void MainWindow::onFleetChanged()
+{
+    _fleetTab->setColumnWidth(0, 250);
+    buildFleetImputs(_fleetTab);
 }

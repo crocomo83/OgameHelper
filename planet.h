@@ -50,7 +50,7 @@ public:
     Ressources<float>       getLifeFormProdBonus() const;
     Ressources<float>       getCost(TechType techType, int indexTech, int level) const;
     float                   getTime(TechType techType, int indexTech, int level) const; //time in days
-    int                     getDefense(FixUnitType uniType) const;
+    int                     getDefense(FixUnitType unitType) const;
     Ressources<float>       getAllBuildingCost() const;
 
     void                    refresh();
@@ -64,9 +64,9 @@ public:
     inline void             setSpecies(Species species) {_species = species;}
     inline void             setPosition(const PlanetPosition& planetPosition) {_position = planetPosition;}
     inline void             setChoiceLifeFormResearch(int index, Species species) {_choicesLifeFormResearch[index] = species;}
+    inline void             setDefense(FixUnitType unitType, int value) {_defenses[unitType] = value;}
     void                    setTechLevel(TechType type, int index, int level);
     void                    setLevelLifeFormResearch(Species species, int index, int level);
-    void                    setDefense(FixUnitType unitType, int value) {_defenses[unitType] = value;}
 
 private:
     QString                                     _name;
