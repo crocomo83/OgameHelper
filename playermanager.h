@@ -46,11 +46,19 @@ public:
         Count
     };
 
+    const QStringList _planificationStr = {
+        "NewColony",
+        "LevelUpFDV",
+        "ChangeSpecies"
+    };
+
     struct Planification{
         PlanificationType type;
         Planet planet;
 
+        Planification() : type(PlanificationType::NewColony), planet() {}
         Planification(PlanificationType _type) : type(_type), planet() {}
+        Planification(PlanificationType _type, const Planet& _planet) : type(_type), planet(_planet) {}
     };
 
     const QStringList _prods = {
@@ -78,8 +86,6 @@ public:
     inline int              getNumberPlanifs() const {return _planifPlanets.size();}
     inline int              getNumberResearch() const {return _levelResearch.size();}
     inline const QString&   getPlanetName(int index) const {return _planets.at(index).getName();}
-    inline Planet&          getPlanet(int index) {return _planets[index];}
-    inline Planet&          getPlanifPlanet(int index) {return _planifPlanets[index];}
     inline float            getLifeFormBonus(BonusLifeForm bonus) const {return _lifeFormBonuses.at(bonus);}
     inline Class            getClass() const {return _class;}
     inline AllianceClass    getAllianceClass() const {return _allianceClass;}
@@ -91,6 +97,8 @@ public:
     inline const std::map<Species, int>& getAllSpecies() const {return _levelSpecies;}
     inline int              getSpecies(Species species) const {return _levelSpecies.at(species);}
 
+    Planet*                 getPlanet(int index);
+    Planification*          getPlanif(int index);
     Ressources<float>       getPlasmaBonus() const;
     Ressources<float>       getLifeFormProdBonus() const;
     Ressources<float>       getGeologBonus() const;
@@ -119,7 +127,9 @@ public:
     inline void     setSpecies(Species species, int level) {_levelSpecies[species] = level;}
 
     void            addPlanet(const QString& name, const PlanetPosition& position, int temperature, Species species = Species::None);
-    inline void     addPlanif(PlanificationType type) {_planifPlanets.push_back(Planification(type));}
+    inline void     removePlanet(int indexPlanet) {_planetToRemove = indexPlanet;}
+    inline void     addPlanif(PlanificationType type, const Planet& planet) {_planifPlanets.push_back(Planification(type, planet));}
+    inline void     removePlanif(int indexPlanif) {_planifToRemove = indexPlanif;}
     void            duplicatePlanet();
 
     bool            saveGameData();
@@ -140,6 +150,7 @@ private:
     void            writeClassData(QJsonObject& parent);
     void            writeOfficersData(QJsonObject& parent);
     void            writeConversionData(QJsonObject& parent);
+    void            writeAllPlanetData(QJsonObject& parent);
     QJsonObject     writePlanetData(const Planet& planet);
 
     QJsonDocument   generateGameDataJson();
@@ -167,6 +178,8 @@ private:
     std::map<Species, int>              _levelSpecies;
     std::vector<Planet>                 _planets;
     std::vector<Planification>          _planifPlanets;
+    std::optional<int>                  _planetToRemove;
+    std::optional<int>                  _planifToRemove;
     std::map<BonusLifeForm, float>      _lifeFormBonuses;
 
     std::map<ProductionStat, Ressources<float>> _productionStats;
