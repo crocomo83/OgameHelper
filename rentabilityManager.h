@@ -57,15 +57,20 @@ public:
     inline void setFilterPlanet(int index, bool state) {_filterPlanet[index] = state;}
     inline void setFilterType(TypeFilter index, bool state) {_typeFilter[index] = state;}
 
+    inline void planetsAdded() {_filterPlanet.push_back(true);}
+
 private:
     void addNewLevelUp(LevelUp levelUp, std::optional<int> indexPlanet = std::nullopt);
     void addReasearchRentability();
-    void addAstroRentability(Planet &planet);
-    void addPlanifChgtSpecies(PlayerManager::Planification& planif, int indexPlanet);
+    void addAstroRentability(PlayerManager::Planification *planif);
+    void addPlanifChgtSpecies(PlayerManager::Planification *planif, int indexPlanet);
     void addMinesRentability(int indexPlanet);
     void addLifeFormBuilding(int indexPlanet);
     void addLifeFormResearch(int indexPlanet);
-    void addLevelUpLifeForm(PlayerManager::Planification &planif, int indexPlanet);
+    void addLevelUpLifeForm(PlayerManager::Planification *planif, int indexPlanet);
+
+public slots:
+    void onPlanetRemoved(int indexPlanet);
 
 private:
     RentabilityManager();

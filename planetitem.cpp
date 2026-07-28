@@ -6,7 +6,8 @@ PlanetItem::PlanetItem(const QString& name, QWidget *parent)
     : QWidget(parent)
 {
     _nameLineEdit = new QLineEdit(name, this);
-    _deleteButton = new QPushButton("Delete", this);
+    _deleteButton = new QPushButton("🗑️", this);
+    _deleteButton->setFixedWidth(30);
 
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->addWidget(_nameLineEdit);

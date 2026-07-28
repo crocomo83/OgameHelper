@@ -182,7 +182,7 @@ int TechManager::getNumberTechs(TechType techType) const
     }
     else
     {
-        qDebug() << "ERROR : no tech type : " << (int)techType;
+        qCritical() << __FUNCTION__ << " : no tech type : " << (int)techType;
         return 0;
     }
 

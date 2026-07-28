@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent)
     _planificationTab = ui->planificationTab;
 
     _rentaTable->setRowCount(NUMBER_RENTA_MAX + 1);
+    _rentaTable->setColumnWidth(0, 140);
     initTable(_overviewTable);
     initTable(_generalTable);
 
@@ -76,12 +77,14 @@ MainWindow::MainWindow(QWidget *parent)
     QPushButton* addPlanet = ui->addPlanet;
     connect(addPlanet, &QPushButton::clicked, this, [this]() {
         PlayerManager::instance().addPlanet("Colonie", {1, 1, 1}, 0, Species::None);
+        RentabilityManager::instance().planetsAdded();
         emit planetsChanged();
     });
 
     QPushButton* duplicatePlanet = ui->duplicatePlanet;
     connect(duplicatePlanet, &QPushButton::clicked, this, [this]() {
         PlayerManager::instance().duplicatePlanet();
+        RentabilityManager::instance().planetsAdded();
         emit planetsChanged();
     });
 
@@ -96,6 +99,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(addPlanif, &QPushButton::clicked, this, [this]() {
         PlayerManager::instance().addPlanif(planifType, Planet("New planification"));
         emit planifChanged();
+        emit rentaChanged();
     });
 
     connect(this, &MainWindow::planetsChanged, this, &MainWindow::onPlanetsChanged);
@@ -231,13 +235,13 @@ QLabel* MainWindow::createPlanetsLabel(std::vector<int> indexPlanets)
     return labelPlanets;
 }
 
-void MainWindow::createPlanetLifeFormChoice(QTableWidget* tableWidget, Planet &planet, int& row, int column)
+void MainWindow::createPlanetLifeFormChoice(QTableWidget* tableWidget, Planet* planet, int& row, int column)
 {
     addLabel(tableWidget, "Forme de vie", row++, column);
-    int speciesIndex = static_cast<int>(planet.getSpecies());
+    int speciesIndex = static_cast<int>(planet->getSpecies());
     ComboBoxItem* speciesItem = addComboBoxItem(tableWidget, "Choix : ", speciesToString, row++, column, speciesIndex);
-    speciesItem->setOnValueChanged([this, &planet](int value) {
-        planet.setSpecies(static_cast<Species>(value));
+    speciesItem->setOnValueChanged([this, planet](int value) {
+        planet->setSpecies(static_cast<Species>(value));
         emit techChanged();
         emit planetsChanged();
         emit planifChanged();
@@ -245,7 +249,7 @@ void MainWindow::createPlanetLifeFormChoice(QTableWidget* tableWidget, Planet &p
     row++; //blank
 }
 
-void MainWindow::createPlanetCommonBuilding(QTableWidget* tableWidget, Planet &planet, int& row, int column)
+void MainWindow::createPlanetCommonBuilding(QTableWidget* tableWidget, Planet* planet, int& row, int column)
 {
     TechType techType = TechType::CommonBuilding;
     addLabel(tableWidget, techTypeToString[static_cast<int>(techType)] + " : ", row++, column);
@@ -253,13 +257,13 @@ void MainWindow::createPlanetCommonBuilding(QTableWidget* tableWidget, Planet &p
     int numberTechs = TechManager::instance().getNumberTechs(techType);
     for (int i = 0; i < numberTechs; ++i)
     {
-        int level = planet.getTechLevel(techType, i);
+        int level = planet->getTechLevel(techType, i);
         const CommonTech* tech = TechManager::instance().getTech(techType, i);
         if (tech->isValid())
         {
             Item* buildingItem = addSpinBoxItem(tableWidget, tech->name, row++, column, level);
-            buildingItem->setOnValueChanged([this, techType, &planet, i](int value) {
-                planet.setTechLevel(techType, i, value);
+            buildingItem->setOnValueChanged([this, techType, planet, i](int value) {
+                planet->setTechLevel(techType, i, value);
                 emit techChanged();
             });
         }
@@ -271,9 +275,9 @@ void MainWindow::createPlanetCommonBuilding(QTableWidget* tableWidget, Planet &p
     row++; // blank
 }
 
-void MainWindow::createPlanetLifeFormBuilding(QTableWidget* tableWidget, Planet &planet, int& row, int column)
+void MainWindow::createPlanetLifeFormBuilding(QTableWidget* tableWidget, Planet* planet, int& row, int column)
 {
-    TechType techType = planet.getLifeFormBuilding();
+    TechType techType = planet->getLifeFormBuilding();
 
     if (techType == TechType::None) { return;}
 
@@ -282,13 +286,13 @@ void MainWindow::createPlanetLifeFormBuilding(QTableWidget* tableWidget, Planet 
     int numberTechs = TechManager::instance().getNumberTechs(techType);
     for (int i = 0; i < numberTechs; ++i)
     {
-        int level = planet.getTechLevel(techType, i);
+        int level = planet->getTechLevel(techType, i);
         const CommonTech* tech = TechManager::instance().getTech(techType, i);
         if (tech->isValid())
         {
             Item* buildingItem = addSpinBoxItem(tableWidget, tech->name, row++, column, level);
-            buildingItem->setOnValueChanged([this, techType, &planet, i](int value) {
-                planet.setTechLevel(techType, i, value);
+            buildingItem->setOnValueChanged([this, techType, planet, i](int value) {
+                planet->setTechLevel(techType, i, value);
                 emit techChanged();
             });
         }
@@ -300,24 +304,24 @@ void MainWindow::createPlanetLifeFormBuilding(QTableWidget* tableWidget, Planet 
     row++; // blank
 }
 
-void MainWindow::createPlanetLifeFormResearches(QTableWidget* tableWidget, Planet &planet, int& row, int column)
+void MainWindow::createPlanetLifeFormResearches(QTableWidget* tableWidget, Planet* planet, int& row, int column)
 {
     int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
     for (int i = 0; i < numberLifeFormReseach; ++i)
     {
-        Species speciesChoice = planet.getChoiceLifeFormResearch(i);
-        int levelInit = planet.getLevelLifeFormResearch(speciesChoice, i);
+        Species speciesChoice = planet->getChoiceLifeFormResearch(i);
+        int levelInit = planet->getLevelLifeFormResearch(speciesChoice, i);
         LifeFormSelectItem* item = addLifeFormSelectItem(tableWidget, row++, column, speciesChoice, levelInit);
-        item->setOnIndexChanged([this, &planet, i, item](int value) {
+        item->setOnIndexChanged([this, planet, i, item](int value) {
             Species speciesSelected = static_cast<Species>(value);
-            planet.setChoiceLifeFormResearch(i, speciesSelected);
+            planet->setChoiceLifeFormResearch(i, speciesSelected);
             item->setEnabled(speciesSelected != Species::None);
-            item->setLevel(speciesSelected != Species::None ? planet.getLevelLifeFormResearch(speciesSelected, i) : 0);
+            item->setLevel(speciesSelected != Species::None ? planet->getLevelLifeFormResearch(speciesSelected, i) : 0);
             emit techChanged();
         });
-        item->setOnLevelChanged([this, &planet, i](int level) {
-            Species speciesSelected = planet.getChoiceLifeFormResearch(i);
-            planet.setLevelLifeFormResearch(speciesSelected, i, level);
+        item->setOnLevelChanged([this, planet, i](int level) {
+            Species speciesSelected = planet->getChoiceLifeFormResearch(i);
+            planet->setLevelLifeFormResearch(speciesSelected, i, level);
             emit techChanged();
         });
 
@@ -326,13 +330,13 @@ void MainWindow::createPlanetLifeFormResearches(QTableWidget* tableWidget, Plane
     }
 }
 
-void MainWindow::createPlanetDefenses(QTableWidget* tableWidget, FixUnitType unitType, Planet &planet, int& row, int column)
+void MainWindow::createPlanetDefenses(QTableWidget* tableWidget, FixUnitType unitType, Planet* planet, int& row, int column)
 {
     Unit unit = TechManager::instance().getFixUnit(unitType);
-    int initValue = planet.getDefense(unitType);
+    int initValue = planet->getDefense(unitType);
     Item* item = addSpinBoxItem(tableWidget, unit.name, row++, column, initValue, 0, 999999999);
-    item->setOnValueChanged([this, &planet, unitType](int value) {
-        planet.setDefense(unitType, value);
+    item->setOnValueChanged([this, planet, unitType](int value) {
+        planet->setDefense(unitType, value);
         emit techChanged();
         emit rentaChanged();
     });
@@ -562,26 +566,32 @@ void MainWindow::buildTradeImputs(QTableWidget* tableWidget, int column)
 void MainWindow::buildPlanetImputs(QTableWidget* tableWidget, int column)
 {
     int currentRow = 0;
-    Planet& planet = PlayerManager::instance().getPlanet(column);
+    Planet* planet = PlayerManager::instance().getPlanet(column);
 
     // Name + delete
-    PlanetItem* planetItem = new PlanetItem(planet.getName(), tableWidget);
-    planetItem->setOnValueChanged([&planet](const QString &text){
-        planet.setName(text);
+    PlanetItem* planetItem = new PlanetItem(planet->getName(), tableWidget);
+    planetItem->setOnValueChanged([this, &planet](const QString &text){
+        planet->setName(text);
+        emit rentaChanged();
+    });
+    planetItem->setOnDelete([this, column](){
+        PlayerManager::instance().removePlanet(column);
+        RentabilityManager::instance().onPlanetRemoved(column);
+        emit planetsChanged();
     });
     tableWidget->setCellWidget(currentRow++, column, planetItem);
 
     // Position
-    PositionItem* positionItem = addPositionItem(tableWidget, currentRow++, column, planet.getPosition());
+    PositionItem* positionItem = addPositionItem(tableWidget, currentRow++, column, planet->getPosition());
     positionItem->setOnValueChanged([this, &planet](int g, int s, int p) {
-        planet.setPosition(PlanetPosition(g, s, p));
+        planet->setPosition(PlanetPosition(g, s, p));
         emit techChanged();
     });
 
     // Temperature
-    Item* temperatureItem = addSpinBoxItem(tableWidget, "Temp max : ", currentRow++, column, planet.getTemperatureMax(), -99, 99);
+    Item* temperatureItem = addSpinBoxItem(tableWidget, "Temp max : ", currentRow++, column, planet->getTemperatureMax(), -99, 99);
     temperatureItem->setOnValueChanged([this, &planet](int value){
-        planet.setTemperatureMax(value);
+        planet->setTemperatureMax(value);
         emit techChanged();
     });
     currentRow++;
@@ -748,22 +758,30 @@ void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
 
 void MainWindow::buildPlanification(QTableWidget* tableWidget, int indexPlanif)
 {
-    Planet& planet = PlayerManager::instance().getPlanif(indexPlanif).planet;
+    PlayerManager::Planification* planif = PlayerManager::instance().getPlanif(indexPlanif);
+    Planet& planet = planif->planet;
     int currentRow = 0;
 
-    // Name
-    QLineEdit* lineEdit = new QLineEdit(planet.getName(), tableWidget);
-    connect(lineEdit, &QLineEdit::textChanged, this,
-            [&planet](const QString &text) {
-                planet.setName(text);
-            });
-    tableWidget->setCellWidget(currentRow++, indexPlanif, lineEdit);
+    // Type
+    addLabel(tableWidget, PlayerManager::instance()._planificationStr.at(static_cast<int>(planif->type)), currentRow++, indexPlanif);
+
+    // Name + delete
+    PlanetItem* planetItem = new PlanetItem(planet.getName(), tableWidget);
+    planetItem->setOnValueChanged([this, &planet](const QString &text){
+        planet.setName(text);
+    });
+    planetItem->setOnDelete([this, indexPlanif](){
+        PlayerManager::instance().removePlanif(indexPlanif);
+        emit planifChanged();
+    });
+    tableWidget->setCellWidget(currentRow++, indexPlanif, planetItem);
 
     // Position
     PositionItem* positionItem = addPositionItem(tableWidget, currentRow++, indexPlanif, planet.getPosition());
     positionItem->setOnValueChanged([this, &planet](int g, int s, int p) {
         planet.setPosition(PlanetPosition(g, s, p));
         emit planifChanged();
+        emit rentaChanged();
     });
 
     // Temperature
@@ -771,34 +789,36 @@ void MainWindow::buildPlanification(QTableWidget* tableWidget, int indexPlanif)
     temperatureItem->setOnValueChanged([this, &planet](int value){
         planet.setTemperatureMax(value);
         emit planifChanged();
+        emit rentaChanged();
     });
     currentRow++;
 
     // Life form choice
-    createPlanetLifeFormChoice(tableWidget, planet, currentRow, indexPlanif);
+    createPlanetLifeFormChoice(tableWidget, &planet, currentRow, indexPlanif);
 
     // Common buildings
-    createPlanetCommonBuilding(tableWidget, planet, currentRow, indexPlanif);
+    createPlanetCommonBuilding(tableWidget, &planet, currentRow, indexPlanif);
 
     // Life form buildings
-    createPlanetLifeFormBuilding(tableWidget, planet, currentRow, indexPlanif);
+    createPlanetLifeFormBuilding(tableWidget, &planet, currentRow, indexPlanif);
 
     // Life form research
     addLabel(tableWidget, "Life form research : ", currentRow++, indexPlanif);
-    createPlanetLifeFormResearches(tableWidget, planet, currentRow, indexPlanif);
+    createPlanetLifeFormResearches(tableWidget, &planet, currentRow, indexPlanif);
 
     // Units
     addLabel(tableWidget, "Units : ", currentRow++, indexPlanif);
     for (int i = 0; i < static_cast<int>(FixUnitType::Count); ++i)
     {
         FixUnitType unitType = static_cast<FixUnitType>(i);
-        createPlanetDefenses(tableWidget, unitType, planet, currentRow, indexPlanif);
+        createPlanetDefenses(tableWidget, unitType, &planet, currentRow, indexPlanif);
     }
 }
 
 void MainWindow::onPlanetsChanged()
 {
     _planetTable->clear();
+    PlayerManager::instance().refresh();
 
     int numberPlanet = PlayerManager::instance().getNumberPlanets();
     _planetTable->setColumnCount(numberPlanet);
@@ -811,6 +831,8 @@ void MainWindow::onPlanetsChanged()
     for (int col = 0; col < _planetTable->columnCount(); ++col) {
         _planetTable->setColumnWidth(col, 160); // width in pixel
     }
+
+    emit rentaChanged();
 }
 
 void MainWindow::onTechChanged()
@@ -831,6 +853,7 @@ void MainWindow::onRentaChanged()
 void MainWindow::onPlanifChanged()
 {
     _planificationTab->clear();
+    PlayerManager::instance().refresh();
 
     int numberPlanet = PlayerManager::instance().getNumberPlanifs();
     _planificationTab->setColumnCount(numberPlanet);
@@ -842,4 +865,6 @@ void MainWindow::onPlanifChanged()
     for (int col = 0; col < _planificationTab->columnCount(); ++col) {
         _planificationTab->setColumnWidth(col, 160); // width in pixel
     }
+
+    emit rentaChanged();
 }

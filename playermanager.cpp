@@ -46,6 +46,31 @@ float PlayerManager::getResearchTime(int indexTech, int level) const
     return timeDays;
 }
 
+Planet* PlayerManager::getPlanet(int index)
+{
+    if (index < _planets.size())
+    {
+        return &_planets[index];
+    }
+    else
+    {
+        qCritical() << __FUNCTION__ << " planet not available : " << index << " >= " << _planets.size();
+        return nullptr;
+    }
+}
+PlayerManager::Planification* PlayerManager::getPlanif(int index)
+{
+    if (index < _planifPlanets.size())
+    {
+        return &_planifPlanets[index];
+    }
+    else
+    {
+        qCritical() << __FUNCTION__ << " planif not available : " << index << " >= " << _planifPlanets.size();
+        return nullptr;
+    }
+}
+
 Ressources<float> PlayerManager::getPlasmaBonus() const
 {
     float levelPlasma = (float)getResearchLevel(ResearchType::Plasma);
@@ -102,18 +127,30 @@ void PlayerManager::refresh()
 {
     computeLifeFormResearch();
 
+    if (_planetToRemove)
+    {
+        _planets.erase(_planets.begin() + *_planetToRemove);
+        _planetToRemove = std::nullopt;
+    }
+
     int numberPlanet = getNumberPlanets();
     for (int i = 0; i < numberPlanet; ++i)
     {
-        Planet& planet = getPlanet(i);
-        planet.refresh();
+        Planet* planet = getPlanet(i);
+        planet->refresh();
+    }
+
+    if (_planifToRemove)
+    {
+        _planifPlanets.erase(_planifPlanets.begin() + *_planifToRemove);
+        _planifToRemove = std::nullopt;
     }
 
     int numberPlanif = getNumberPlanifs();
     for (int i = 0; i < numberPlanif; ++i)
     {
-        Planification& planif = getPlanif(i);
-        planif.planet.refresh();
+        Planification* planif = getPlanif(i);
+        planif->planet.refresh();
     }
 
     computeProduction();
@@ -134,8 +171,8 @@ void PlayerManager::computeLifeFormResearch()
     int numberPlanet = getNumberPlanets();
     for (int i = 0; i < numberPlanet; ++i)
     {
-        Planet& planet = getPlanet(i);
-        planet.computeLifeFormResearch(_levelSpecies);
+        Planet* planet = getPlanet(i);
+        planet->computeLifeFormResearch(_levelSpecies);
     }
 
     // Factorise

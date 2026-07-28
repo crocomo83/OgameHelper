@@ -42,11 +42,11 @@ public:
     std::unordered_set<Species> getAllAvailableSpecies();
 
     QLabel* createPlanetsLabel(std::vector<int> indexPlanets);
-    void createPlanetLifeFormChoice(QTableWidget* tableWidget, Planet &planet, int& row, int column);
-    void createPlanetCommonBuilding(QTableWidget* tableWidget, Planet &planet, int& row, int column);
-    void createPlanetLifeFormBuilding(QTableWidget* tableWidget, Planet &planet, int& row, int column);
-    void createPlanetLifeFormResearches(QTableWidget* tableWidget, Planet &planet, int& row, int column);
-    void createPlanetDefenses(QTableWidget* tableWidget, FixUnitType unitType, Planet &planet, int& row, int column);
+    void createPlanetLifeFormChoice(QTableWidget* tableWidget, Planet *planet, int& row, int column);
+    void createPlanetCommonBuilding(QTableWidget* tableWidget, Planet *planet, int& row, int column);
+    void createPlanetLifeFormBuilding(QTableWidget* tableWidget, Planet *planet, int& row, int column);
+    void createPlanetLifeFormResearches(QTableWidget* tableWidget, Planet *planet, int& row, int column);
+    void createPlanetDefenses(QTableWidget* tableWidget, FixUnitType unitType, Planet* planet, int& row, int column);
 
     void buildResumeOutputs(QTableWidget* tableWidget);
     void buildRentaOutputs(QTableWidget* tableWidget);
