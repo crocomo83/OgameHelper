@@ -178,11 +178,11 @@ void PlayerManager::computeLifeFormResearch()
     // Factorise
     for (int i = 0; i < numberPlanet; ++i)
     {
-        const Planet& planet = getPlanet(i);
+        const Planet* planet = getPlanet(i);
         for (int j = 0; j < static_cast<int>(BonusLifeForm::Count); ++j)
         {
             BonusLifeForm typeBonus = static_cast<BonusLifeForm>(j);
-            _lifeFormBonuses[typeBonus] += planet.getLifeFormBonus(typeBonus);
+            _lifeFormBonuses[typeBonus] += planet->getLifeFormBonus(typeBonus);
         }
     }
 }
@@ -193,12 +193,12 @@ void PlayerManager::computeProduction()
     Ressources<int> base, prodMines, prodCrawler, prodBuildingLifeForm;
     for (int i = 0; i < numberPlanet; ++i)
     {
-        const Planet& planet = getPlanet(i);
+        const Planet* planet = getPlanet(i);
 
-        base                    += planet.getProductionStat(Planet::ProductionStat::Base);
-        prodMines               += planet.getProductionStat(Planet::ProductionStat::Mines);
-        prodBuildingLifeForm    += planet.getProductionStat(Planet::ProductionStat::BuildingLifeForm);
-        prodCrawler             += planet.getProductionStat(Planet::ProductionStat::Crawlers);
+        base                    += planet->getProductionStat(Planet::ProductionStat::Base);
+        prodMines               += planet->getProductionStat(Planet::ProductionStat::Mines);
+        prodBuildingLifeForm    += planet->getProductionStat(Planet::ProductionStat::BuildingLifeForm);
+        prodCrawler             += planet->getProductionStat(Planet::ProductionStat::Crawlers);
     }
 
     _productionStats[ProductionStat::Base]                  = base;
@@ -230,9 +230,9 @@ void PlayerManager::computeLabsLevel()
     std::vector<int> labLevels;
     for (int i = 0; i < getNumberPlanets(); ++i)
     {
-        const Planet& planet = getPlanet(i);
+        const Planet* planet = getPlanet(i);
         int labIndex = static_cast<int>(CommonBuildingType::LaboRecherche);
-        labLevels.push_back(planet.getTechLevel(TechType::CommonBuilding, labIndex));
+        labLevels.push_back(planet->getTechLevel(TechType::CommonBuilding, labIndex));
     }
     std::sort(labLevels.begin(), labLevels.end(), std::greater<int>());
 

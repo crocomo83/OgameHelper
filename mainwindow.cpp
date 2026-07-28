@@ -193,8 +193,8 @@ std::unordered_set<Species> MainWindow::getAllAvailableSpecies()
     std::unordered_set<Species> result;
     for (int i = 0; i < PlayerManager::instance().getNumberPlanets(); ++i)
     {
-        const Planet& planet = PlayerManager::instance().getPlanet(i);
-        Species species = planet.getSpecies();
+        const Planet* planet = PlayerManager::instance().getPlanet(i);
+        Species species = planet->getSpecies();
         if (species != Species::None)
         {
             result.insert(species);
@@ -212,8 +212,8 @@ QLabel* MainWindow::createPlanetsLabel(std::vector<int> indexPlanets)
     }
     else if (indexPlanets.size() == 1)
     {
-        const Planet& planet = PlayerManager::instance().getPlanet(indexPlanets.at(0));
-        displayedName = planet.getName();
+        const Planet* planet = PlayerManager::instance().getPlanet(indexPlanets.at(0));
+        displayedName = planet->getName();
     }
 
     QLabel* labelPlanets = new QLabel(displayedName);
@@ -223,8 +223,8 @@ QLabel* MainWindow::createPlanetsLabel(std::vector<int> indexPlanets)
         for (int i = 0; i < indexPlanets.size(); ++i)
         {
             int indexPlanet = indexPlanets.at(i);
-            const Planet& planet = PlayerManager::instance().getPlanet(indexPlanet);
-            listPlanets += planet.getName();
+            const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
+            listPlanets += planet->getName();
             if (i != indexPlanets.size() - 1)
             {
                 listPlanets += '\n';
@@ -401,9 +401,9 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
 
     for (int i = 0; i < PlayerManager::instance().getNumberPlanets(); ++i)
     {
-        const Planet& planet = PlayerManager::instance().getPlanet(i);
+        const Planet* planet = PlayerManager::instance().getPlanet(i);
         bool state = RentabilityManager::instance().getFilterPlanet(i);
-        CheckBoxItem* planetFilterItem = addCheckBoxItem(tableWidget, planet.getName(), i + 1, 5, state);
+        CheckBoxItem* planetFilterItem = addCheckBoxItem(tableWidget, planet->getName(), i + 1, 5, state);
         planetFilterItem->addOnValueChanged([this, i](bool value) {
             RentabilityManager::instance().setFilterPlanet(i, value);
             emit rentaChanged();

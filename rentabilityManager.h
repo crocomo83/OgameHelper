@@ -51,7 +51,7 @@ public:
     inline bool getFilterType(TypeFilter index) const {return _typeFilter.at(index);}
 
     Ressources<float> getGainMines(const Planet& planet) const;
-    Ressources<float> getGainBuilding(const Planet& planet, const LifeFormBuilding* tech, int numberOfLevels = 1) const;
+    Ressources<float> getGainBuilding(const Planet *planet, const LifeFormBuilding* tech, int numberOfLevels = 1) const;
     Ressources<float> getGainResearch(const LifeFormTech* tech, int numberOfLevels = 1) const;
 
     inline void setFilterPlanet(int index, bool state) {_filterPlanet[index] = state;}
