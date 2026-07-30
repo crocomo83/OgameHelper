@@ -42,4 +42,20 @@ namespace utils
             return QString::number(timeDays / 365.0f, 'f', 2) + " years";
         }
     }
+
+    inline QString ressourceToString(float value)
+    {
+        if (value >= 1000000000)
+        {
+            return QString::number(value / 1000000000.f, 'f', 2) + " Md";
+        }
+        else if (value >= 1000000)
+        {
+            return QString::number(value / 1000000.f, 'f', 2) + " M";
+        }
+        else
+        {
+            return QString::number(value);
+        }
+    }
 }

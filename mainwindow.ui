@@ -534,7 +534,7 @@
           <item>
            <widget class="QTableWidget" name="fleetTab">
             <property name="rowCount">
-             <number>30</number>
+             <number>17</number>
             </property>
             <property name="columnCount">
              <number>5</number>
@@ -545,19 +545,6 @@
             <attribute name="verticalHeaderVisible">
              <bool>false</bool>
             </attribute>
-            <row/>
-            <row/>
-            <row/>
-            <row/>
-            <row/>
-            <row/>
-            <row/>
-            <row/>
-            <row/>
-            <row/>
-            <row/>
-            <row/>
-            <row/>
             <row/>
             <row/>
             <row/>

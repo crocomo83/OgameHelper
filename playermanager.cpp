@@ -52,6 +52,12 @@ int PlayerManager::getShip(MovingUnitType unitType) const
     return it == _fleet.end() ? 0 : it->second;
 }
 
+int PlayerManager::getScrapShip(MovingUnitType unitType) const
+{
+    auto it = _scrapFleet.find(unitType);
+    return it == _scrapFleet.end() ? 0 : it->second;
+}
+
 Planet* PlayerManager::getPlanet(int index)
 {
     if (index < _planets.size())
@@ -162,6 +168,7 @@ void PlayerManager::refresh()
     computeProduction();
     computeLabsLevel();
     computeConversionRate();
+    computeScrapValue();
 }
 
 void PlayerManager::computeLifeFormResearch()
@@ -257,6 +264,17 @@ void PlayerManager::computeConversionRate()
     float benefMetal = getProduction(PlayerManager::ProductionStat::Total).metal;
     float amToMetal = (float)costFullMetal / benefMetal;
     _conversionRates.antimatter = amToMetal / _conversionRates.deut * _conversionRates.metal;
+}
+
+void PlayerManager::computeScrapValue()
+{
+    _scrapValue = Ressources<float>();
+    for (const auto& [unitType, numberShip] : _scrapFleet)
+    {
+        Unit unit = TechManager::instance().getMovingUnit(unitType);
+        _scrapValue += numberShip * unit.cost;
+    }
+    _scrapValue *= _scrapRate / 100.0f;
 }
 
 bool PlayerManager::loadInitSave()
@@ -478,6 +496,13 @@ void PlayerManager::readFleetData(const QJsonObject& parent)
         setShip(static_cast<MovingUnitType>(index), val.toInt(0));
         index++;
     }
+
+    QJsonArray scrapFleetArray = parent["scrapFleet"].toArray();
+    index = 0;
+    for (const QJsonValue& val : scrapFleetArray) {
+        setScrapShip(static_cast<MovingUnitType>(index), val.toInt(0));
+        index++;
+    }
 }
 
 Planet PlayerManager::readPlanetData(const QJsonObject& planetObj)
@@ -679,6 +704,14 @@ void PlayerManager::writeFleetData(QJsonObject& parent)
         fleet << getShip(unitType);
     }
     parent["fleet"] = fleet;
+
+    QJsonArray scrapFleet;
+    for (int i = 0; i < static_cast<int>(MovingUnitType::Count); ++i)
+    {
+        MovingUnitType unitType = static_cast<MovingUnitType>(i);
+        scrapFleet << getScrapShip(unitType);
+    }
+    parent["scrapFleet"] = scrapFleet;
 }
 
 QJsonObject PlayerManager::writePlanetData(const Planet& planet)

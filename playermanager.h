@@ -96,6 +96,7 @@ public:
     inline int              getResearchLevel(ResearchType researchType) const {return _levelResearch.at(researchType);}
     inline const std::map<Species, int>& getAllSpecies() const {return _levelSpecies;}
     inline int              getSpecies(Species species) const {return _levelSpecies.at(species);}
+    inline Ressources<float> getScrapValue() const {return _scrapValue;}
 
     Planet*                 getPlanet(int index);
     Planification*          getPlanif(int index);
@@ -106,12 +107,14 @@ public:
     Ressources<float>       getAllianceClassBonus() const;
     float                   getResearchTime(int indexTech, int level) const;
     int                     getShip(MovingUnitType unitType) const;
+    int                     getScrapShip(MovingUnitType unitType) const;
 
     void                    refresh();
     void                    computeLifeFormResearch();
     void                    computeProduction();
     void                    computeLabsLevel();
     void                    computeConversionRate();
+    void                    computeScrapValue();
 
     inline const Ressources<float>& getProduction(ProductionStat stat) const {return _productionStats.at(stat);}
     inline const Ressources<float>& getProductionPercent(ProductionStatPercent stat) const {return _productionStatsPercent.at(stat);}
@@ -127,6 +130,7 @@ public:
     inline void     setResearchLevel(ResearchType researchType, int level) {_levelResearch[researchType] = level;}
     inline void     setSpecies(Species species, int level) {_levelSpecies[species] = level;}
     inline void     setShip(MovingUnitType unitType, int value) {_fleet[unitType] = value;}
+    inline void     setScrapShip(MovingUnitType unitType, int value) {_scrapFleet[unitType] = value;}
 
     void            addPlanet(const QString& name, const PlanetPosition& position, int temperature, Species species = Species::None);
     inline void     removePlanet(int indexPlanet) {_planetToRemove = indexPlanet;}
@@ -186,6 +190,8 @@ private:
     std::optional<int>                  _planifToRemove;
     std::map<BonusLifeForm, float>      _lifeFormBonuses;
     std::map<MovingUnitType, int>       _fleet;
+    std::map<MovingUnitType, int>       _scrapFleet;
+    Ressources<float>                   _scrapValue;
 
     std::map<ProductionStat, Ressources<float>> _productionStats;
     std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;

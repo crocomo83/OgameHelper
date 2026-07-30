@@ -57,13 +57,15 @@ MainWindow::MainWindow(QWidget *parent)
     _planetTable->setSelectionMode(QAbstractItemView::NoSelection);
     _planetTable->setFocusPolicy(Qt::NoFocus);
 
+    _fleetTab->setColumnWidth(0, 250);
+
     buildGeneralImputs(_generalTable, 0);
     buildResearchImputs(_generalTable, 1);
     buildSpecialisationImputs(_generalTable, 2);
     buildTradeImputs(_generalTable, 3);
     buildDiscoveryImputs(_discoveryTab);
+    buildFleetImputs(_fleetTab);
 
-    onFleetChanged();
     onPlanifChanged();
     onPlanetsChanged();
     onTechChanged();
@@ -108,6 +110,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, &MainWindow::techChanged, this, &MainWindow::onTechChanged);
     connect(this, &MainWindow::rentaChanged, this, &MainWindow::onRentaChanged);
     connect(this, &MainWindow::planifChanged, this, &MainWindow::onPlanifChanged);
+    connect(this, &MainWindow::fleetChanged, this, &MainWindow::onFleetChanged);
 }
 
 MainWindow::~MainWindow()
@@ -368,23 +371,23 @@ void MainWindow::buildResumeOutputs(QTableWidget* tableWidget)
 
     const Ressources<float>& productionStat = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Total);
     addLabel(tableWidget, "Mines", index, 0);
-    addLabel(tableWidget, utils::formatRessource(productionStat.metal), index, 1);
-    addLabel(tableWidget, utils::formatRessource(productionStat.cristal), index, 2);
-    addLabel(tableWidget, utils::formatRessource(productionStat.deut), index, 3);
+    addLabel(tableWidget, utils::ressourceToString(productionStat.metal), index, 1);
+    addLabel(tableWidget, utils::ressourceToString(productionStat.cristal), index, 2);
+    addLabel(tableWidget, utils::ressourceToString(productionStat.deut), index, 3);
     index++;
 
     const Ressources<float>& discoveryRessources = DiscoveryManager::instance().getSummary().globalMean;
     addLabel(tableWidget, "Discovery", index, 0);
-    addLabel(tableWidget, utils::formatRessource(discoveryRessources.metal), index, 1);
-    addLabel(tableWidget, utils::formatRessource(discoveryRessources.cristal), index, 2);
-    addLabel(tableWidget, utils::formatRessource(discoveryRessources.deut), index, 3);
+    addLabel(tableWidget, utils::ressourceToString(discoveryRessources.metal), index, 1);
+    addLabel(tableWidget, utils::ressourceToString(discoveryRessources.cristal), index, 2);
+    addLabel(tableWidget, utils::ressourceToString(discoveryRessources.deut), index, 3);
     index++;
 
     const Ressources<float>& totalRessources = productionStat + discoveryRessources;
     addLabel(tableWidget, "Total", index, 0);
-    addLabel(tableWidget, utils::formatRessource(totalRessources.metal), index, 1);
-    addLabel(tableWidget, utils::formatRessource(totalRessources.cristal), index, 2);
-    addLabel(tableWidget, utils::formatRessource(totalRessources.deut), index, 3);
+    addLabel(tableWidget, utils::ressourceToString(totalRessources.metal), index, 1);
+    addLabel(tableWidget, utils::ressourceToString(totalRessources.cristal), index, 2);
+    addLabel(tableWidget, utils::ressourceToString(totalRessources.deut), index, 3);
     index++;
 }
 
@@ -833,11 +836,38 @@ void MainWindow::buildFleetImputs(QTableWidget* tableWidget)
     tableWidget->clear();
 
     int currentRow = 0;
-    addLabel(tableWidget, "Fleet : ", currentRow++, 0);
+    addLabel(tableWidget, "Fleet : ", 0, 0);
+    addLabel(tableWidget, "Ferraille : ", 0, 1);
+    addLabel(tableWidget, "Métal : ", 0, 2);
+    addLabel(tableWidget, "Cristal : ", 0, 3);
+    addLabel(tableWidget, "Deut : ", 0, 4);
+
+    onFleetChanged();
+
+    currentRow++;
     for (int i = 0; i < static_cast<int>(MovingUnitType::Count); ++i)
     {
         MovingUnitType unitType = static_cast<MovingUnitType>(i);
-        createFleetUnit(tableWidget, unitType, currentRow, 0);
+        Unit unit = TechManager::instance().getMovingUnit(unitType);
+        int initValue = PlayerManager::instance().getShip(unitType);
+        Item* item = addSpinBoxItem(tableWidget, unit.name, currentRow, 0, initValue, 0, 999999999);
+        item->setOnValueChanged([this, unitType](int value) {
+            PlayerManager::instance().setShip(unitType, value);
+            emit fleetChanged();
+        });
+
+        QSpinBox* scrapShip = new QSpinBox(tableWidget);
+        scrapShip->setMaximum(999999999);
+        scrapShip->setValue(PlayerManager::instance().getScrapShip(unitType));
+        connect(scrapShip, &QSpinBox::valueChanged, this, [this, unitType](int value)
+        {
+            PlayerManager::instance().setScrapShip(unitType, value);
+            PlayerManager::instance().computeScrapValue();
+            emit fleetChanged();
+        });
+        tableWidget->setCellWidget(currentRow, 1, scrapShip);
+
+        currentRow++;
     }
 }
 
@@ -897,6 +927,8 @@ void MainWindow::onPlanifChanged()
 
 void MainWindow::onFleetChanged()
 {
-    _fleetTab->setColumnWidth(0, 250);
-    buildFleetImputs(_fleetTab);
+    Ressources<float> scrapValue = PlayerManager::instance().getScrapValue();
+    addLabel(_fleetTab, utils::ressourceToString(scrapValue.metal), 1, 2);
+    addLabel(_fleetTab, utils::ressourceToString(scrapValue.cristal), 1, 3);
+    addLabel(_fleetTab, utils::ressourceToString(scrapValue.deut), 1, 4);
 }
