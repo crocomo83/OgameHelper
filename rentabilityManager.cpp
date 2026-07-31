@@ -320,7 +320,7 @@ void RentabilityManager::addAstroRentability(PlayerManager::Planification* plani
         globalCost += number * unit.cost;
     }
 
-    LevelUp levelUpAstro (planet.getName() + ", astro : ", levelAstro);
+    LevelUp levelUpAstro (planet.getName() + ", astro", levelAstro);
     levelUpAstro.rentaPerDay = globalGain;
     levelUpAstro.cost = globalCost;
     levelUpAstro.timeToCompleteDay = time;
