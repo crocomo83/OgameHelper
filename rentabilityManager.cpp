@@ -278,6 +278,19 @@ void RentabilityManager::addAstroRentability(PlayerManager::Planification* plani
 
     globalGain += getGainMines(planet);
 
+    // All building cost
+    globalCost +=  planet.getAllBuildingCost();
+
+    // Life form buildings gain
+    TechType buildingType = speciesToBuildingLifeForm.at(planet.getSpecies());
+    int numberBuildingLifeForm = TechManager::instance().getNumberTechs(buildingType);
+    for (int i = 0; i < numberBuildingLifeForm; i++)
+    {
+        const LifeFormBuilding* tech = dynamic_cast<const LifeFormBuilding*>(TechManager::instance().getTech(buildingType, i));
+        int level = planet.getTechLevel(buildingType, i);
+        globalGain += getGainBuilding(&planet, tech, level);
+    }
+
     // Life form research cost & gain
     int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
     for (int i = 0; i < numberLifeFormReseach; ++i)
