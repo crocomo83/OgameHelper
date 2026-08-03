@@ -237,7 +237,7 @@ void DiscoveryManager::refresh()
 {
     computeRentability();
     computeDiscoverySpeed();
-    timeToPos16 = computeTimeToPos16(_bonusSpeedPercent, PlayerManager::instance().getLifeFormBonus(BonusLifeForm::SpeedDiscovery));
+    timeToPos16 = computeTimeToPos16(_bonusSpeedPercent, PlayerManager::instance().getLifeFormBonus(BonusLifeForm::SpeedToExpedition));
 }
 
 void DiscoveryManager::computeRentability()
@@ -321,7 +321,7 @@ float DiscoveryManager::computeTimeToPos16(float bonusSpeedPercent, float bonusS
 
 Ressources<float> DiscoveryManager::computeReductionTimeDiscovery(float bonusSpeedPercent, float bonusSpeedDiscoveryPercent)
 {
-    float baseBonusSpeed = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::SpeedDiscovery);
+    float baseBonusSpeed = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::SpeedToExpedition);
     float timeGain = timeToPos16 - computeTimeToPos16(bonusSpeedPercent + _bonusSpeedPercent, bonusSpeedDiscoveryPercent + baseBonusSpeed);
     float factorGain = 2.0f * timeGain / (2.0f * timeToPos16 + 3600.0f);
     return factorGain * summary.globalMean;

@@ -43,8 +43,10 @@ MainWindow::MainWindow(QWidget *parent)
     initTable(_overviewTable);
     initTable(_generalTable);
 
-    _planificationTab->verticalHeader()->setVisible(false);
-    _planificationTab->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    _planificationTab->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    _planificationTab->horizontalHeader()->setStretchLastSection(false);
+    _planificationTab->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    _planificationTab->verticalHeader()->setStretchLastSection(false);
     _planificationTab->setFrameShape(QFrame::NoFrame);
     _planificationTab->setSelectionMode(QAbstractItemView::NoSelection);
     _planificationTab->setFocusPolicy(Qt::NoFocus);
