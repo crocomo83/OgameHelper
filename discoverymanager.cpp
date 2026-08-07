@@ -237,7 +237,7 @@ void DiscoveryManager::refresh()
 {
     computeRentability();
     computeDiscoverySpeed();
-    timeToPos16 = computeTimeToPos16(_bonusSpeedPercent, PlayerManager::instance().getLifeFormBonus(BonusLifeForm::SpeedToExpedition));
+    timeToPos16 = computeTimeToPos16(_bonusSpeedPercent);
 }
 
 void DiscoveryManager::computeRentability()
@@ -306,7 +306,7 @@ void DiscoveryManager::computeDiscoverySpeed()
     }
 }
 
-float DiscoveryManager::computeTimeToPos16(float bonusSpeedPercent, float bonusSpeedDiscoveryPercent)
+float DiscoveryManager::computeTimeToPos16(float bonusSpeedPercent)
 {
     const Unit& largeCargo = TechManager::instance().getMovingUnit(MovingUnitType::LargeCargo);
     int initSpeed = largeCargo.speed;
@@ -315,14 +315,12 @@ float DiscoveryManager::computeTimeToPos16(float bonusSpeedPercent, float bonusS
     float percentSpeed = 100.0f;
     float distance = (float)(16 - positionDiscovery);
 
-    float factorDiscoverySpeed = 1.0f - bonusSpeedDiscoveryPercent / 100.0f;
-    return factorDiscoverySpeed * (10.0f + 35000.0f/percentSpeed * std::sqrt((1000000.0f + (float)distance * 5000.0f) / speed));
+    return 10.0f + 35000.0f/percentSpeed * std::sqrt((1000000.0f + (float)distance * 5000.0f) / speed);
 }
 
-Ressources<float> DiscoveryManager::computeReductionTimeDiscovery(float bonusSpeedPercent, float bonusSpeedDiscoveryPercent)
+Ressources<float> DiscoveryManager::computeReductionTimeDiscovery(float bonusSpeedPercent)
 {
-    float baseBonusSpeed = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::SpeedToExpedition);
-    float timeGain = timeToPos16 - computeTimeToPos16(bonusSpeedPercent + _bonusSpeedPercent, bonusSpeedDiscoveryPercent + baseBonusSpeed);
+    float timeGain = timeToPos16 - computeTimeToPos16(bonusSpeedPercent + _bonusSpeedPercent);
     float factorGain = 2.0f * timeGain / (2.0f * timeToPos16 + 3600.0f);
     return factorGain * summary.globalMean;
 }

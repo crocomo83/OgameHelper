@@ -199,10 +199,8 @@ Ressources<float> RentabilityManager::getGainResearch(const LifeFormTech* tech, 
         case BonusLifeForm::LargeCargoUpdate:
         case BonusLifeForm::SpeedCivilianShips:
         case BonusLifeForm::SpeedAllShips:
-            bonusRessources += DiscoveryManager::instance().computeReductionTimeDiscovery(numberOfLevels * bonusFactor * 100.0f, 0.0f);
-            break;
         case BonusLifeForm::SpeedToExpedition:
-            bonusRessources += DiscoveryManager::instance().computeReductionTimeDiscovery(0.0f, numberOfLevels * bonusFactor * 100.0f);
+            bonusRessources += DiscoveryManager::instance().computeReductionTimeDiscovery(numberOfLevels * bonusFactor * 100.0f);
             break;
         case BonusLifeForm::ExploratorClass:
         {
@@ -263,7 +261,7 @@ void RentabilityManager::addReasearchRentability()
     int levelCombu = PlayerManager::instance().getResearchLevel(ResearchType::PropCombusion) + 1;
 
     LevelUp levelUpCombu ("Combustion", levelCombu);
-    levelUpCombu.rentaPerDay = DiscoveryManager::instance().computeReductionTimeDiscovery(10.0f, 0.0f);
+    levelUpCombu.rentaPerDay = DiscoveryManager::instance().computeReductionTimeDiscovery(10.0f);
     levelUpCombu.cost = TechManager::instance().getCost(TechType::CommonResearch, indexCombu, levelCombu);
     levelUpCombu.timeToCompleteDay = PlayerManager::instance().getResearchTime(indexCombu, levelCombu);
     addNewLevelUp(std::move(levelUpCombu));

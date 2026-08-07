@@ -115,7 +115,7 @@ public:
     inline void setPositionDiscovery(int position) {positionDiscovery = position;}
     inline void setTempBonusRessources(int bonus) {additionalBonusRessources = bonus;}
 
-    Ressources<float> computeReductionTimeDiscovery(float bonusSpeedPercent, float bonusSpeedDiscoveryPercent);
+    Ressources<float> computeReductionTimeDiscovery(float bonusSpeedPercent);
 
 private:
     DiscoveryManager();
@@ -125,7 +125,7 @@ private:
     DiscoveryManager& operator=(const DiscoveryManager&) = delete;
 
     void computeDiscoverySpeed();
-    float computeTimeToPos16(float bonusSpeedPercent, float bonusSpeedDiscoveryPercent);
+    float computeTimeToPos16(float bonusSpeedPercent);
 
 private:
     std::map<DiscoveryManager::DiscoveryType, Discovery> dataDiscoveries;
