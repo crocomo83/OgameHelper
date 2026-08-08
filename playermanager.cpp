@@ -35,6 +35,10 @@ float PlayerManager::getResearchTime(int indexTech, int level) const
     timeDays /= (float)(1 + _labsLevel);
     timeDays /= (float)_universeSpecifics.at(UniverseSpecifics::ResearchBoost);
 
+    float factorTimeReduction = 1.0f - _lifeFormBonuses.at(BonusLifeForm::ResearchDuration) / 100.0f;
+    factorTimeReduction = std::max(0.0f, factorTimeReduction);
+    timeDays *= factorTimeReduction;
+
     if (_class == Class::Explorer)
     {
         timeDays *= 0.75f;
