@@ -690,22 +690,24 @@ void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
 
     // Add discover
     int index = 0;
-    int indexCol = 2;
-    addLabel(tableWidget, "Ajout : ",           indexCol, index++);
-    addLabel(tableWidget, "Type : ",            indexCol, index++);
-    addLabel(tableWidget, "Number : ",          indexCol, index++);
-    addLabel(tableWidget, "Metal (M) : ",       indexCol, index++);
-    addLabel(tableWidget, "Cristal (M) : ",     indexCol, index++);
-    addLabel(tableWidget, "Deut (M) : ",        indexCol, index++);
-    addLabel(tableWidget, "AM (milliers) : ",   indexCol, index++);
+    int indexRow = 2;
+    addLabel(tableWidget, "Ajout : ",           indexRow, index++);
+    addLabel(tableWidget, "Type : ",            indexRow, index++);
+    addLabel(tableWidget, "Number : ",          indexRow, index++);
+    addLabel(tableWidget, "Metal (M) : ",       indexRow, index++);
+    addLabel(tableWidget, "Cristal (M) : ",     indexRow, index++);
+    addLabel(tableWidget, "Deut (M) : ",        indexRow, index++);
+    addLabel(tableWidget, "AM (milliers) : ",   indexRow, index++);
 
     for (int i = 1; i < static_cast<int>(DiscoveryManager::DiscoveryType::Count); ++i)
     {
         DiscoveryManager::DiscoveryType type = static_cast<DiscoveryManager::DiscoveryType>(i);
         QString strType = DiscoveryManager::instance().getTypeStrList(type);
-        addLabel(tableWidget, strType, i + indexCol, 1);
+        addLabel(tableWidget, strType, i + indexRow, 1);
 
-        tableWidget->setCellWidget(i + indexCol, 2, new QSpinBox());
+        QSpinBox* numberDiscovery = new QSpinBox();
+        numberDiscovery->setMaximum(999);
+        tableWidget->setCellWidget(i + indexRow, 2, numberDiscovery);
 
         DiscoveryManager::Discovery discovery = DiscoveryManager::instance().getDiscovery(type);
 
@@ -716,22 +718,22 @@ void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
         QLineEdit* metalValue = new QLineEdit();
         metalValue->setValidator(validator);
         metalValue->setEnabled(discovery.hasRessource(RessourceType::Metal));
-        tableWidget->setCellWidget(i + indexCol, 3, metalValue);
+        tableWidget->setCellWidget(i + indexRow, 3, metalValue);
 
         QLineEdit* cristalValue = new QLineEdit();
         cristalValue->setValidator(validator);
         cristalValue->setEnabled(discovery.hasRessource(RessourceType::Cristal));
-        tableWidget->setCellWidget(i + indexCol, 4, cristalValue);
+        tableWidget->setCellWidget(i + indexRow, 4, cristalValue);
 
         QLineEdit* deutValue = new QLineEdit();
         deutValue->setValidator(validator);
         deutValue->setEnabled(discovery.hasRessource(RessourceType::Deut));
-        tableWidget->setCellWidget(i + indexCol, 5, deutValue);
+        tableWidget->setCellWidget(i + indexRow, 5, deutValue);
 
         QLineEdit* amValue = new QLineEdit();
         amValue->setValidator(validator);
         amValue->setEnabled(discovery.hasRessource(RessourceType::Antimatter));
-        tableWidget->setCellWidget(i + indexCol, 6, amValue);
+        tableWidget->setCellWidget(i + indexRow, 6, amValue);
     }
 
     QPushButton* addButton = new QPushButton("Ajouter");
