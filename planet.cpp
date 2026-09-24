@@ -282,15 +282,12 @@ float Planet::getTime(TechType techType, int indexTech, int level) const
     case TechType::KaeleshResearch:
     case TechType::RoctasResearch:
     {
-        // Building reduction
-        float factor = 1.0f - _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::ReducLifeFormResearchDurationPercent) / 100.0f;
+        // Building reduction + research reduction
+        float totalBonus = _lifeFormBuildingBonuses.at(BonusLifeFormBuilding::ReducLifeFormResearchDurationPercent)
+                           + PlayerManager::instance().getLifeFormBonus(BonusLifeForm::LifeFormResearchDuration);
+        float factor = 1.0f - totalBonus / 100.0f;
         factor = std::max(0.0f, factor);
         timeDays *= factor;
-
-        // Life form research reduction
-        float factorTimeReduction = 1.0f - PlayerManager::instance().getLifeFormBonus(BonusLifeForm::LifeFormResearchDuration) / 100.0f;
-        factorTimeReduction = std::max(0.0f, factorTimeReduction);
-        timeDays *= factorTimeReduction;
         break;
     }
     default:
