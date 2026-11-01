@@ -341,6 +341,12 @@ void RentabilityManager::addAstroRentability(PlayerManager::Planification* plani
 void RentabilityManager::addPlanifChgtSpecies(PlayerManager::Planification* planif, int indexPlanet)
 {
     const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
+    if (!planet)
+    {
+        qDebug() << "Can't find planet " << indexPlanet << " in addPlanifChgtSpecies";
+        return;
+    }
+
     Planet& planifPlanet = planif->planet;
 
     if (planifPlanet.getSpecies() == planet->getSpecies() || planifPlanet.getSpecies() == Species::None)
@@ -353,7 +359,7 @@ void RentabilityManager::addPlanifChgtSpecies(PlayerManager::Planification* plan
     float time = 0.0f;
 
     // All building cost
-    globalCost +=  planifPlanet.getAllBuildingCost();
+    globalCost +=  planifPlanet.getAllBuildingCostUpgrade(planet);
 
     // Life form buildings gain
     TechType buildingType = speciesToBuildingLifeForm.at(planifPlanet.getSpecies());
@@ -371,8 +377,8 @@ void RentabilityManager::addPlanifChgtSpecies(PlayerManager::Planification* plan
     int numberBuildingLifeFormOld = TechManager::instance().getNumberTechs(buildingTypeOld);
     for (int i = 0; i < numberBuildingLifeFormOld; i++)
     {
-        const LifeFormBuilding* tech = dynamic_cast<const LifeFormBuilding*>(TechManager::instance().getTech(buildingType, i));
-        int level = planet->getTechLevel(buildingType, i);
+        const LifeFormBuilding* tech = dynamic_cast<const LifeFormBuilding*>(TechManager::instance().getTech(buildingTypeOld, i));
+        int level = planet->getTechLevel(buildingTypeOld, i);
         globalGain -= getGainBuilding(planet, tech, level);
     }
 
@@ -386,14 +392,18 @@ void RentabilityManager::addPlanifChgtSpecies(PlayerManager::Planification* plan
 
         TechType lifeFormResearch = speciesToTechLifeForm.at(speciesChoice);
         int level = planifPlanet.getLevelLifeFormResearch(speciesChoice, i);
-        for (int j = 1; j <= level; ++j)
+        int previousLevel = planet->getLevelLifeFormResearch(speciesChoice, i);
+        for (int j = previousLevel + 1; j <= level; ++j)
         {
             globalCost += planifPlanet.getCost(lifeFormResearch, i, j);
         }
 
-        TechType researchLifeFormType = speciesToTechLifeForm.at(speciesChoice);
-        const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
-        globalGain += getGainResearch(tech, level);
+        if (level > previousLevel)
+        {
+            TechType researchLifeFormType = speciesToTechLifeForm.at(speciesChoice);
+            const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
+            globalGain += getGainResearch(tech, level - previousLevel);
+        }
     }
 
     LevelUp levelUpChangeSpecies ("Change species", 0);

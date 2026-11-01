@@ -52,6 +52,7 @@ public:
     float                   getTime(TechType techType, int indexTech, int level) const; //time in days
     int                     getDefense(FixUnitType unitType) const;
     Ressources<float>       getAllBuildingCost() const;
+    Ressources<float>       getAllBuildingCostUpgrade(const Planet& planet) const;
 
     void                    refresh();
     void                    computeLifeFormResearch(const std::map<Species, int>& levelSpecies);

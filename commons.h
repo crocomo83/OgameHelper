@@ -36,6 +36,15 @@ struct Ressources {
         , antimatter(static_cast<T>(other.antimatter))
     {}
 
+    QString toString() const
+    {
+        return "metal : " + QString::number(metal)
+                + ", cristal : " + QString::number(cristal)
+                + ", deut : " + QString::number(deut)
+                + ", energy : " + QString::number(energy)
+                + ", am : " + QString::number(antimatter);
+    }
+
     Ressources& operator+=(const Ressources& other) {
         metal   += other.metal;
         cristal += other.cristal;

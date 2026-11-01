@@ -321,6 +321,26 @@ Ressources<float> Planet::getAllBuildingCost() const
     return globalCost;
 }
 
+Ressources<float> Planet::getAllBuildingCostUpgrade(const Planet& planet) const
+{
+    Ressources<float> globalCost;
+    std::vector<TechType> techTypes = getAvailableBuildings();
+    for (TechType techType : techTypes)
+    {
+        int numberTechs = TechManager::instance().getNumberTechs(techType);
+        for (int i = 0; i < numberTechs; ++i)
+        {
+            int previousLevel = planet.getTechLevel(techType, i);
+            int targetLevel = getTechLevel(techType, i);
+            for (int j = previousLevel + 1; j <= targetLevel; ++j)
+            {
+                globalCost += getCost(techType, i, j);
+            }
+        }
+    }
+    return globalCost;
+}
+
 void Planet::setTechLevel(TechType type, int index, int level)
 {
     _techs[type][index] = level;
