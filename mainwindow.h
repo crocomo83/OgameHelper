@@ -12,8 +12,10 @@
 #include <QMainWindow>
 #include <QVBoxLayout>
 #include <QTableWidget>
+#include <QSettings>
 
 #include <limits>
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -30,6 +32,11 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    bool loadFile();
+    bool loadFilePath(const QString& path);
+    void about();
+    bool saveFileAs();
+    void refresh();
     void initTable(QTableWidget* tableWidget);
 
     QLabel* addLabel(QTableWidget* tableWidget, QString str, int row, int column);
@@ -75,6 +82,8 @@ signals:
     void fleetChanged();
 
 private:
+    QSettings _settings;
+
     Ui::MainWindow *ui;
     QVector<Item*> _items;
     QTableWidget* _generalTable;
@@ -84,4 +93,6 @@ private:
     QTableWidget* _discoveryTab;
     QTableWidget* _planificationTab;
     QTableWidget* _fleetTab;
+
+    std::optional<QString> saveFilePath;
 };

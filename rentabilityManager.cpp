@@ -23,6 +23,12 @@ int RentabilityManager::refresh()
     PlayerManager::instance().refresh();
     DiscoveryManager::instance().refresh();
 
+    int nbPlanet = PlayerManager::instance().getNumberPlanets();
+    if (_filterPlanet.size() != nbPlanet)
+    {
+        _filterPlanet.resize(nbPlanet, true);
+    }
+
     rentaLevelUp.clear();
     if (_typeFilter.at(TypeFilter::ResearchFilter))
         addReasearchRentability();
@@ -37,7 +43,6 @@ int RentabilityManager::refresh()
         }
     }
 
-    int nbPlanet = PlayerManager::instance().getNumberPlanets();
     for (int i = 0; i < nbPlanet; ++i)
     {
         if (!_filterPlanet.at(i)) continue;
@@ -59,15 +64,21 @@ int RentabilityManager::refresh()
 
         for (int j = 0; j < nbPlanif; ++j)
         {
-            PlayerManager::Planification* planif = PlayerManager::instance().getPlanif(j);
-            switch (planif->type)
+            if (PlayerManager::Planification* planif = PlayerManager::instance().getPlanif(j))
             {
-            case PlayerManager::PlanificationType::ChangeSpecies:
-                addPlanifChgtSpecies(planif, i);
-                break;
-            case PlayerManager::PlanificationType::LevelUpFDV:
-                addLevelUpLifeForm(planif, i);
-                break;
+                switch (planif->type)
+                {
+                case PlayerManager::PlanificationType::ChangeSpecies:
+                    addPlanifChgtSpecies(planif, i);
+                    break;
+                case PlayerManager::PlanificationType::LevelUpFDV:
+                    addLevelUpLifeForm(planif, i);
+                    break;
+                }
+            }
+            else
+            {
+                qCritical() << "Planif " << j << " not found";
             }
         }
     }
@@ -343,7 +354,6 @@ void RentabilityManager::addPlanifChgtSpecies(PlayerManager::Planification* plan
     const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
     if (!planet)
     {
-        qDebug() << "Can't find planet " << indexPlanet << " in addPlanifChgtSpecies";
         return;
     }
 
@@ -374,6 +384,11 @@ void RentabilityManager::addPlanifChgtSpecies(PlayerManager::Planification* plan
 
     // Life form old buildings
     TechType buildingTypeOld = speciesToBuildingLifeForm.at(planet->getSpecies());
+    if (buildingTypeOld == TechType::None)
+    {
+        return;
+    }
+
     int numberBuildingLifeFormOld = TechManager::instance().getNumberTechs(buildingTypeOld);
     for (int i = 0; i < numberBuildingLifeFormOld; i++)
     {

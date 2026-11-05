@@ -12,6 +12,10 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QLineEdit>
+#include <QFileDialog>
+#include <QStandardPaths>
+#include <QFile>
+#include <QMessageBox>
 
 #include <chrono>
 
@@ -20,6 +24,7 @@ static constexpr int NUMBER_RENTA_MAX = 100;
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , _settings("config.ini", QSettings::IniFormat)
 {
     ui->setupUi(this);
 
@@ -61,25 +66,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     _fleetTab->setColumnWidth(0, 250);
 
-    buildGeneralImputs(_generalTable, 0);
-    buildResearchImputs(_generalTable, 1);
-    buildSpecialisationImputs(_generalTable, 2);
-    buildTradeImputs(_generalTable, 3);
-    buildDiscoveryImputs(_discoveryTab);
-    buildFleetImputs(_fleetTab);
-
-    onPlanifChanged();
-    onPlanetsChanged();
-    onTechChanged();
-
-    buildResumeOutputs(_overviewTable);
-    buildRentaOutputs(_rentaTable);
-
-    QPushButton* saveButton = ui->saveButton;
-    connect(saveButton, &QPushButton::clicked, this, []() {
-        PlayerManager::instance().saveGameData();
-    });
-
     QPushButton* addPlanet = ui->addPlanet;
     connect(addPlanet, &QPushButton::clicked, this, [this]() {
         PlayerManager::instance().addPlanet("Colonie", {1, 1, 1}, 0, Species::None);
@@ -113,11 +99,145 @@ MainWindow::MainWindow(QWidget *parent)
     connect(this, &MainWindow::rentaChanged, this, &MainWindow::onRentaChanged);
     connect(this, &MainWindow::planifChanged, this, &MainWindow::onPlanifChanged);
     connect(this, &MainWindow::fleetChanged, this, &MainWindow::onFleetChanged);
+
+    // Menu
+    connect(ui->actionNew, &QAction::triggered, this, [this]() {
+        PlayerManager::instance().clear();
+        saveFilePath = std::nullopt;
+        refresh();
+        ui->actionSave->setEnabled(false);
+    });
+
+    connect(ui->actionLoad, &QAction::triggered, this, &MainWindow::loadFile);
+
+    connect(ui->actionSave, &QAction::triggered, this, [this]() {
+        if (saveFilePath)
+        {
+            PlayerManager::instance().saveGameData(*saveFilePath);
+        }
+    });
+
+    connect(ui->actionSave_as, &QAction::triggered, this, &MainWindow::saveFileAs);
+
+    connect(ui->actionExit, &QAction::triggered, this, &QMainWindow::close);
+
+    connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::about);
+
+    // Load save
+    QString lastSavePath = _settings.value("saveFilePath").toString();
+    if (!lastSavePath.isEmpty() && QFile::exists(lastSavePath))
+    {
+        loadFilePath(lastSavePath);
+    }
+    else
+    {
+        ui->actionSave->setEnabled(false);
+    }
+    refresh();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+
+bool MainWindow::loadFile()
+{
+    QString basePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QString filePath = QFileDialog::getOpenFileName(
+        this,
+        "Load save file",
+        basePath,
+        "Save files (*.json);;All files (*.*)"
+    );
+
+    // Vérifier que l'utilisateur n'a pas annulé
+    if (!filePath.isEmpty())
+    {
+        return loadFilePath(filePath);
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool MainWindow::saveFileAs()
+{
+    QString basePath = QStandardPaths::writableLocation(
+        QStandardPaths::AppDataLocation
+    );
+
+    QString filePath = QFileDialog::getSaveFileName(
+        this,
+        "Save As",
+        basePath + "/my_save.json",
+        "JSON files (*.json);;All files (*.*)"
+    );
+
+    if (filePath.isEmpty())
+        return false;
+
+    // Ajouter automatiquement l'extension si absente
+    if (!filePath.endsWith(".json", Qt::CaseInsensitive))
+        filePath += ".json";
+
+    saveFilePath = filePath;
+    if (PlayerManager::instance().saveGameData(*saveFilePath))
+    {
+        _settings.setValue("saveFilePath", filePath);
+        return true;
+    }
+
+    return false;
+}
+
+bool MainWindow::loadFilePath(const QString& path)
+{
+    bool success = PlayerManager::instance().loadSave(path);
+    if (success)
+    {
+        saveFilePath = path;
+        _settings.setValue("saveFilePath", path);
+
+        refresh();
+        ui->actionSave->setEnabled(true);
+    }
+    return success;
+}
+
+void MainWindow::about()
+{
+    QMessageBox::about(
+        this,
+        "À propos",
+        "<h3>Ogame helper</h3>"
+        "<p>Version 4.7</p>"
+        "<p>Author : Star Lord</p>"
+        "<p>The point of this app is to help ogame players to vizualise and optimise their strategy.\
+            \n Work in progress, all feedbacks are welcome !</p>"
+    );
+}
+
+void MainWindow::refresh()
+{
+    PlayerManager::instance().refresh();
+    DiscoveryManager::instance().refresh();
+
+    buildGeneralImputs(_generalTable, 0);
+    buildResearchImputs(_generalTable, 1);
+    buildSpecialisationImputs(_generalTable, 2);
+    buildTradeImputs(_generalTable, 3);
+    buildDiscoveryImputs(_discoveryTab);
+    buildFleetImputs(_fleetTab);
+
+    onPlanifChanged();
+    onPlanetsChanged();
+    onTechChanged();
+
+    buildResumeOutputs(_overviewTable);
+    buildRentaOutputs(_rentaTable);
 }
 
 void MainWindow::initTable(QTableWidget* tableWidget)
@@ -639,33 +759,33 @@ void MainWindow::buildDiscoveryImputs(QTableWidget* tableWidget)
     DiscoveryManager::instance().refresh();
 
     // Line 1
-    float expePerDay = DiscoveryManager::instance().getDiscoveryPerDay();
+    float expePerDay = PlayerManager::instance().getDiscoveryPerDay();
     DoubleSpinBoxItem* expeItem = addDoubleSpinBoxItem(tableWidget, "Expé/j : ", 0, 0, expePerDay, 0, 999.9);
     expeItem->setOnValueChanged([this](double value) {
-        DiscoveryManager::instance().setDiscoveryPerDay((float)value);
+        PlayerManager::instance().setDiscoveryPerDay((float)value);
     });
 
-    float bonusTemp = DiscoveryManager::instance().getTempBonusRessources();
+    float bonusTemp = PlayerManager::instance().getTempBonusRessources();
     Item* tempBonus = addSpinBoxItem(tableWidget, "Bonus R : ", 0, 1, bonusTemp, 0, 99);
     tempBonus->setOnValueChanged([this](int value) {
         float bonusRessources = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionRessourcesIncrease);
         float bonusFleat = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionShipIncrease);
         float bonusAM = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::Antimatter);
         float bonusDiscover = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExploratorClass);
-        DiscoveryManager::instance().setTempBonusRessources(value);
+        PlayerManager::instance().setTempBonusRessources(value);
         DiscoveryManager::instance().loadBonusFactor(bonusRessources, bonusFleat, bonusAM, bonusDiscover);
     });
 
-    float deutConsumption = DiscoveryManager::instance().getDeutConsumption();
+    float deutConsumption = PlayerManager::instance().getDeutConsumption();
     Item* deutConso = addSpinBoxItem(tableWidget, "Deut cons : ", 0, 2, deutConsumption, 0, 99999);
     deutConso->setOnValueChanged([this](int value) {
-        DiscoveryManager::instance().setDeutConsumption(value);
+        PlayerManager::instance().setDeutConsumption(value);
     });
 
-    float positionDiscovery = DiscoveryManager::instance().getPositionDiscovery();
+    float positionDiscovery = PlayerManager::instance().getPositionDiscovery();
     Item* posDiscoveryItem = addSpinBoxItem(tableWidget, "Pos discovery : ", 0, 3, positionDiscovery, 1, 15);
     posDiscoveryItem->setOnValueChanged([this](int value) {
-        DiscoveryManager::instance().setPositionDiscovery(value);
+        PlayerManager::instance().setPositionDiscovery(value);
     });
 
     // Line 2
@@ -913,7 +1033,6 @@ void MainWindow::onRentaChanged()
 void MainWindow::onPlanifChanged()
 {
     _planificationTab->clear();
-    PlayerManager::instance().refresh();
 
     int numberPlanet = PlayerManager::instance().getNumberPlanifs();
     _planificationTab->setColumnCount(numberPlanet);

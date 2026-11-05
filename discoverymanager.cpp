@@ -25,11 +25,6 @@ DiscoveryManager::DiscoveryManager()
     }
 }
 
-DiscoveryManager::~DiscoveryManager()
-{
-    save(getSavePath());
-}
-
 QString DiscoveryManager::getSavePath()
 {
     QString basePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
@@ -109,12 +104,6 @@ bool DiscoveryManager::loadSave(QString path)
     // Objet principal
     QJsonObject rootObj = doc.object();
 
-    // Tableau "discoveries"
-    discoveryPerDay = (float)rootObj["discoveryPerDay"].toDouble();
-    deutConsumption = rootObj["deutConsumption"].toInt();
-    additionalBonusRessources = rootObj["tempBonus"].toInt();
-    positionDiscovery = rootObj["positionDiscovery"].toInt();
-
     // Parcours du tableau
     QJsonArray discoveries = rootObj["discoveries"].toArray();
     for (const QJsonValue &value : discoveries) {
@@ -157,7 +146,7 @@ bool DiscoveryManager::loadSave(QString path)
 void DiscoveryManager::loadBonusFactor(float ressourcesBonus, float shipBonus, float bonusAM, float bonusDiscoverer)
 {
     float ressourceFactor = 1.0f + ressourcesBonus / 100.0f;
-    float additionalRessourceFactor = 1.0f + (float)additionalBonusRessources / 100.0f;
+    float additionalRessourceFactor = 1.0f + (float)PlayerManager::instance().getTempBonusRessources() / 100.0f;
     float shipFactor = 1.0f + shipBonus / 100.0f;
     float amFactor = 1.0f + bonusAM / 100.0f;
     float discovererFactor = 1.0f + bonusDiscoverer / 100.0f;
@@ -172,7 +161,7 @@ void DiscoveryManager::loadBonusFactor(float ressourcesBonus, float shipBonus, f
     dataDiscoveries[DiscoveryType::Fleat].bonusFactor = shipFactor;
 }
 
-bool DiscoveryManager::save(QString path)
+bool DiscoveryManager::save()
 {
     // Création du tableau discoveries
     QJsonArray discoveriesArray;
@@ -209,16 +198,12 @@ bool DiscoveryManager::save(QString path)
     // Objet JSON principal
     QJsonObject rootObj;
     rootObj["discoveries"] = discoveriesArray;
-    rootObj["discoveryPerDay"] = discoveryPerDay;
-    rootObj["deutConsumption"] = deutConsumption;
-    rootObj["tempBonus"] = additionalBonusRessources;
-    rootObj["positionDiscovery"] = positionDiscovery;
 
     // Conversion en document JSON
     QJsonDocument doc(rootObj);
 
     // Ouverture du fichier
-    QFile file(path);
+    QFile file(getSavePath());
 
     if (!file.open(QIODevice::WriteOnly)) {
         qDebug() << "Impossible d'ouvrir le fichier en écriture";
@@ -247,6 +232,8 @@ void DiscoveryManager::computeRentability()
     {
         globalCount += itr->second.count;
     }
+
+    float discoveryPerDay = PlayerManager::instance().getDiscoveryPerDay();
 
     const Discovery& metalDiscovery = dataDiscoveries.at(DiscoveryType::Metal);
     float factorMetal = (float)metalDiscovery.count / (float)globalCount * discoveryPerDay;
@@ -277,7 +264,7 @@ void DiscoveryManager::computeRentability()
     float factorBlackhole = (float)blackholeDiscovery.count / (float)globalCount * discoveryPerDay;
     summary.meanLost += factorBlackhole * dataDiscoveries.at(DiscoveryType::Blackhole).mean;
 
-    summary.meanLost += Ressources(0.0f, 0.0f, (float)deutConsumption) * discoveryPerDay;
+    summary.meanLost += Ressources(0.0f, 0.0f, (float)PlayerManager::instance().getDeutConsumption()) * discoveryPerDay;
 
     float bonusRessources = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::ExpeditionRessourcesIncrease);
     float factorRessources = 1.0f + bonusRessources / 100.0f;
@@ -313,7 +300,7 @@ float DiscoveryManager::computeTimeToPos16(float bonusSpeedPercent)
     float speed = (float)initSpeed * (1.0f + bonusSpeedPercent / 100.0f);
 
     float percentSpeed = 100.0f;
-    float distance = (float)(16 - positionDiscovery);
+    float distance = (float)(16 - PlayerManager::instance().getPositionDiscovery());
 
     return 10.0f + 35000.0f/percentSpeed * std::sqrt((1000000.0f + (float)distance * 5000.0f) / speed);
 }

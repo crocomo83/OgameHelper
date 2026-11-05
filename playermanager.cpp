@@ -19,14 +19,57 @@ PlayerManager& PlayerManager::instance()
 
 PlayerManager::PlayerManager()
 {
-    QString path = getSavePath();
-    if (QFileInfo::exists(path)) {
-        loadSave(path);
-    } else {
-        loadInitSave();
+    //QString path = getSavePath();
+    //if (QFileInfo::exists(path)) {
+    //    loadSave(path);
+    //} else {
+    //    loadInitSave();
+    //}
+
+    clear();
+    refresh();
+}
+
+bool PlayerManager::loadSave(const QString& path)
+{
+    QFile file(path);
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qWarning() << "Impossible d'ouvrir le fichier :" << path;
+        return false;
     }
 
-    refresh();
+    QByteArray jsonData = file.readAll();
+    file.close();
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(jsonData, &parseError);
+
+    if (parseError.error != QJsonParseError::NoError) {
+        qWarning() << "Erreur JSON :" << parseError.errorString();
+        return false;
+    }
+
+    if (!doc.isObject()) {
+        qWarning() << "Le JSON racine n'est pas un objet";
+        return false;
+    }
+
+    QJsonObject root = doc.object();
+
+    readUniverses(root);
+    readSpecies(root);
+    readResearches(root);
+    readClassData(root);
+    readOfficersData(root);
+    readConversionData(root);
+    readAllPlanetData(root);
+    readFleetData(root);
+    readDiscoveries(root);
+
+    qDebug() << "Loading done : " << path;
+
+    return true;
 }
 
 float PlayerManager::getResearchTime(int indexTech, int level) const
@@ -281,7 +324,7 @@ void PlayerManager::computeScrapValue()
     _scrapValue *= _scrapRate / 100.0f;
 }
 
-bool PlayerManager::loadInitSave()
+bool PlayerManager::clear()
 {
     for (int i = 0; i < static_cast<int>(UniverseSpecifics::Count); ++i) {
         _universeSpecifics[static_cast<UniverseSpecifics>(i)] = 1;
@@ -299,6 +342,11 @@ bool PlayerManager::loadInitSave()
         _officers[static_cast<Officers>(i)] = false;
     }
 
+    _planets.clear();
+    _planifPlanets.clear();
+    _lifeFormBonuses.clear();
+    _fleet.clear();
+    _scrapFleet.clear();
     _class = Class::None;
     _allianceClass = AllianceClass::None;
     _scrapRate = 35;
@@ -310,46 +358,6 @@ bool PlayerManager::loadInitSave()
     return true;
 }
 
-bool PlayerManager::loadSave(const QString& path)
-{
-    QFile file(path);
-
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qWarning() << "Impossible d'ouvrir le fichier :" << path;
-        return false;
-    }
-
-    QByteArray jsonData = file.readAll();
-    file.close();
-
-    QJsonParseError parseError;
-    QJsonDocument doc = QJsonDocument::fromJson(jsonData, &parseError);
-
-    if (parseError.error != QJsonParseError::NoError) {
-        qWarning() << "Erreur JSON :" << parseError.errorString();
-        return false;
-    }
-
-    if (!doc.isObject()) {
-        qWarning() << "Le JSON racine n'est pas un objet";
-        return false;
-    }
-
-    QJsonObject root = doc.object();
-
-    readUniverses(root);
-    readSpecies(root);
-    readResearches(root);
-    readClassData(root);
-    readOfficersData(root);
-    readConversionData(root);
-    readAllPlanetData(root);
-    readFleetData(root);
-
-    qDebug() << "Loading done : " << path;
-
-    return true;
-}
 
 void PlayerManager::addPlanet(const QString& name, const PlanetPosition& position, int temperature, Species species)
 {
@@ -379,6 +387,7 @@ void PlayerManager::readUniverses(const QJsonObject &parent)
 
 void PlayerManager::readSpecies(const QJsonObject& parent)
 {
+    _levelSpecies.clear();
     QJsonArray species = parent["species"].toArray();
 
     int indexSpecies = 1;
@@ -393,6 +402,7 @@ void PlayerManager::readSpecies(const QJsonObject& parent)
 
 void PlayerManager::readResearches(const QJsonObject& parent)
 {
+    _levelResearch.clear();
     QJsonArray researches = parent["researches"].toArray();
 
     int indexResearch = 0;
@@ -421,6 +431,7 @@ void PlayerManager:: readClassData(const QJsonObject& parent)
 
 void PlayerManager:: readOfficersData(const QJsonObject& parent)
 {
+    _officers.clear();
     QJsonArray officers = parent["officers"].toArray();
 
     int indexOfficers = 0;
@@ -476,6 +487,7 @@ void PlayerManager::readConversionData(const QJsonObject& parent)
 
 void PlayerManager:: readAllPlanetData(const QJsonObject& parent)
 {
+    _planets.clear();
     QJsonArray planets = parent["planets"].toArray();
     for (const QJsonValue& value : planets) {
         QJsonObject planetObj = value.toObject();
@@ -483,6 +495,7 @@ void PlayerManager:: readAllPlanetData(const QJsonObject& parent)
         _planets.push_back(std::move(planet));
     }
 
+    _planifPlanets.clear();
     QJsonArray planifs = parent["planification"].toArray();
     for (const QJsonValue& value : planifs) {
         PlanificationType type = static_cast<PlanificationType>(value["type"].toInt());
@@ -555,6 +568,14 @@ Planet PlayerManager::readPlanetData(const QJsonObject& planetObj)
     return planet;
 }
 
+void PlayerManager::readDiscoveries(const QJsonObject& parent)
+{
+    discoveryPerDay = (float)parent["discoveryPerDay"].toDouble();
+    deutConsumption = parent["deutConsumption"].toInt();
+    additionalBonusRessources = parent["tempBonus"].toInt();
+    positionDiscovery = parent["positionDiscovery"].toInt();
+}
+
 QJsonDocument PlayerManager::generateGameDataJson()
 {
     QJsonObject root;
@@ -567,6 +588,7 @@ QJsonDocument PlayerManager::generateGameDataJson()
     writeConversionData(root);
     writeAllPlanetData(root);
     writeFleetData(root);
+    writeDiscoveries(root);
 
     return QJsonDocument(root);
 }
@@ -769,18 +791,18 @@ QJsonObject PlayerManager::writePlanetData(const Planet& planet)
     return std::move(planetObj);
 }
 
-QString PlayerManager::getSavePath()
+void PlayerManager::writeDiscoveries(QJsonObject& parent)
 {
-    QString basePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    QDir().mkpath(basePath);
-    return basePath + "/save.json";
+    parent["discoveryPerDay"] = discoveryPerDay;
+    parent["deutConsumption"] = deutConsumption;
+    parent["tempBonus"] = additionalBonusRessources;
+    parent["positionDiscovery"] = positionDiscovery;
 }
 
-bool PlayerManager::saveGameData()
+bool PlayerManager::saveGameData(const QString& path)
 {
     QJsonDocument doc = generateGameDataJson();
 
-    QString path = getSavePath();
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
