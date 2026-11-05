@@ -350,6 +350,10 @@ bool PlayerManager::clear()
     _class = Class::None;
     _allianceClass = AllianceClass::None;
     _scrapRate = 35;
+    _discoveryPerDay = 0.0f;
+    _deutConsumption = 0;
+    _positionDiscovery = 1;
+    _additionalBonusRessources = 0;
 
     setConversionRate(Ressources(3.0f, 2.0f, 1.0f));
 
@@ -570,10 +574,10 @@ Planet PlayerManager::readPlanetData(const QJsonObject& planetObj)
 
 void PlayerManager::readDiscoveries(const QJsonObject& parent)
 {
-    discoveryPerDay = (float)parent["discoveryPerDay"].toDouble();
-    deutConsumption = parent["deutConsumption"].toInt();
-    additionalBonusRessources = parent["tempBonus"].toInt();
-    positionDiscovery = parent["positionDiscovery"].toInt();
+    _discoveryPerDay = (float)parent["discoveryPerDay"].toDouble();
+    _deutConsumption = parent["deutConsumption"].toInt();
+    _additionalBonusRessources = parent["tempBonus"].toInt();
+    _positionDiscovery = parent["positionDiscovery"].toInt();
 }
 
 QJsonDocument PlayerManager::generateGameDataJson()
@@ -793,10 +797,10 @@ QJsonObject PlayerManager::writePlanetData(const Planet& planet)
 
 void PlayerManager::writeDiscoveries(QJsonObject& parent)
 {
-    parent["discoveryPerDay"] = discoveryPerDay;
-    parent["deutConsumption"] = deutConsumption;
-    parent["tempBonus"] = additionalBonusRessources;
-    parent["positionDiscovery"] = positionDiscovery;
+    parent["discoveryPerDay"] = _discoveryPerDay;
+    parent["deutConsumption"] = _deutConsumption;
+    parent["tempBonus"] = _additionalBonusRessources;
+    parent["positionDiscovery"] = _positionDiscovery;
 }
 
 bool PlayerManager::saveGameData(const QString& path)
