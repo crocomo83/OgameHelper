@@ -82,6 +82,8 @@ public:
         "Alliance bonus percent"
     };
 
+    bool                    loadSave(const QString& path);
+
     inline int              getNumberPlanets() const {return _planets.size();}
     inline int              getNumberPlanifs() const {return _planifPlanets.size();}
     inline int              getNumberResearch() const {return _levelResearch.size();}
@@ -108,6 +110,10 @@ public:
     float                   getResearchTime(int indexTech, int level) const;
     int                     getShip(MovingUnitType unitType) const;
     int                     getScrapShip(MovingUnitType unitType) const;
+    inline float            getDiscoveryPerDay() const {return _discoveryPerDay;}
+    inline int              getDeutConsumption() const {return _deutConsumption;}
+    inline int              getPositionDiscovery() const {return _positionDiscovery;}
+    inline int              getTempBonusRessources() const {return _additionalBonusRessources;}
 
     void                    refresh();
     void                    computeLifeFormResearch();
@@ -120,6 +126,7 @@ public:
     inline const Ressources<float>& getProductionPercent(ProductionStatPercent stat) const {return _productionStatsPercent.at(stat);}
     inline const QString& getProductionStr(ProductionStat stat) const {return _prods[static_cast<int>(stat)];}
 
+    // TODO : make a database somehow
     inline void     setClass(Class globalClass) {_class = globalClass;}
     inline void     setAllianceClass(AllianceClass allianceClass) {_allianceClass = allianceClass;}
     inline void     setScrapRate(int scrapRate) {_scrapRate = scrapRate;}
@@ -131,6 +138,10 @@ public:
     inline void     setSpecies(Species species, int level) {_levelSpecies[species] = level;}
     inline void     setShip(MovingUnitType unitType, int value) {_fleet[unitType] = value;}
     inline void     setScrapShip(MovingUnitType unitType, int value) {_scrapFleet[unitType] = value;}
+    inline void     setDiscoveryPerDay(float value) {_discoveryPerDay = value;}
+    inline void     setDeutConsumption(int deut) {_deutConsumption = deut;}
+    inline void     setPositionDiscovery(int position) {_positionDiscovery = position;}
+    inline void     setTempBonusRessources(int bonus) {_additionalBonusRessources = bonus;}
 
     void            addPlanet(const QString& name, const PlanetPosition& position, int temperature, Species species = Species::None);
     inline void     removePlanet(int indexPlanet) {_planetToRemove = indexPlanet;}
@@ -138,7 +149,8 @@ public:
     inline void     removePlanif(int indexPlanif) {_planifToRemove = indexPlanif;}
     void            duplicatePlanet();
 
-    bool            saveGameData();
+    bool            saveGameData(const QString &path);
+    bool            clear();
 
 private:
     void            readUniverses(const QJsonObject& parent);
@@ -150,6 +162,7 @@ private:
     void            readAllPlanetData(const QJsonObject& parent);
     void            readFleetData(const QJsonObject& parent);
     Planet          readPlanetData(const QJsonObject& planetObj);
+    void            readDiscoveries(const QJsonObject& parent);
 
     void            writeUniverses(QJsonObject& parent);
     void            writeSpecies(QJsonObject& parent);
@@ -160,12 +173,9 @@ private:
     void            writeAllPlanetData(QJsonObject& parent);
     void            writeFleetData(QJsonObject& parent);
     QJsonObject     writePlanetData(const Planet& planet);
+    void            writeDiscoveries(QJsonObject& parent);
 
     QJsonDocument   generateGameDataJson();
-    QString         getSavePath();
-
-    bool            loadInitSave();
-    bool            loadSave(const QString& path);
 
 private:
     PlayerManager();
@@ -195,4 +205,10 @@ private:
 
     std::map<ProductionStat, Ressources<float>> _productionStats;
     std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;
+
+    // Discoveries
+    float _discoveryPerDay {0.0f};
+    int _deutConsumption {0};
+    int _positionDiscovery {1};
+    int _additionalBonusRessources {0};
 };
