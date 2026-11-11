@@ -124,14 +124,26 @@ void RentabilityManager::refreshBuildingSpeed()
 
         if (_typeFilter.at(TypeFilter::BuildingFilter))
         {
-            addSpeedBuilding(i);
+            addSpeedBuildingForBuilding(i);
         }
     }
 }
 
 void RentabilityManager::refreshResearchSpeed()
 {
+    if (_typeFilter.at(TypeFilter::ResearchFilter))
+        addSpeedResearchForResearch();
 
+    int nbPlanet = PlayerManager::instance().getNumberPlanets();
+    for (int i = 0; i < nbPlanet; ++i)
+    {
+        if (!_filterPlanet.at(i)) continue;
+
+        if (_typeFilter.at(TypeFilter::BuildingFilter))
+        {
+            addSpeedBuildingForResearch(i);
+        }
+    }
 }
 
 void RentabilityManager::refreshLifeFormBuildingSpeed()
@@ -644,7 +656,7 @@ void RentabilityManager::addLevelUpLifeForm(PlayerManager::Planification* planif
     addNewLevelUp(std::make_unique<ProductionLevelUp>(levelUpLifeForm), indexPlanet);
 }
 
-void RentabilityManager::addSpeedBuilding(int indexPlanet)
+void RentabilityManager::addSpeedBuildingForBuilding(int indexPlanet)
 {
     const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
 
@@ -665,6 +677,59 @@ void RentabilityManager::addSpeedBuilding(int indexPlanet)
     levelUpNanites.cost                = planet->getCost(TechType::CommonBuilding, indexNanites, levelNanites + 1);
     levelUpNanites.timeToCompleteDay   = planet->getTime(TechType::CommonBuilding, indexNanites, levelNanites + 1);
     addNewLevelUp(std::make_unique<SpeedLevelUp>(levelUpNanites), indexPlanet);
+}
+
+void RentabilityManager::addSpeedBuildingForResearch(int indexPlanet)
+{
+    const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
+
+    if (!planet || !planet->hasWorkingLab()) return;
+
+    int indexLabo = static_cast<int>(CommonBuildingType::LaboRecherche);
+    int levelLabo = planet->getTechLevel(TechType::CommonBuilding, indexLabo);
+    int globalLabLevel = PlayerManager::instance().getGlobalLabLevel();
+
+    SpeedLevelUp levelUpLabo ("Level up lab", levelLabo + 1);
+    levelUpLabo._percentsGain       = 100.0f * (1.0f - ((float)(globalLabLevel + 1) / (float)(globalLabLevel + 2)));
+    levelUpLabo.cost                = planet->getCost(TechType::CommonBuilding, indexLabo, levelLabo + 1);
+    levelUpLabo.timeToCompleteDay   = planet->getTime(TechType::CommonBuilding, indexLabo, levelLabo + 1);
+    addNewLevelUp(std::make_unique<SpeedLevelUp>(levelUpLabo), indexPlanet);
+}
+
+void RentabilityManager::addSpeedResearchForResearch()
+{
+    int indexReseau = static_cast<int>(ResearchType::Reseau);
+    int indexLab = static_cast<int>(CommonBuildingType::LaboRecherche);
+    int levelReseau = PlayerManager::instance().getResearchLevel(ResearchType::Reseau);
+    int globalLabLevel = PlayerManager::instance().getGlobalLabLevel();
+
+    Ressources<float> cumulCost = TechManager::instance().getCost(TechType::CommonResearch, indexReseau, levelReseau);
+    float percentGain = 0.0f;
+    float currentPercentCost = std::numeric_limits<float>::max();
+    int levelLab = 0;
+
+    while(true)
+    {
+        percentGain += 100.0f * (1.0f - ((float)(globalLabLevel + 1) / (float)(globalLabLevel + 2)));
+        globalLabLevel++;
+        levelLab++;
+        cumulCost += TechManager::instance().getCost(TechType::CommonBuilding, indexLab, levelLab);
+        float newPercentCost = cumulCost.getEquivalentDeut(PlayerManager::instance().getConversionRate()) / percentGain;
+        if (newPercentCost > currentPercentCost)
+        {
+            break;
+        }
+        else
+        {
+            currentPercentCost = newPercentCost;
+        }
+    }
+
+    SpeedLevelUp levelUpReseau ("Réseau with lab " + QString::number(levelLab), levelReseau);
+    levelUpReseau._percentsGain = percentGain;
+    levelUpReseau.cost = cumulCost;
+    levelUpReseau.timeToCompleteDay = PlayerManager::instance().getResearchTime(indexReseau, levelReseau);
+    addNewLevelUp(std::make_unique<SpeedLevelUp>(levelUpReseau));
 }
 
 void RentabilityManager::onPlanetRemoved(int indexPlanet)

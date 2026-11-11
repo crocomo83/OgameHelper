@@ -65,8 +65,8 @@ public:
     {
         Ressources,
         BuildingSpeed,
-        LifeFormBuidlingSpeed,
         ResearchSpeed,
+        LifeFormBuidlingSpeed,
         LifeFormResearchSpeed,
         Count
     };
@@ -108,7 +108,9 @@ private:
     void addLifeFormResearch(int indexPlanet);
     void addLevelUpLifeForm(PlayerManager::Planification *planif, int indexPlanet);
 
-    void addSpeedBuilding(int indexPlanet);
+    void addSpeedBuildingForBuilding(int indexPlanet);
+    void addSpeedBuildingForResearch(int indexPlanet);
+    void addSpeedResearchForResearch();
 
 public slots:
     void onPlanetRemoved(int indexPlanet);

@@ -114,6 +114,7 @@ public:
     inline int              getDeutConsumption() const {return _deutConsumption;}
     inline int              getPositionDiscovery() const {return _positionDiscovery;}
     inline int              getTempBonusRessources() const {return _additionalBonusRessources;}
+    inline int              getGlobalLabLevel() const {return _labsLevel;}
 
     void                    refresh();
     void                    computeLifeFormResearch();

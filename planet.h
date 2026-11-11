@@ -53,6 +53,7 @@ public:
     int                     getDefense(FixUnitType unitType) const;
     Ressources<float>       getAllBuildingCost() const;
     Ressources<float>       getAllBuildingCostUpgrade(const Planet& planet) const;
+    bool                    hasWorkingLab() const {return _workingLab;}
 
     void                    refresh();
     void                    computeLifeFormResearch(const std::map<Species, int>& levelSpecies);
@@ -68,6 +69,7 @@ public:
     inline void             setDefense(FixUnitType unitType, int value) {_defenses[unitType] = value;}
     void                    setTechLevel(TechType type, int index, int level);
     void                    setLevelLifeFormResearch(Species species, int index, int level);
+    inline void             setWorkingLab(bool workingLab) {_workingLab = workingLab;}
 
 private:
     QString                                     _name;
@@ -79,6 +81,7 @@ private:
     Ressources<float>                           _bonusProdPositionCoeff;
     std::map<FixUnitType, int>                  _defenses;
     std::map<BonusLifeForm, float>              _lifeFormBonuses;
+    bool                                        _workingLab {false};
 
     std::map<ProductionStat, Ressources<int>> _productionStats;
     std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;
