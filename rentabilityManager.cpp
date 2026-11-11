@@ -30,6 +30,36 @@ int RentabilityManager::refresh()
     }
 
     rentaLevelUp.clear();
+
+    switch (_type)
+    {
+    case RentabilityType::Ressources:
+        refreshRessources();
+        break;
+    case RentabilityType::BuildingSpeed:
+        refreshBuildingSpeed();
+        break;
+    case RentabilityType::ResearchSpeed:
+        refreshResearchSpeed();
+        break;
+    case RentabilityType::LifeFormBuidlingSpeed:
+        refreshLifeFormBuildingSpeed();
+        break;
+    case RentabilityType::LifeFormResearchSpeed:
+        refreshLifeFormResearchSpeed();
+        break;
+    }
+
+    std::sort(rentaLevelUp.begin(), rentaLevelUp.end(),
+              [](const std::unique_ptr<LevelUp>& a, const std::unique_ptr<LevelUp>& b) {
+                  return a->_score < b->_score;
+              });
+
+    return rentaLevelUp.size();
+}
+
+void RentabilityManager::refreshRessources()
+{
     if (_typeFilter.at(TypeFilter::ResearchFilter))
         addReasearchRentability();
 
@@ -43,6 +73,7 @@ int RentabilityManager::refresh()
         }
     }
 
+    int nbPlanet = PlayerManager::instance().getNumberPlanets();
     for (int i = 0; i < nbPlanet; ++i)
     {
         if (!_filterPlanet.at(i)) continue;
@@ -82,13 +113,35 @@ int RentabilityManager::refresh()
             }
         }
     }
+}
 
-    std::sort(rentaLevelUp.begin(), rentaLevelUp.end(),
-              [](const LevelUp& a, const LevelUp& b) {
-                  return a.timeToRecover < b.timeToRecover;
-              });
+void RentabilityManager::refreshBuildingSpeed()
+{
+    int nbPlanet = PlayerManager::instance().getNumberPlanets();
+    for (int i = 0; i < nbPlanet; ++i)
+    {
+        if (!_filterPlanet.at(i)) continue;
 
-    return rentaLevelUp.size();
+        if (_typeFilter.at(TypeFilter::BuildingFilter))
+        {
+            addSpeedBuilding(i);
+        }
+    }
+}
+
+void RentabilityManager::refreshResearchSpeed()
+{
+
+}
+
+void RentabilityManager::refreshLifeFormBuildingSpeed()
+{
+
+}
+
+void RentabilityManager::refreshLifeFormResearchSpeed()
+{
+
 }
 
 Ressources<float> RentabilityManager::getGainMines(const Planet& planet) const
@@ -226,29 +279,29 @@ Ressources<float> RentabilityManager::getGainResearch(const LifeFormTech* tech, 
     return bonusRessources;
 }
 
-void RentabilityManager::addNewLevelUp(LevelUp levelUp, std::optional<int> indexPlanet)
+void RentabilityManager::addNewLevelUp(std::unique_ptr<LevelUp> levelUp, std::optional<int> indexPlanet)
 {
-    levelUp.computeRenta(PlayerManager::instance().getConversionRate());
+    levelUp->computeRenta(PlayerManager::instance().getConversionRate());
 
-    auto it = std::find_if(rentaLevelUp.begin(), rentaLevelUp.end(), [this, levelUp](const LevelUp& current)
+    auto it = std::find_if(rentaLevelUp.begin(), rentaLevelUp.end(), [this, &levelUp](const std::unique_ptr<LevelUp>& current)
     {
-        return current._name == levelUp._name
-                && current._levelToUpdate == levelUp._levelToUpdate
-                && std::abs(current.timeToRecover - levelUp.timeToRecover) < 1.0f;
+        return current->_name == levelUp->_name
+                && current->_levelToUpdate == levelUp->_levelToUpdate
+                && std::abs(current->_score - levelUp->_score) < 1.0f;
     });
 
     if (it == rentaLevelUp.end())
     {
         if (indexPlanet)
         {
-            levelUp.indexPlanets.push_back(indexPlanet.value());
+            levelUp->indexPlanets.push_back(indexPlanet.value());
         }
         rentaLevelUp.push_back(std::move(levelUp));
 
     }
-    else if(indexPlanet)
+    else if(indexPlanet.has_value())
     {
-        it->indexPlanets.push_back(indexPlanet.value());
+        it->get()->indexPlanets.push_back(*indexPlanet);
     }
 }
 
@@ -261,21 +314,21 @@ void RentabilityManager::addReasearchRentability()
     int indexPlasma = static_cast<int>(ResearchType::Plasma);
     int levelPlasma = PlayerManager::instance().getResearchLevel(ResearchType::Plasma) + 1;
 
-    LevelUp levelUpPlasma ("Plasma", levelPlasma);
+    ProductionLevelUp levelUpPlasma ("Plasma", levelPlasma);
     levelUpPlasma.rentaPerDay = bonusProdPercent;
     levelUpPlasma.cost = TechManager::instance().getCost(TechType::CommonResearch, indexPlasma, levelPlasma);
     levelUpPlasma.timeToCompleteDay = PlayerManager::instance().getResearchTime(indexPlasma, levelPlasma);
-    addNewLevelUp(std::move(levelUpPlasma));
+    addNewLevelUp(std::make_unique<ProductionLevelUp>(levelUpPlasma));
 
     // Prop. combustion
     int indexCombu = static_cast<int>(ResearchType::PropCombusion);
     int levelCombu = PlayerManager::instance().getResearchLevel(ResearchType::PropCombusion) + 1;
 
-    LevelUp levelUpCombu ("Combustion", levelCombu);
+    ProductionLevelUp levelUpCombu ("Combustion", levelCombu);
     levelUpCombu.rentaPerDay = DiscoveryManager::instance().computeReductionTimeDiscovery(10.0f);
     levelUpCombu.cost = TechManager::instance().getCost(TechType::CommonResearch, indexCombu, levelCombu);
     levelUpCombu.timeToCompleteDay = PlayerManager::instance().getResearchTime(indexCombu, levelCombu);
-    addNewLevelUp(std::move(levelUpCombu));
+    addNewLevelUp(std::make_unique<ProductionLevelUp>(levelUpCombu));
 }
 
 void RentabilityManager::addAstroRentability(PlayerManager::Planification* planif)
@@ -342,11 +395,11 @@ void RentabilityManager::addAstroRentability(PlayerManager::Planification* plani
         globalCost += number * unit.cost;
     }
 
-    LevelUp levelUpAstro (planet.getName() + ", astro", levelAstro);
+    ProductionLevelUp levelUpAstro (planet.getName() + ", astro", levelAstro);
     levelUpAstro.rentaPerDay = globalGain;
     levelUpAstro.cost = globalCost;
     levelUpAstro.timeToCompleteDay = time;
-    addNewLevelUp(std::move(levelUpAstro));
+    addNewLevelUp(std::make_unique<ProductionLevelUp>(levelUpAstro));
 }
 
 void RentabilityManager::addPlanifChgtSpecies(PlayerManager::Planification* planif, int indexPlanet)
@@ -421,11 +474,11 @@ void RentabilityManager::addPlanifChgtSpecies(PlayerManager::Planification* plan
         }
     }
 
-    LevelUp levelUpChangeSpecies ("Change species", 0);
+    ProductionLevelUp levelUpChangeSpecies ("Change species", 0);
     levelUpChangeSpecies.rentaPerDay = globalGain;
     levelUpChangeSpecies.cost = globalCost;
     levelUpChangeSpecies.timeToCompleteDay = time;
-    addNewLevelUp(levelUpChangeSpecies, indexPlanet);
+    addNewLevelUp(std::make_unique<ProductionLevelUp>(levelUpChangeSpecies), indexPlanet);
 }
 
 void RentabilityManager::addMinesRentability(int indexPlanet)
@@ -463,23 +516,23 @@ void RentabilityManager::addMinesRentability(int indexPlanet)
 
     prodMinesLevelUp += prodMinesLevelUp * bonusPercent * 0.01f;
 
-    LevelUp levelUpMetal("Mine de métal", levelMetal);
+    ProductionLevelUp levelUpMetal("Mine de métal", levelMetal);
     levelUpMetal.rentaPerDay = Ressources<float>(prodMinesLevelUp.metal, 0, 0);
     levelUpMetal.cost = planet->getCost(TechType::CommonBuilding, indexMetal, levelMetal);
     levelUpMetal.timeToCompleteDay = planet->getTime(TechType::CommonBuilding, indexMetal, levelMetal);
-    addNewLevelUp(std::move(levelUpMetal), indexPlanet);
+    addNewLevelUp(std::make_unique<ProductionLevelUp>(levelUpMetal), indexPlanet);
 
-    LevelUp levelUpCristal("Mine de cristal", levelCristal);
+    ProductionLevelUp levelUpCristal("Mine de cristal", levelCristal);
     levelUpCristal.rentaPerDay = Ressources<float>(0, prodMinesLevelUp.cristal, 0);
     levelUpCristal.cost = planet->getCost(TechType::CommonBuilding, indexCristal, levelCristal);
     levelUpCristal.timeToCompleteDay = planet->getTime(TechType::CommonBuilding, indexCristal, levelCristal);
-    addNewLevelUp(std::move(levelUpCristal), indexPlanet);
+    addNewLevelUp(std::make_unique<ProductionLevelUp>(levelUpCristal), indexPlanet);
 
-    LevelUp levelUpDeut("Mine de deut", levelDeut);
+    ProductionLevelUp levelUpDeut("Mine de deut", levelDeut);
     levelUpDeut.rentaPerDay = Ressources<float>(0, 0, prodMinesLevelUp.deut);
     levelUpDeut.cost = planet->getCost(TechType::CommonBuilding, indexDeut, levelDeut);
     levelUpDeut.timeToCompleteDay = planet->getTime(TechType::CommonBuilding, indexDeut, levelDeut);
-    addNewLevelUp(std::move(levelUpDeut), indexPlanet);
+    addNewLevelUp(std::make_unique<ProductionLevelUp>(levelUpDeut), indexPlanet);
 }
 
 void RentabilityManager::addLifeFormBuilding(int indexPlanet)
@@ -499,11 +552,11 @@ void RentabilityManager::addLifeFormBuilding(int indexPlanet)
         {
             int levelUpBatiment = planet->getTechLevel(buildingType, i) + 1;
 
-            LevelUp levelUpBuilding(tech->name, levelUpBatiment);
+            ProductionLevelUp levelUpBuilding(tech->name, levelUpBatiment);
             levelUpBuilding.rentaPerDay = bonusRessources;
             levelUpBuilding.cost = planet->getCost(buildingType, i, levelUpBatiment);
             levelUpBuilding.timeToCompleteDay = planet->getTime(buildingType, i, levelUpBatiment);
-            addNewLevelUp(std::move(levelUpBuilding), indexPlanet);
+            addNewLevelUp(std::make_unique<ProductionLevelUp>(levelUpBuilding), indexPlanet);
         }
     }
 }
@@ -527,11 +580,11 @@ void RentabilityManager::addLifeFormResearch(int indexPlanet)
             const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
             int levelUpResearch = planet->getTechLevel(researchLifeFormType, i) + 1;
 
-            LevelUp levelUpLifeFormResearch(tech->name, levelUpResearch);
+            ProductionLevelUp levelUpLifeFormResearch(tech->name, levelUpResearch);
             levelUpLifeFormResearch.rentaPerDay         = bonusRessources;
             levelUpLifeFormResearch.cost                = planet->getCost(researchLifeFormType, i, levelUpResearch);
             levelUpLifeFormResearch.timeToCompleteDay   = planet->getTime(researchLifeFormType, i, levelUpResearch);
-            addNewLevelUp(std::move(levelUpLifeFormResearch), indexPlanet);
+            addNewLevelUp(std::make_unique<ProductionLevelUp>(levelUpLifeFormResearch), indexPlanet);
         }
     }
 }
@@ -584,11 +637,34 @@ void RentabilityManager::addLevelUpLifeForm(PlayerManager::Planification* planif
         }
     }
 
-    LevelUp levelUpLifeForm ("Level up LF", 0);
+    ProductionLevelUp levelUpLifeForm ("Level up LF", 0);
     levelUpLifeForm.rentaPerDay         = globalGain;
     levelUpLifeForm.cost                = globalCost;
     levelUpLifeForm.timeToCompleteDay   = globalTime;
-    addNewLevelUp(std::move(levelUpLifeForm), indexPlanet);
+    addNewLevelUp(std::make_unique<ProductionLevelUp>(levelUpLifeForm), indexPlanet);
+}
+
+void RentabilityManager::addSpeedBuilding(int indexPlanet)
+{
+    const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
+
+    int indexRobots = static_cast<int>(CommonBuildingType::UsineRobots);
+    int indexNanites = static_cast<int>(CommonBuildingType::UsineNanite);
+
+    int levelRobots = planet->getTechLevel(TechType::CommonBuilding, indexRobots);
+    int levelNanites = planet->getTechLevel(TechType::CommonBuilding, indexNanites);
+
+    SpeedLevelUp levelUpRobots ("Level up robots", levelRobots + 1);
+    levelUpRobots._percentsGain       = 100.0f * (1.0f - ((float)(levelRobots + 1) / (float)(levelRobots + 2)));
+    levelUpRobots.cost                = planet->getCost(TechType::CommonBuilding, indexRobots, levelRobots + 1);
+    levelUpRobots.timeToCompleteDay   = planet->getTime(TechType::CommonBuilding, indexRobots, levelRobots + 1);
+    addNewLevelUp(std::make_unique<SpeedLevelUp>(levelUpRobots), indexPlanet);
+
+    SpeedLevelUp levelUpNanites ("Level up nanites", levelNanites + 1);
+    levelUpNanites._percentsGain       = 50;
+    levelUpNanites.cost                = planet->getCost(TechType::CommonBuilding, indexNanites, levelNanites + 1);
+    levelUpNanites.timeToCompleteDay   = planet->getTime(TechType::CommonBuilding, indexNanites, levelNanites + 1);
+    addNewLevelUp(std::make_unique<SpeedLevelUp>(levelUpNanites), indexPlanet);
 }
 
 void RentabilityManager::onPlanetRemoved(int indexPlanet)

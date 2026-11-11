@@ -34,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
     Q_ASSERT(ui->planetsTab);
     Q_ASSERT(ui->discoveryTab);
     Q_ASSERT(ui->planificationTab);
+    Q_ASSERT(ui->rentabiltyType);
 
     _overviewTable = ui->overviewTab;
     _rentaTable = ui->renta;
@@ -42,6 +43,7 @@ MainWindow::MainWindow(QWidget *parent)
     _discoveryTab = ui->discoveryTab;
     _planificationTab = ui->planificationTab;
     _fleetTab = ui->fleetTab;
+    _rentabilityType = ui->rentabiltyType;
 
     _rentaTable->setRowCount(NUMBER_RENTA_MAX + 1);
     _rentaTable->setColumnWidth(0, 140);
@@ -134,6 +136,12 @@ MainWindow::MainWindow(QWidget *parent)
         ui->actionSave->setEnabled(false);
     }
     refresh();
+
+    connect(_rentabilityType, &QComboBox::currentIndexChanged, this, &MainWindow::buildRentaOutputs);
+    connect(_rentabilityType, &QComboBox::currentIndexChanged, this, [this]() {
+        RentabilityManager::instance().setRentabilityType(static_cast<RentabilityManager::RentabilityType>(_rentabilityType->currentIndex()));
+        MainWindow::buildRentaOutputs();
+    });
 }
 
 MainWindow::~MainWindow()
@@ -237,7 +245,7 @@ void MainWindow::refresh()
     onTechChanged();
 
     buildResumeOutputs(_overviewTable);
-    buildRentaOutputs(_rentaTable);
+    buildRentaOutputs();
 }
 
 void MainWindow::initTable(QTableWidget* tableWidget)
@@ -513,13 +521,24 @@ void MainWindow::buildResumeOutputs(QTableWidget* tableWidget)
     index++;
 }
 
-void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
+void MainWindow::buildRentaOutputs()
 {
+    QTableWidget* tableWidget = _rentaTable;
     tableWidget->clear();
 
     addLabel(tableWidget, "A augmenter", 0, 0);
     addLabel(tableWidget, "Planète", 0, 1);
-    addLabel(tableWidget, "Temps de recouvrement", 0, 2);
+
+    RentabilityManager::RentabilityType rentabilityType = RentabilityManager::instance().getRentabilityType();
+    if (rentabilityType == RentabilityManager::RentabilityType::Ressources)
+    {
+        addLabel(tableWidget, "Temps de recouvrement", 0, 2);
+    }
+    else
+    {
+        addLabel(tableWidget, "Eq deut per percent", 0, 2);
+    }
+
     addLabel(tableWidget, "Temps de construction", 0, 3);
     addLabel(tableWidget, "Planet filter", 0, 5);
     addLabel(tableWidget, "Type filter", 0, 6);
@@ -527,14 +546,24 @@ void MainWindow::buildRentaOutputs(QTableWidget* tableWidget)
     int nb = RentabilityManager::instance().refresh();
     for (int i = 0; i < std::min(NUMBER_RENTA_MAX, nb); ++i)
     {
-        const RentabilityManager::LevelUp& levelUp = RentabilityManager::instance().getLevelUp(i);
+        const RentabilityManager::LevelUp* levelUp = RentabilityManager::instance().getLevelUp(i);
 
-        QLabel* labelPlanets = createPlanetsLabel(levelUp.indexPlanets);
+        QLabel* labelPlanets = createPlanetsLabel(levelUp->indexPlanets);
         tableWidget->setCellWidget(i+1, 1, labelPlanets);
 
-        addLabel(tableWidget, levelUp._name + " : " + QString::number(levelUp._levelToUpdate), i+1, 0);
-        addLabel(tableWidget, utils::timeToString(levelUp.timeToRecover), i+1, 2);
-        addLabel(tableWidget, utils::timeToString(levelUp.timeToCompleteDay), i+1, 3);
+        addLabel(tableWidget, levelUp->_name + " : " + QString::number(levelUp->_levelToUpdate), i+1, 0);
+
+        QString textScore;
+        if (rentabilityType == RentabilityManager::RentabilityType::Ressources)
+        {
+            textScore = utils::timeToString(levelUp->_score);
+        }
+        else
+        {
+            textScore = utils::ressourceToString(levelUp->_score);
+        }
+        addLabel(tableWidget, textScore, i+1, 2);
+        addLabel(tableWidget, utils::timeToString(levelUp->timeToCompleteDay), i+1, 3);
     }
 
     for (int i = 0; i < PlayerManager::instance().getNumberPlanets(); ++i)
@@ -1021,13 +1050,13 @@ void MainWindow::onTechChanged()
     DiscoveryManager::instance().refresh();
 
     buildResumeOutputs(_overviewTable);
-    buildRentaOutputs(_rentaTable);
+    buildRentaOutputs();
     buildDiscoveryImputs(_discoveryTab);
 }
 
 void MainWindow::onRentaChanged()
 {
-    buildRentaOutputs(_rentaTable);
+    buildRentaOutputs();
 }
 
 void MainWindow::onPlanifChanged()

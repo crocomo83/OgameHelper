@@ -57,7 +57,7 @@ public:
     void createPlanetDefenses(QTableWidget* tableWidget, FixUnitType unitType, Planet* planet, int& row, int column);
 
     void buildResumeOutputs(QTableWidget* tableWidget);
-    void buildRentaOutputs(QTableWidget* tableWidget);
+    void buildRentaOutputs();
     void buildGeneralImputs(QTableWidget* tableWidget, int column);
     void buildResearchImputs(QTableWidget* tableWidget, int column);
     void buildSpecialisationImputs(QTableWidget* tableWidget, int column);
@@ -93,6 +93,8 @@ private:
     QTableWidget* _discoveryTab;
     QTableWidget* _planificationTab;
     QTableWidget* _fleetTab;
+
+    QComboBox*    _rentabilityType;
 
     std::optional<QString> saveFilePath;
 };

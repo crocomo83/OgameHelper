@@ -19,19 +19,39 @@ public:
         QString _name;
         int _levelToUpdate;
         Ressources<float> cost;
-        Ressources<float> rentaPerDay;
+        float _score = -1.0f;
         float timeToCompleteDay;
-        float timeToRecover = -1.0f;
 
         LevelUp(const QString& name, int level) : _name(name), _levelToUpdate(level) {}
 
+        virtual void computeRenta(Ressources<float> tradeRate) = 0;
+    };
+
+    struct ProductionLevelUp : LevelUp
+    {
+        using LevelUp::LevelUp;
+
+        Ressources<float> rentaPerDay;
+
         void computeRenta(Ressources<float> tradeRate)
         {
-            timeToRecover = cost.getEquivalentDeut(tradeRate) / rentaPerDay.getEquivalentDeut(tradeRate) + timeToCompleteDay;
+            _score = cost.getEquivalentDeut(tradeRate) / rentaPerDay.getEquivalentDeut(tradeRate) + timeToCompleteDay;
         }
     };
 
-    enum TypeFilter
+    struct SpeedLevelUp : LevelUp
+    {
+        using LevelUp::LevelUp;
+
+        float _percentsGain;
+
+        void computeRenta(Ressources<float> tradeRate)
+        {
+            _score = cost.getEquivalentDeut(tradeRate) / _percentsGain;
+        }
+    };
+
+    enum class TypeFilter
     {
         BuildingFilter,
         ResearchFilter,
@@ -41,18 +61,37 @@ public:
     };
     inline static const QStringList typeFilterString = {"Building", "Research", "LifeFormBuilding", "LifeFormResearch"};
 
+    enum class RentabilityType
+    {
+        Ressources,
+        BuildingSpeed,
+        LifeFormBuidlingSpeed,
+        ResearchSpeed,
+        LifeFormResearchSpeed,
+        Count
+    };
+
 
 public:
     static RentabilityManager& instance();
 
     int refresh();
-    inline const RentabilityManager::LevelUp& getLevelUp(int index) const {return rentaLevelUp.at(index);}
+    void refreshRessources();
+    void refreshBuildingSpeed();
+    void refreshResearchSpeed();
+    void refreshLifeFormBuildingSpeed();
+    void refreshLifeFormResearchSpeed();
+    inline const RentabilityManager::LevelUp* getLevelUp(int index) const {return rentaLevelUp.at(index).get();}
     inline bool getFilterPlanet(int index) const {return _filterPlanet.at(index);}
     inline bool getFilterType(TypeFilter index) const {return _typeFilter.at(index);}
 
     Ressources<float> getGainMines(const Planet& planet) const;
     Ressources<float> getGainBuilding(const Planet *planet, const LifeFormBuilding* tech, int numberOfLevels = 1) const;
     Ressources<float> getGainResearch(const LifeFormTech* tech, int numberOfLevels = 1) const;
+    inline int getNbLevelUp() const {return rentaLevelUp.size();}
+    inline RentabilityType getRentabilityType() const {return _type;}
+
+    inline void setRentabilityType(RentabilityType type) {_type = type;}
 
     inline void setFilterPlanet(int index, bool state) {_filterPlanet[index] = state;}
     inline void setFilterType(TypeFilter index, bool state) {_typeFilter[index] = state;}
@@ -60,7 +99,7 @@ public:
     inline void planetsAdded() {_filterPlanet.push_back(true);}
 
 private:
-    void addNewLevelUp(LevelUp levelUp, std::optional<int> indexPlanet = std::nullopt);
+    void addNewLevelUp(std::unique_ptr<LevelUp> levelUp, std::optional<int> indexPlanet = std::nullopt);
     void addReasearchRentability();
     void addAstroRentability(PlayerManager::Planification *planif);
     void addPlanifChgtSpecies(PlayerManager::Planification *planif, int indexPlanet);
@@ -68,6 +107,8 @@ private:
     void addLifeFormBuilding(int indexPlanet);
     void addLifeFormResearch(int indexPlanet);
     void addLevelUpLifeForm(PlayerManager::Planification *planif, int indexPlanet);
+
+    void addSpeedBuilding(int indexPlanet);
 
 public slots:
     void onPlanetRemoved(int indexPlanet);
@@ -79,7 +120,8 @@ private:
     RentabilityManager(const RentabilityManager&) = delete;
     RentabilityManager& operator=(const RentabilityManager&) = delete;
 
-    std::vector <LevelUp> rentaLevelUp;
+    std::vector<std::unique_ptr<LevelUp>> rentaLevelUp;
     std::vector<bool> _filterPlanet;
     std::unordered_map<TypeFilter, bool> _typeFilter;
+    RentabilityType _type = RentabilityType::Ressources;
 };
