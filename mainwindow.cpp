@@ -116,6 +116,7 @@ MainWindow::MainWindow(QWidget *parent)
         if (saveFilePath)
         {
             PlayerManager::instance().saveGameData(*saveFilePath);
+            DiscoveryManager::instance().save();
         }
     });
 

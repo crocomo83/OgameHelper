@@ -66,7 +66,6 @@ public:
         Ressources,
         BuildingSpeed,
         ResearchSpeed,
-        LifeFormBuidlingSpeed,
         LifeFormResearchSpeed,
         Count
     };
@@ -79,7 +78,6 @@ public:
     void refreshRessources();
     void refreshBuildingSpeed();
     void refreshResearchSpeed();
-    void refreshLifeFormBuildingSpeed();
     void refreshLifeFormResearchSpeed();
     inline const RentabilityManager::LevelUp* getLevelUp(int index) const {return rentaLevelUp.at(index).get();}
     inline bool getFilterPlanet(int index) const {return _filterPlanet.at(index);}
@@ -88,6 +86,8 @@ public:
     Ressources<float> getGainMines(const Planet& planet) const;
     Ressources<float> getGainBuilding(const Planet *planet, const LifeFormBuilding* tech, int numberOfLevels = 1) const;
     Ressources<float> getGainResearch(const LifeFormTech* tech, int numberOfLevels = 1) const;
+    float getGainTimePercent(const LifeFormBuilding* tech) const;
+    float getGainTimePercent(const LifeFormTech* tech, BonusLifeForm bonusType) const;
     inline int getNbLevelUp() const {return rentaLevelUp.size();}
     inline RentabilityType getRentabilityType() const {return _type;}
 
@@ -99,6 +99,7 @@ public:
     inline void planetsAdded() {_filterPlanet.push_back(true);}
 
 private:
+    // Ressources gains
     void addNewLevelUp(std::unique_ptr<LevelUp> levelUp, std::optional<int> indexPlanet = std::nullopt);
     void addReasearchRentability();
     void addAstroRentability(PlayerManager::Planification *planif);
@@ -108,9 +109,12 @@ private:
     void addLifeFormResearch(int indexPlanet);
     void addLevelUpLifeForm(PlayerManager::Planification *planif, int indexPlanet);
 
+    // Time gains
     void addSpeedBuildingForBuilding(int indexPlanet);
     void addSpeedBuildingForResearch(int indexPlanet);
     void addSpeedResearchForResearch();
+    void addSpeedBuildingLifeFormForResearchLifeForm(int indexPlanet);
+    void addSpeedResearchLifeFormForResearch(int indexPlanet, BonusLifeForm bonusType);
 
 public slots:
     void onPlanetRemoved(int indexPlanet);

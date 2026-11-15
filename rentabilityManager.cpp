@@ -42,9 +42,6 @@ int RentabilityManager::refresh()
     case RentabilityType::ResearchSpeed:
         refreshResearchSpeed();
         break;
-    case RentabilityType::LifeFormBuidlingSpeed:
-        refreshLifeFormBuildingSpeed();
-        break;
     case RentabilityType::LifeFormResearchSpeed:
         refreshLifeFormResearchSpeed();
         break;
@@ -143,17 +140,32 @@ void RentabilityManager::refreshResearchSpeed()
         {
             addSpeedBuildingForResearch(i);
         }
+
+        if (_typeFilter.at(TypeFilter::LifeFormResearchFilter))
+        {
+            addSpeedResearchLifeFormForResearch(i, BonusLifeForm::ResearchDuration);
+        }
     }
 }
 
-void RentabilityManager::refreshLifeFormBuildingSpeed()
-{
-
-}
 
 void RentabilityManager::refreshLifeFormResearchSpeed()
 {
+    int nbPlanet = PlayerManager::instance().getNumberPlanets();
+    for (int i = 0; i < nbPlanet; ++i)
+    {
+        if (!_filterPlanet.at(i)) continue;
 
+        if (_typeFilter.at(TypeFilter::LifeFormBuildingFilter))
+        {
+            addSpeedBuildingLifeFormForResearchLifeForm(i);
+        }
+
+        if (_typeFilter.at(TypeFilter::LifeFormResearchFilter))
+        {
+            addSpeedResearchLifeFormForResearch(i, BonusLifeForm::LifeFormResearchDuration);
+        }
+    }
 }
 
 Ressources<float> RentabilityManager::getGainMines(const Planet& planet) const
@@ -289,6 +301,40 @@ Ressources<float> RentabilityManager::getGainResearch(const LifeFormTech* tech, 
     }
 
     return bonusRessources;
+}
+
+float RentabilityManager::getGainTimePercent(const LifeFormBuilding* tech) const
+{
+    float bonusTime = 0.0f;
+    for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
+    {
+        switch(itr->first)
+        {
+        case BonusLifeFormBuilding::ReducLifeFormResearchDurationPercent:
+            bonusTime += itr->second;
+            break;
+        }
+    }
+    return bonusTime;
+}
+
+float RentabilityManager::getGainTimePercent(const LifeFormTech* tech, BonusLifeForm bonusType) const
+{
+    int levelSpecies = PlayerManager::instance().getSpecies(tech->species);
+    float factorSpecies = 1.0f + levelSpecies / 1000.0f;
+
+    float bonusTime = 0.0f;
+
+    for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
+    {
+        float bonusFactor = itr->second * factorSpecies;
+        if (itr->first == bonusType)
+        {
+            bonusTime += bonusFactor;
+        }
+    }
+
+    return bonusTime;
 }
 
 void RentabilityManager::addNewLevelUp(std::unique_ptr<LevelUp> levelUp, std::optional<int> indexPlanet)
@@ -730,6 +776,65 @@ void RentabilityManager::addSpeedResearchForResearch()
     levelUpReseau.cost = cumulCost;
     levelUpReseau.timeToCompleteDay = PlayerManager::instance().getResearchTime(indexReseau, levelReseau);
     addNewLevelUp(std::make_unique<SpeedLevelUp>(levelUpReseau));
+}
+
+void RentabilityManager::addSpeedBuildingLifeFormForResearchLifeForm(int indexPlanet)
+{
+    const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
+
+    if (!planet) return;
+
+    Species planetSpecies = planet->getSpecies();
+    if (planetSpecies == Species::None) return;
+
+    TechType buildingType = speciesToBuildingLifeForm.at(planetSpecies);
+    int numberBuildingLifeForm = TechManager::instance().getNumberTechs(buildingType);
+    for (int i = 0; i < numberBuildingLifeForm; i++)
+    {
+        const LifeFormBuilding* tech = dynamic_cast<const LifeFormBuilding*>(TechManager::instance().getTech(buildingType, i));
+        float bonusTime = getGainTimePercent(tech);
+        if (bonusTime > 0.0f)
+        {
+            int levelUpBatiment = planet->getTechLevel(buildingType, i) + 1;
+
+            SpeedLevelUp levelUpBuilding(tech->name, levelUpBatiment);
+            levelUpBuilding._percentsGain = bonusTime;
+            levelUpBuilding.cost = planet->getCost(buildingType, i, levelUpBatiment);
+            levelUpBuilding.timeToCompleteDay = planet->getTime(buildingType, i, levelUpBatiment);
+            addNewLevelUp(std::make_unique<SpeedLevelUp>(levelUpBuilding), indexPlanet);
+        }
+    }
+}
+
+void RentabilityManager::addSpeedResearchLifeFormForResearch(int indexPlanet, BonusLifeForm bonusType)
+{
+    const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
+
+    if (!planet) return;
+
+    int nbPlanet = PlayerManager::instance().getNumberPlanets();
+    int numberResearchLifeForm = TechManager::instance().getNumberTechs(TechType::HumanResearch);
+    for (int i = 0; i < numberResearchLifeForm; i++)
+    {
+        Species speciesLifeForm = planet->getChoiceLifeFormResearch(i);
+        if (speciesLifeForm == Species::None) continue;
+
+        TechType researchLifeFormType = speciesToTechLifeForm.at(speciesLifeForm);
+        const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
+
+        float bonusTime = getGainTimePercent(tech, bonusType);
+        if (bonusTime > 0.0f)
+        {
+            const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
+            int levelUpResearch = planet->getTechLevel(researchLifeFormType, i) + 1;
+
+            SpeedLevelUp levelUpLifeFormResearch(tech->name, levelUpResearch);
+            levelUpLifeFormResearch._percentsGain         = bonusTime * nbPlanet;
+            levelUpLifeFormResearch.cost                = planet->getCost(researchLifeFormType, i, levelUpResearch);
+            levelUpLifeFormResearch.timeToCompleteDay   = planet->getTime(researchLifeFormType, i, levelUpResearch);
+            addNewLevelUp(std::make_unique<SpeedLevelUp>(levelUpLifeFormResearch), indexPlanet);
+        }
+    }
 }
 
 void RentabilityManager::onPlanetRemoved(int indexPlanet)
