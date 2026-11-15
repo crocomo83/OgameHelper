@@ -287,21 +287,43 @@ void PlayerManager::computeProduction()
 
 void PlayerManager::computeLabsLevel()
 {
-    std::vector<int> labLevels;
+    struct PlanetLab
+    {
+        Planet* planet;
+        int level {0};
+    };
+
+    std::vector<PlanetLab> labLevels;
     for (int i = 0; i < getNumberPlanets(); ++i)
     {
-        const Planet* planet = getPlanet(i);
+        Planet* planet = getPlanet(i);
         int labIndex = static_cast<int>(CommonBuildingType::LaboRecherche);
-        labLevels.push_back(planet->getTechLevel(TechType::CommonBuilding, labIndex));
+        int labLevel = planet->getTechLevel(TechType::CommonBuilding, labIndex);
+
+        PlanetLab planetLab{
+            .planet = planet,
+            .level = labLevel
+        };
+        labLevels.push_back(planetLab);
     }
-    std::sort(labLevels.begin(), labLevels.end(), std::greater<int>());
+    std::sort(labLevels.begin(), labLevels.end(), [](const PlanetLab& a, const PlanetLab& b)
+    {
+        return a.level > b.level;
+    });
 
     _labsLevel = 0;
     int levelNetwork = getResearchLevel(ResearchType::Reseau);
-    int maxIndex = std::min(levelNetwork + 1, (int)labLevels.size());
-    for (int i = 0; i < maxIndex; ++i)
+    for (int i = 0; i < labLevels.size(); ++i)
     {
-        _labsLevel += labLevels.at(i);
+        if (i <= levelNetwork)
+        {
+            labLevels.at(i).planet->setWorkingLab(true);
+            _labsLevel += labLevels.at(i).level;
+        }
+        else
+        {
+            labLevels.at(i).planet->setWorkingLab(false);
+        }
     }
 }
 
