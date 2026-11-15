@@ -213,7 +213,7 @@ void MainWindow::about()
         this,
         "À propos",
         "<h3>Ogame helper</h3>"
-        "<p>Version 4.7</p>"
+        "<p>Version 4.8</p>"
         "<p>Author : Star Lord</p>"
         "<p>The point of this app is to help ogame players to vizualise and optimise their strategy.\
             \n Work in progress, all feedbacks are welcome !</p>"
