@@ -208,25 +208,6 @@ const CommonTech* TechManager::getTech(TechType techType, int type) const
     return tech;
 }
 
-int TechManager::getProductionMine(CommonBuildingType mineType, int level, float bonus, int temperatureMax) const
-{
-    int prodHours;
-    switch(mineType)
-    {
-    case CommonBuildingType::MineMetal:
-        prodHours = (bonus * 30.0f * (float)level * std::pow(1.1, level));
-        break;
-    case CommonBuildingType::MineCristal:
-        prodHours = (bonus * 20.0f * (float)level * std::pow(1.1, level));
-        break;
-    case CommonBuildingType::MineDeut:
-        prodHours = (bonus * 10.0f * (float)level * std::pow(1.1f, level) * (1.44f - 0.004f * (float)temperatureMax));
-        break;
-    default:
-        return 0;
-    }
-    return prodHours * 24;
-}
 
 Ressources<float> TechManager::getCost(TechType techType, int indexTech, int level) const
 {
@@ -337,23 +318,6 @@ Species TechManager::getAssociatedSpecies(TechType techType) const
 
         default:
             return Species::None;
-    }
-}
-
-TechType TechManager::getBuildingTech(Species species) const
-{
-    switch(species)
-    {
-        case Species::Humans:
-            return TechType::HumanBuilding;
-        case Species::Mechs:
-            return TechType::MechBuilding;
-        case Species::Kaeleshs:
-            return TechType::KaeleshBuilding;
-        case Species::Roctas:
-            return TechType::RoctasBuilding;
-        default:
-            return TechType::None;
     }
 }
 

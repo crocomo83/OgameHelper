@@ -198,12 +198,10 @@ Ressources<float> RentabilityManager::getGainMines(const Planet& planet) const
     int levelCristal    = planet.getTechLevel(TechType::CommonBuilding, indexCristal);
     int levelDeut       = planet.getTechLevel(TechType::CommonBuilding, indexDeut);
 
-    int temperatureMax = planet.getTemperatureMax();
-    Ressources<float> bonus = planet.getBonusMine();
     Ressources<float> gainMinesRaw;
-    gainMinesRaw.metal     = TechManager::instance().getProductionMine(CommonBuildingType::MineMetal, levelMetal, bonus.metal);
-    gainMinesRaw.cristal   = TechManager::instance().getProductionMine(CommonBuildingType::MineCristal, levelCristal, bonus.cristal);
-    gainMinesRaw.deut      = TechManager::instance().getProductionMine(CommonBuildingType::MineDeut, levelDeut, bonus.deut, temperatureMax);
+    gainMinesRaw.metal     = planet.getProductionMine(CommonBuildingType::MineMetal, levelMetal);
+    gainMinesRaw.cristal   = planet.getProductionMine(CommonBuildingType::MineCristal, levelCristal);
+    gainMinesRaw.deut      = planet.getProductionMine(CommonBuildingType::MineDeut, levelDeut);
     return gainMinesRaw + gainMinesRaw * bonusPercent * 0.01f;
 }
 
@@ -556,12 +554,12 @@ void RentabilityManager::addMinesRentability(int indexPlanet)
 
     Ressources<float> prodMinesLevelUp;
 
-    prodMinesLevelUp.metal = TechManager::instance().getProductionMine(CommonBuildingType::MineMetal, levelMetal, bonus.metal)
-        - TechManager::instance().getProductionMine(CommonBuildingType::MineMetal, levelMetal - 1, bonus.metal);
-    prodMinesLevelUp.cristal = TechManager::instance().getProductionMine(CommonBuildingType::MineCristal, levelCristal, bonus.cristal)
-        - TechManager::instance().getProductionMine(CommonBuildingType::MineCristal, levelCristal - 1, bonus.cristal);
-    prodMinesLevelUp.deut = TechManager::instance().getProductionMine(CommonBuildingType::MineDeut, levelDeut, bonus.deut, temperatureMax)
-        - TechManager::instance().getProductionMine(CommonBuildingType::MineDeut, levelDeut - 1, bonus.deut, temperatureMax);
+    prodMinesLevelUp.metal = planet->getProductionMine(CommonBuildingType::MineMetal, levelMetal)
+        - planet->getProductionMine(CommonBuildingType::MineMetal, levelMetal - 1);
+    prodMinesLevelUp.cristal = planet->getProductionMine(CommonBuildingType::MineCristal, levelCristal)
+        - planet->getProductionMine(CommonBuildingType::MineCristal, levelCristal - 1);
+    prodMinesLevelUp.deut = planet->getProductionMine(CommonBuildingType::MineDeut, levelDeut)
+        - planet->getProductionMine(CommonBuildingType::MineDeut, levelDeut - 1);
 
     Ressources<float> bonusPercent;
     bonusPercent += planet->getProductionStatPercent(Planet::ProductionStatPercent::BuildingLifeFormPercent);

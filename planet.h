@@ -16,10 +16,24 @@ public:
         Count
     };
 
+    enum class EnergyStat{
+        BaseProd,
+        ProdLifeFormBuilding,
+        MinesConsumption,
+        LifeFormBuildingConsumption,
+        Count
+    };
+
     enum class ProductionStatPercent{
         CrawlersPercent,
         BuildingLifeFormPercent,
         Count
+    };
+
+    struct Building
+    {
+        int                 _level {0};
+        Ressources<float>   _production;
     };
 
     Planet();
@@ -31,14 +45,15 @@ public:
 
     inline const QString&   getName() const {return _name;}
     inline Species          getSpecies() const {return _species;}
-    inline int              getTemperatureMax() const {return _temperature;}
+    inline int              getTemperatureMax() const {return _temperatureMax;}
     inline int              getNumberTech(TechType type) const {return _techs.at(type).size();}
-    inline int              getTechLevel(TechType type, int index) const {return _techs.at(type).at(index);}
+    inline int              getTechLevel(TechType type, int index) const {return _techs.at(type).at(index)._level;}
     inline Ressources<float> getBonusMine() const {return _bonusProdPositionCoeff;}
     inline PlanetPosition   getPosition() const {return _position;}
     inline const Ressources<int>& getProductionStat(ProductionStat stat) const {return _productionStats.at(stat);}
     inline const Ressources<float>& getProductionStatPercent(ProductionStatPercent stat) const {return _productionStatsPercent.at(stat);}
     inline float            getLifeFormBuildingBonus(BonusLifeFormBuilding bonus) const {return _lifeFormBuildingBonuses.at(bonus);}
+
     float                   getLifeFormBonus(BonusLifeForm bonus) const;
     int                     getMaxActiveCrawler() const;
     float                   getCrawlerBonus() const;
@@ -48,6 +63,12 @@ public:
     Species                 getChoiceLifeFormResearch(int index) const;
     int                     getLevelLifeFormResearch(Species species, int index) const;
     Ressources<float>       getLifeFormProdBonus() const;
+    int                     getProductionMine(CommonBuildingType mineType, int level) const;
+    Ressources<int>         getProduction(CommonBuildingType mineType, int level) const;
+    int                     getConsommation(CommonBuildingType mineType, int level) const;
+
+    int                     getSatelliteProduction() const;
+
     Ressources<float>       getCost(TechType techType, int indexTech, int level) const;
     float                   getTime(TechType techType, int indexTech, int level) const; //time in days
     int                     getDefense(FixUnitType unitType) const;
@@ -59,10 +80,11 @@ public:
     void                    computeLifeFormResearch(const std::map<Species, int>& levelSpecies);
     void                    computeBonusPos();
     void                    computeLifeFormBuildingBonus();
+    void                    computeBaseProduction();
     void                    computeProduction();
 
     inline void             setName(QString name) {_name = name;}
-    inline void             setTemperatureMax(int tempMax) {_temperature = tempMax;}
+    inline void             setTemperatureMax(int tempMax) {_temperatureMax = tempMax;}
     inline void             setSpecies(Species species) {_species = species;}
     inline void             setPosition(const PlanetPosition& planetPosition) {_position = planetPosition;}
     inline void             setChoiceLifeFormResearch(int index, Species species) {_choicesLifeFormResearch[index] = species;}
@@ -74,16 +96,16 @@ public:
 private:
     QString                                     _name;
     PlanetPosition                              _position;
-    int                                         _temperature {0};
+    int                                         _temperatureMax {0};
     Species                                     _species {Species::None};
-    std::map<TechType, std::vector<int>>        _techs;
+    std::map<TechType, std::vector<Building>>   _techs;
     std::vector<Species>                        _choicesLifeFormResearch;
     Ressources<float>                           _bonusProdPositionCoeff;
     std::map<FixUnitType, int>                  _defenses;
     std::map<BonusLifeForm, float>              _lifeFormBonuses;
     bool                                        _workingLab {false};
 
-    std::map<ProductionStat, Ressources<int>> _productionStats;
+    std::map<ProductionStat, Ressources<int>>   _productionStats;
     std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;
     std::map<BonusLifeFormBuilding, float>      _lifeFormBuildingBonuses;
 };

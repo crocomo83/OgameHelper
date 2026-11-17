@@ -17,7 +17,6 @@ public:
 
     int getNumberTechs(TechType techType) const;
     const CommonTech* getTech(TechType techType, int type) const;
-    int getProductionMine(CommonBuildingType mineType, int level, float bonus, int temperatureMax = 0) const;
     Ressources<float> getCost(TechType techType, int indexTech, int level) const;
     float getBaseTime(TechType techType, int indexTech, int level) const;
     bool isLifeFormBuilding(TechType techType) const;

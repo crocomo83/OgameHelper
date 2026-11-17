@@ -95,6 +95,7 @@ private:
     QTableWidget* _fleetTab;
 
     QComboBox*    _rentabilityType;
+    QComboBox*    _planetType;
 
     std::optional<QString> saveFilePath;
 };

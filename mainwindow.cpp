@@ -44,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
     _planificationTab = ui->planificationTab;
     _fleetTab = ui->fleetTab;
     _rentabilityType = ui->rentabiltyType;
+    _planetType = ui->planetType;
 
     _rentaTable->setRowCount(NUMBER_RENTA_MAX + 1);
     _rentaTable->setColumnWidth(0, 140);
@@ -138,7 +139,6 @@ MainWindow::MainWindow(QWidget *parent)
     }
     refresh();
 
-    connect(_rentabilityType, &QComboBox::currentIndexChanged, this, &MainWindow::buildRentaOutputs);
     connect(_rentabilityType, &QComboBox::currentIndexChanged, this, [this]() {
         RentabilityManager::instance().setRentabilityType(static_cast<RentabilityManager::RentabilityType>(_rentabilityType->currentIndex()));
         MainWindow::buildRentaOutputs();
