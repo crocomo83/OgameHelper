@@ -829,14 +829,15 @@ bool PlayerManager::saveGameData(const QString& path)
 {
     QJsonDocument doc = generateGameDataJson();
 
-    QFile file(path);
+    QString playerSavePath = path + "/save.json";
+    QFile file(playerSavePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-        qWarning() << "Can't open " << path << " error : " << file.errorString();
+        qWarning() << "Can't open " << playerSavePath << " error : " << file.errorString();
         return false;
     }
 
-    qDebug() << "Saved to " << path;
+    qDebug() << "Saved to " << playerSavePath;
 
     file.write(doc.toJson(QJsonDocument::Indented));
     file.close();

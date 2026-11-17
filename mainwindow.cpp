@@ -111,7 +111,7 @@ MainWindow::MainWindow(QWidget *parent)
         ui->actionSave->setEnabled(false);
     });
 
-    connect(ui->actionLoad, &QAction::triggered, this, &MainWindow::loadFile);
+    connect(ui->actionLoad, &QAction::triggered, this, &MainWindow::loadDirectory);
 
     connect(ui->actionSave, &QAction::triggered, this, [this]() {
         if (saveFilePath)
@@ -121,7 +121,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
 
-    connect(ui->actionSave_as, &QAction::triggered, this, &MainWindow::saveFileAs);
+    connect(ui->actionSave_as, &QAction::triggered, this, &MainWindow::saveDirectoryAs);
 
     connect(ui->actionExit, &QAction::triggered, this, &QMainWindow::close);
 
@@ -131,12 +131,13 @@ MainWindow::MainWindow(QWidget *parent)
     QString lastSavePath = _settings.value("saveFilePath").toString();
     if (!lastSavePath.isEmpty() && QFile::exists(lastSavePath))
     {
-        loadFilePath(lastSavePath);
+        loadDirectoryPath(lastSavePath);
     }
     else
     {
         ui->actionSave->setEnabled(false);
     }
+
     refresh();
 
     connect(_rentabilityType, &QComboBox::currentIndexChanged, this, [this]() {
@@ -151,20 +152,21 @@ MainWindow::~MainWindow()
 }
 
 
-bool MainWindow::loadFile()
+bool MainWindow::loadDirectory()
 {
     QString basePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    QString filePath = QFileDialog::getOpenFileName(
+
+    QString directoryPath = QFileDialog::getExistingDirectory(
         this,
-        "Load save file",
+        "Load save directory",
         basePath,
-        "Save files (*.json);;All files (*.*)"
-    );
+        QFileDialog::ShowDirsOnly
+        );
 
     // Vérifier que l'utilisateur n'a pas annulé
-    if (!filePath.isEmpty())
+    if (!directoryPath.isEmpty())
     {
-        return loadFilePath(filePath);
+        return loadDirectoryPath(directoryPath);
     }
     else
     {
@@ -172,39 +174,36 @@ bool MainWindow::loadFile()
     }
 }
 
-bool MainWindow::saveFileAs()
+bool MainWindow::saveDirectoryAs()
 {
     QString basePath = QStandardPaths::writableLocation(
         QStandardPaths::AppDataLocation
-    );
+        );
 
-    QString filePath = QFileDialog::getSaveFileName(
+    QString directoryPath = QFileDialog::getExistingDirectory(
         this,
         "Save As",
-        basePath + "/my_save.json",
-        "JSON files (*.json);;All files (*.*)"
-    );
+        basePath,
+        QFileDialog::ShowDirsOnly
+        );
 
-    if (filePath.isEmpty())
+    if (directoryPath.isEmpty())
         return false;
 
-    // Ajouter automatiquement l'extension si absente
-    if (!filePath.endsWith(".json", Qt::CaseInsensitive))
-        filePath += ".json";
+    saveFilePath = directoryPath;
 
-    saveFilePath = filePath;
     if (PlayerManager::instance().saveGameData(*saveFilePath))
     {
-        _settings.setValue("saveFilePath", filePath);
+        _settings.setValue("saveFilePath", directoryPath);
         return true;
     }
 
     return false;
 }
 
-bool MainWindow::loadFilePath(const QString& path)
+bool MainWindow::loadDirectoryPath(const QString& path)
 {
-    bool success = PlayerManager::instance().loadSave(path);
+    bool success = PlayerManager::instance().loadSave(path + "/save.json");
     if (success)
     {
         saveFilePath = path;

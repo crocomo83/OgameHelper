@@ -32,10 +32,10 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    bool loadFile();
-    bool loadFilePath(const QString& path);
+    bool loadDirectory();
+    bool loadDirectoryPath(const QString& path);
     void about();
-    bool saveFileAs();
+    bool saveDirectoryAs();
     void refresh();
     void initTable(QTableWidget* tableWidget);
 
