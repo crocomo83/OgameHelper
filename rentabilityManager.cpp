@@ -1,5 +1,6 @@
 #include "rentabilityManager.h"
 #include "techManager.h"
+#include "generalManager.h"
 #include "discoveryManager.h"
 
 RentabilityManager& RentabilityManager::instance()
@@ -368,7 +369,7 @@ void RentabilityManager::addReasearchRentability()
     Ressources bonusProdPercent = prodMines * Ressources(0.01f, 0.00667f, 0.00333f);
 
     int indexPlasma = static_cast<int>(ResearchType::Plasma);
-    int levelPlasma = PlayerManager::instance().getResearchLevel(ResearchType::Plasma) + 1;
+    int levelPlasma = GeneralManager::instance().getResearchLevel(ResearchType::Plasma) + 1;
 
     ProductionLevelUp levelUpPlasma ("Plasma", levelPlasma);
     levelUpPlasma.rentaPerDay = bonusProdPercent;
@@ -378,7 +379,7 @@ void RentabilityManager::addReasearchRentability()
 
     // Prop. combustion
     int indexCombu = static_cast<int>(ResearchType::PropCombusion);
-    int levelCombu = PlayerManager::instance().getResearchLevel(ResearchType::PropCombusion) + 1;
+    int levelCombu = GeneralManager::instance().getResearchLevel(ResearchType::PropCombusion) + 1;
 
     ProductionLevelUp levelUpCombu ("Combustion", levelCombu);
     levelUpCombu.rentaPerDay = DiscoveryManager::instance().computeReductionTimeDiscovery(10.0f);
@@ -430,7 +431,7 @@ void RentabilityManager::addAstroRentability(PlayerManager::Planification* plani
     }
 
     int indexAstro = static_cast<int>(ResearchType::Astrophysique);
-    int levelAstro = PlayerManager::instance().getResearchLevel(ResearchType::Astrophysique) + 1;
+    int levelAstro = GeneralManager::instance().getResearchLevel(ResearchType::Astrophysique) + 1;
 
     float time = PlayerManager::instance().getResearchTime(indexAstro, levelAstro);
     globalCost += TechManager::instance().getCost(TechType::CommonResearch, indexAstro, levelAstro);
@@ -744,7 +745,7 @@ void RentabilityManager::addSpeedResearchForResearch()
 {
     int indexReseau = static_cast<int>(ResearchType::Reseau);
     int indexLab = static_cast<int>(CommonBuildingType::LaboRecherche);
-    int levelReseau = PlayerManager::instance().getResearchLevel(ResearchType::Reseau);
+    int levelReseau = GeneralManager::instance().getResearchLevel(ResearchType::Reseau);
     int globalLabLevel = PlayerManager::instance().getGlobalLabLevel();
 
     Ressources<float> cumulCost = TechManager::instance().getCost(TechType::CommonResearch, indexReseau, levelReseau);

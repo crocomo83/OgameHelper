@@ -86,7 +86,6 @@ public:
 
     inline int              getNumberPlanets() const {return _planets.size();}
     inline int              getNumberPlanifs() const {return _planifPlanets.size();}
-    inline int              getNumberResearch() const {return _levelResearch.size();}
     inline const QString&   getPlanetName(int index) const {return _planets.at(index).getName();}
     inline float            getLifeFormBonus(BonusLifeForm bonus) const {return _lifeFormBonuses.at(bonus);}
     inline Class            getClass() const {return _class;}
@@ -95,7 +94,6 @@ public:
     inline int              getUniverseSpecific(UniverseSpecifics universeSpecific) const { return _universeSpecifics.at(universeSpecific);}
     inline bool             getOfficerValue(Officers officer) const {return _officers.at(officer);}
     inline Ressources<float> getConversionRate() const {return _conversionRates;}
-    inline int              getResearchLevel(ResearchType researchType) const {return _levelResearch.at(researchType);}
     inline const std::map<Species, int>& getAllSpecies() const {return _levelSpecies;}
     inline int              getSpecies(Species species) const {return _levelSpecies.at(species);}
     inline Ressources<float> getScrapValue() const {return _scrapValue;}
@@ -135,7 +133,6 @@ public:
     inline void     setOfficerActivated(Officers officer, bool activated) {_officers[officer] = activated;}
     inline void     setConversionRate(Ressources<float> conversionRate) {_conversionRates = conversionRate;}
     inline void     setConversionRateAt(RessourceType type, float conversionRate) {_conversionRates.setRessource(type, conversionRate);}
-    inline void     setResearchLevel(ResearchType researchType, int level) {_levelResearch[researchType] = level;}
     inline void     setSpecies(Species species, int level) {_levelSpecies[species] = level;}
     inline void     setShip(MovingUnitType unitType, int value) {_fleet[unitType] = value;}
     inline void     setScrapShip(MovingUnitType unitType, int value) {_scrapFleet[unitType] = value;}
@@ -156,7 +153,6 @@ public:
 private:
     void            readUniverses(const QJsonObject& parent);
     void            readSpecies(const QJsonObject& parent);
-    void            readResearches(const QJsonObject& parent);
     void            readClassData(const QJsonObject& parent);
     void            readOfficersData(const QJsonObject& parent);
     void            readConversionData(const QJsonObject& parent);
@@ -167,7 +163,6 @@ private:
 
     void            writeUniverses(QJsonObject& parent);
     void            writeSpecies(QJsonObject& parent);
-    void            writeResearches(QJsonObject& parent);
     void            writeClassData(QJsonObject& parent);
     void            writeOfficersData(QJsonObject& parent);
     void            writeConversionData(QJsonObject& parent);
@@ -193,7 +188,6 @@ private:
     std::map<UniverseSpecifics, int>    _universeSpecifics;
     std::map<Officers, bool>            _officers;
     Ressources<float>                   _conversionRates;
-    std::map<ResearchType, int>         _levelResearch;
     std::map<Species, int>              _levelSpecies;
     std::vector<Planet>                 _planets;
     std::vector<Planification>          _planifPlanets;

@@ -1,5 +1,6 @@
 #include "planet.h"
 #include "techManager.h"
+#include "generalManager.h"
 #include "playermanager.h"
 
 #include <QDebug>
@@ -231,7 +232,7 @@ int Planet::getProductionMine(CommonBuildingType mineType, int level) const
         break;
     case CommonBuildingType::CentraleFusion:
     {
-        int levelEnergy = PlayerManager::instance().getResearchLevel(ResearchType::Energie);
+        int levelEnergy = GeneralManager::instance().getResearchLevel(ResearchType::Energie);
         prodHours = 30.0f * (float)level * std::pow(1.1f, 1.05 + 0.01 * levelEnergy);
         break;
     }

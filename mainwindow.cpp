@@ -3,6 +3,7 @@
 
 #include "utils.h"
 #include "techManager.h"
+#include "generalManager.h"
 #include "playerManager.h"
 #include "rentabilityManager.h"
 #include "discoverymanager.h"
@@ -105,6 +106,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Menu
     connect(ui->actionNew, &QAction::triggered, this, [this]() {
+        GeneralManager::instance().clear();
         PlayerManager::instance().clear();
         saveFilePath = std::nullopt;
         refresh();
@@ -116,6 +118,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionSave, &QAction::triggered, this, [this]() {
         if (saveFilePath)
         {
+            GeneralManager::instance().saveGameData(*saveFilePath);
             PlayerManager::instance().saveGameData(*saveFilePath);
             DiscoveryManager::instance().save();
         }
@@ -192,7 +195,8 @@ bool MainWindow::saveDirectoryAs()
 
     saveFilePath = directoryPath;
 
-    if (PlayerManager::instance().saveGameData(*saveFilePath))
+    if (GeneralManager::instance().saveGameData(*saveFilePath)
+        && PlayerManager::instance().saveGameData(*saveFilePath))
     {
         _settings.setValue("saveFilePath", directoryPath);
         return true;
@@ -203,7 +207,8 @@ bool MainWindow::saveDirectoryAs()
 
 bool MainWindow::loadDirectoryPath(const QString& path)
 {
-    bool success = PlayerManager::instance().loadSave(path + "/save.json");
+    bool success = GeneralManager::instance().loadSave(path)
+                   && PlayerManager::instance().loadSave(path);
     if (success)
     {
         saveFilePath = path;
@@ -230,6 +235,7 @@ void MainWindow::about()
 
 void MainWindow::refresh()
 {
+    GeneralManager::instance().refresh();
     PlayerManager::instance().refresh();
     DiscoveryManager::instance().refresh();
 
@@ -628,10 +634,10 @@ void MainWindow::buildResearchImputs(QTableWidget* tableWidget, int column)
 
         ResearchType type = static_cast<ResearchType>(i);
 
-        int level = PlayerManager::instance().getResearchLevel(type);
+        int level = GeneralManager::instance().getResearchLevel(type);
         Item* researchItem = addSpinBoxItem(tableWidget, research->name, i+1, column, level);
         researchItem->setOnValueChanged([this, column, i, type](int value) {
-            PlayerManager::instance().setResearchLevel(type, value);
+            GeneralManager::instance().setResearchLevel(type, value);
             emit techChanged();
         });
     }

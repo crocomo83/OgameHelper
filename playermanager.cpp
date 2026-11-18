@@ -1,4 +1,5 @@
 #include "playermanager.h"
+#include "generalManager.h"
 #include "techManager.h"
 #include "discoveryManager.h"
 
@@ -32,10 +33,12 @@ PlayerManager::PlayerManager()
 
 bool PlayerManager::loadSave(const QString& path)
 {
-    QFile file(path);
+    QString filePath = path + "/save.json";
+
+    QFile file(filePath);
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qWarning() << "Impossible d'ouvrir le fichier :" << path;
+        qWarning() << "Impossible d'ouvrir le fichier :" << filePath;
         return false;
     }
 
@@ -59,7 +62,6 @@ bool PlayerManager::loadSave(const QString& path)
 
     readUniverses(root);
     readSpecies(root);
-    readResearches(root);
     readClassData(root);
     readOfficersData(root);
     readConversionData(root);
@@ -67,7 +69,7 @@ bool PlayerManager::loadSave(const QString& path)
     readFleetData(root);
     readDiscoveries(root);
 
-    qDebug() << "Loading done : " << path;
+    qDebug() << "Loading done : " << filePath;
 
     return true;
 }
@@ -132,7 +134,7 @@ PlayerManager::Planification* PlayerManager::getPlanif(int index)
 
 Ressources<float> PlayerManager::getPlasmaBonus() const
 {
-    float levelPlasma = (float)getResearchLevel(ResearchType::Plasma);
+    float levelPlasma = (float)GeneralManager::instance().getResearchLevel(ResearchType::Plasma);
     return Ressources<float>(levelPlasma, 0.66f * levelPlasma, 0.33f * levelPlasma);
 }
 
@@ -312,7 +314,7 @@ void PlayerManager::computeLabsLevel()
     });
 
     _labsLevel = 0;
-    int levelNetwork = getResearchLevel(ResearchType::Reseau);
+    int levelNetwork = GeneralManager::instance().getResearchLevel(ResearchType::Reseau);
     for (int i = 0; i < labLevels.size(); ++i)
     {
         if (i <= levelNetwork)
@@ -354,10 +356,6 @@ bool PlayerManager::clear()
 
     for (int i = 1; i < static_cast<int>(Species::Count); ++i) {
         _levelSpecies[static_cast<Species>(i)] = 0;
-    }
-
-    for (int i = 0; i < static_cast<int>(ResearchType::Count); ++i) {
-        _levelResearch[static_cast<ResearchType>(i)] = 0;
     }
 
     for (int i = 0; i < static_cast<int>(Officers::Count); ++i) {
@@ -423,21 +421,6 @@ void PlayerManager::readSpecies(const QJsonObject& parent)
 
         _levelSpecies[static_cast<Species>(indexSpecies)] = level;
         indexSpecies++;
-    }
-}
-
-void PlayerManager::readResearches(const QJsonObject& parent)
-{
-    _levelResearch.clear();
-    QJsonArray researches = parent["researches"].toArray();
-
-    int indexResearch = 0;
-    for (const QJsonValue& value : researches) {
-        QJsonObject research = value.toObject();
-        int level = research["level"].toInt();
-
-        _levelResearch[static_cast<ResearchType>(indexResearch)] = level;
-        indexResearch++;
     }
 }
 
@@ -608,7 +591,6 @@ QJsonDocument PlayerManager::generateGameDataJson()
 
     writeUniverses(root);
     writeSpecies(root);
-    writeResearches(root);
     writeClassData(root);
     writeOfficersData(root);
     writeConversionData(root);
@@ -649,21 +631,6 @@ void PlayerManager::writeSpecies(QJsonObject& parent)
     }
 
     parent["species"] = speciesLevel;
-}
-
-void PlayerManager::writeResearches(QJsonObject& parent)
-{
-    QJsonArray researchesArray;
-
-    for (auto itr = _levelResearch.begin(); itr != _levelResearch.end(); ++itr) {
-        const CommonTech* tech = TechManager::instance().getTech(TechType::CommonResearch, static_cast<int>(itr->first));
-        QJsonObject obj;
-        obj["label"] = tech->name;
-        obj["level"] = itr->second;
-        researchesArray.append(obj);
-    }
-
-    parent["researches"] = researchesArray;
 }
 
 void PlayerManager::writeClassData(QJsonObject& parent)

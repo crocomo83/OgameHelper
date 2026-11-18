@@ -1,5 +1,6 @@
 #include "discoverymanager.h"
 #include "techManager.h"
+#include "generalManager.h"
 #include "playermanager.h"
 
 #include <QJsonObject>
@@ -275,7 +276,7 @@ void DiscoveryManager::computeRentability()
 
 void DiscoveryManager::computeDiscoverySpeed()
 {
-    int levelPropCombustion = PlayerManager::instance().getResearchLevel(ResearchType::PropCombusion);
+    int levelPropCombustion = GeneralManager::instance().getResearchLevel(ResearchType::PropCombusion);
     Class classPlayer = PlayerManager::instance().getClass();
     AllianceClass allianceClass = PlayerManager::instance().getAllianceClass();
 
