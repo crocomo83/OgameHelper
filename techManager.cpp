@@ -69,6 +69,7 @@ bool TechManager::loadConfig(TechType techType, const QString &path)
             lifeFormBuilding.increaseFactor = (float)obj["increaseFactor"].toDouble(1.0);
             lifeFormBuilding.durationBase = obj["durationBase"].toInt(0);
             lifeFormBuilding.durationFactor = (float)obj["durationFactor"].toDouble(1.0);
+            lifeFormBuilding.energieFactor = (float)obj["energieFactor"].toDouble(1.0);
             lifeFormBuilding.species = species;
             lifeFormBuilding.bonuses = extractBonusesBuilding(obj);
 

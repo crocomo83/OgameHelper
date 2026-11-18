@@ -64,6 +64,25 @@
              <widget class="QComboBox" name="planetType"/>
             </item>
             <item>
+             <widget class="QComboBox" name="unitProd">
+              <item>
+               <property name="text">
+                <string>hours</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>days</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>week</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
              <spacer name="horizontalSpacer_4">
               <property name="orientation">
                <enum>Qt::Orientation::Horizontal</enum>
@@ -84,10 +103,10 @@
              <bool>true</bool>
             </property>
             <property name="rowCount">
-             <number>16</number>
+             <number>20</number>
             </property>
             <property name="columnCount">
-             <number>4</number>
+             <number>5</number>
             </property>
             <attribute name="horizontalHeaderVisible">
              <bool>false</bool>
@@ -117,6 +136,11 @@
             <row/>
             <row/>
             <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <column/>
             <column/>
             <column/>
             <column/>

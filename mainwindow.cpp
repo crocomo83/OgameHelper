@@ -46,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent)
     _fleetTab = ui->fleetTab;
     _rentabilityType = ui->rentabiltyType;
     _planetType = ui->planetType;
+    _unitProd = ui->unitProd;
 
     _rentaTable->setRowCount(NUMBER_RENTA_MAX + 1);
     _rentaTable->setColumnWidth(0, 140);
@@ -141,11 +142,20 @@ MainWindow::MainWindow(QWidget *parent)
         ui->actionSave->setEnabled(false);
     }
 
+    refreshLabelPlanet();
     refresh();
 
     connect(_rentabilityType, &QComboBox::currentIndexChanged, this, [this]() {
         RentabilityManager::instance().setRentabilityType(static_cast<RentabilityManager::RentabilityType>(_rentabilityType->currentIndex()));
         MainWindow::buildRentaOutputs();
+    });
+
+    connect(_planetType, &QComboBox::currentIndexChanged, this, [this]() {
+        MainWindow::buildResumeOutputs();
+    });
+
+    connect(_unitProd, &QComboBox::currentIndexChanged, this, [this]() {
+        MainWindow::buildResumeOutputs();
     });
 }
 
@@ -250,7 +260,7 @@ void MainWindow::refresh()
     onPlanetsChanged();
     onTechChanged();
 
-    buildResumeOutputs(_overviewTable);
+    buildResumeOutputs();
     buildRentaOutputs();
 }
 
@@ -342,6 +352,18 @@ std::unordered_set<Species> MainWindow::getAllAvailableSpecies()
         }
     }
     return result;
+}
+
+void MainWindow::refreshLabelPlanet()
+{
+    _planetType->clear();
+    _planetType->addItem("General");
+
+    int numberPlanet = PlayerManager::instance().getNumberPlanets();
+    for (int i = 0; i < numberPlanet; ++i)
+    {
+        _planetType->addItem(PlayerManager::instance().getPlanetName(i));
+    }
 }
 
 QLabel* MainWindow::createPlanetsLabel(std::vector<int> indexPlanets)
@@ -494,37 +516,133 @@ void MainWindow::createPlanetDefenses(QTableWidget* tableWidget, FixUnitType uni
     });
 }
 
-void MainWindow::buildResumeOutputs(QTableWidget* tableWidget)
+void MainWindow::buildResumeOutputs()
 {
-    tableWidget->clear();
+    _overviewTable->clear();
+
+    float factor = 1;
+    if (_unitProd->currentText() == "hours")
+    {
+        factor = 1.0f / 24.0f;
+    }
+    else if (_unitProd->currentText() == "week")
+    {
+        factor = 7.0f;
+    }
+
+    int currentIndex = _planetType->currentIndex();
+    if (currentIndex <= 0)
+    {
+        buildResumeGeneralOutputs(factor);
+    }
+    else
+    {
+        buildResumePlanetOutputs(currentIndex - 1, factor);
+    }
+}
+
+void MainWindow::buildResumeGeneralOutputs(float factor)
+{
     int index = 0;
 
-    addLabel(tableWidget, "Productions", index, 0);
-    addLabel(tableWidget, "Métal", index, 1);
-    addLabel(tableWidget, "Cristal", index, 2);
-    addLabel(tableWidget, "Deuterium", index, 3);
+    addLabel(_overviewTable, "Productions", index, 0);
+    addLabel(_overviewTable, "Métal", index, 1);
+    addLabel(_overviewTable, "Cristal", index, 2);
+    addLabel(_overviewTable, "Deuterium", index, 3);
     index++;
 
     const Ressources<float>& productionStat = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Total);
-    addLabel(tableWidget, "Mines", index, 0);
-    addLabel(tableWidget, utils::ressourceToString(productionStat.metal), index, 1);
-    addLabel(tableWidget, utils::ressourceToString(productionStat.cristal), index, 2);
-    addLabel(tableWidget, utils::ressourceToString(productionStat.deut), index, 3);
+    addLabel(_overviewTable, "Mines", index, 0);
+    addLabel(_overviewTable, utils::ressourceToString(productionStat.metal * factor), index, 1);
+    addLabel(_overviewTable, utils::ressourceToString(productionStat.cristal * factor), index, 2);
+    addLabel(_overviewTable, utils::ressourceToString(productionStat.deut * factor), index, 3);
     index++;
 
     const Ressources<float>& discoveryRessources = DiscoveryManager::instance().getSummary().globalMean;
-    addLabel(tableWidget, "Discovery", index, 0);
-    addLabel(tableWidget, utils::ressourceToString(discoveryRessources.metal), index, 1);
-    addLabel(tableWidget, utils::ressourceToString(discoveryRessources.cristal), index, 2);
-    addLabel(tableWidget, utils::ressourceToString(discoveryRessources.deut), index, 3);
+    addLabel(_overviewTable, "Discovery", index, 0);
+    addLabel(_overviewTable, utils::ressourceToString(discoveryRessources.metal * factor), index, 1);
+    addLabel(_overviewTable, utils::ressourceToString(discoveryRessources.cristal * factor), index, 2);
+    addLabel(_overviewTable, utils::ressourceToString(discoveryRessources.deut * factor), index, 3);
     index++;
 
     const Ressources<float>& totalRessources = productionStat + discoveryRessources;
-    addLabel(tableWidget, "Total", index, 0);
-    addLabel(tableWidget, utils::ressourceToString(totalRessources.metal), index, 1);
-    addLabel(tableWidget, utils::ressourceToString(totalRessources.cristal), index, 2);
-    addLabel(tableWidget, utils::ressourceToString(totalRessources.deut), index, 3);
+    addLabel(_overviewTable, "Total", index, 0);
+    addLabel(_overviewTable, utils::ressourceToString(totalRessources.metal * factor), index, 1);
+    addLabel(_overviewTable, utils::ressourceToString(totalRessources.cristal * factor), index, 2);
+    addLabel(_overviewTable, utils::ressourceToString(totalRessources.deut * factor), index, 3);
     index++;
+}
+
+void MainWindow::buildResumePlanetOutputs(int indexPlanet, float factor)
+{
+    int index = 0;
+
+    addLabel(_overviewTable, "Productions", index, 0);
+    addLabel(_overviewTable, "Métal",       index, 1);
+    addLabel(_overviewTable, "Cristal",     index, 2);
+    addLabel(_overviewTable, "Deuterium",   index, 3);
+    addLabel(_overviewTable, "Energy",      index, 4);
+    index++;
+
+    const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
+
+    if (!planet) return;
+
+    auto addProdLabel = [this, &index, &factor](const QString& label, const Ressources<int>& prod)
+    {
+        addLabel(_overviewTable, label, index, 0);
+        addLabel(_overviewTable, utils::ressourceToString((int)((float)prod.metal    * factor)), index, 1);
+        addLabel(_overviewTable, utils::ressourceToString((int)((float)prod.cristal  * factor)), index, 2);
+        addLabel(_overviewTable, utils::ressourceToString((int)((float)prod.deut     * factor)), index, 3);
+        addLabel(_overviewTable, utils::ressourceToString(prod.energy),            index, 4);
+        index++;
+    };
+
+    const Ressources<int>& baseProd = planet->getProductionStat(Planet::ProductionStat::Base);
+    addProdLabel("Base", baseProd);
+
+    // Common buildings
+    int numberCommonTech = planet->getNumberTech(TechType::CommonBuilding);
+    for (int i = 0; i < numberCommonTech; ++i)
+    {
+        const CommonTech* tech = TechManager::instance().getTech(TechType::CommonBuilding, i);
+        if (tech->isValid())
+        {
+            int level = planet->getTechLevel(TechType::CommonBuilding, i);
+            const Ressources<int>& buildingProd = planet->getTechProduction(TechType::CommonBuilding, i);
+            if (!buildingProd.empty())
+            {
+                addProdLabel(tech->name + " : " + QString::number(level), buildingProd);
+            }
+        }
+    }
+
+    // Life form buildings
+    TechType typeBuilding = speciesToBuildingLifeForm.at(planet->getSpecies());
+    int lifeFormBuildingNumber = typeBuilding == TechType::None ? 0 : TechManager::instance().getNumberTechs(typeBuilding);
+
+    for (int i = 0; i < lifeFormBuildingNumber; i++)
+    {
+        const CommonTech* tech = TechManager::instance().getTech(typeBuilding, i);
+        if (tech->isValid())
+        {
+            int level = planet->getTechLevel(typeBuilding, i);
+            const Ressources<int>& buildingProd = planet->getTechProduction(typeBuilding, i);
+            if (!buildingProd.empty())
+            {
+                addProdLabel(tech->name + " : " + QString::number(level), buildingProd);
+            }
+        }
+    }
+
+    // Satellites
+    Ressources<int> prodSatellites;
+    prodSatellites.energy = planet->getSatelliteProduction();
+    addProdLabel("Satellites solaires : " + QString::number(planet->getDefense(FixUnitType::SolarSatellite)), prodSatellites);
+
+    // Crawlers
+    Ressources<int> prodCrawlers = planet->getProductionStat(Planet::ProductionStat::Crawlers);
+    addProdLabel("Foreuses : " + QString::number(planet->getMaxActiveCrawler()), prodCrawlers);
 }
 
 void MainWindow::buildRentaOutputs()
@@ -1055,7 +1173,7 @@ void MainWindow::onTechChanged()
     PlayerManager::instance().refresh();
     DiscoveryManager::instance().refresh();
 
-    buildResumeOutputs(_overviewTable);
+    buildResumeOutputs();
     buildRentaOutputs();
     buildDiscoveryImputs(_discoveryTab);
 }

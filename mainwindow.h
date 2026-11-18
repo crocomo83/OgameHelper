@@ -39,6 +39,7 @@ public:
     void refresh();
     void initTable(QTableWidget* tableWidget);
 
+private:
     QLabel* addLabel(QTableWidget* tableWidget, QString str, int row, int column);
     Item* addSpinBoxItem(QTableWidget* tableWidget, QString str, int row, int column, int defaultValue = 0, int minValue = 0, int maxValue = 99);
     DoubleSpinBoxItem* addDoubleSpinBoxItem(QTableWidget* tableWidget, QString str, int row, int column, double defaultValue = 0.0, double minValue = 0.0, double maxValue = 99.9);
@@ -47,6 +48,7 @@ public:
     PositionItem* addPositionItem(QTableWidget* tableWidget, int row, int column, const PlanetPosition &planetPosition);
     LifeFormSelectItem* addLifeFormSelectItem(QTableWidget* tableWidget, int row, int column, Species species, int level);
     std::unordered_set<Species> getAllAvailableSpecies();
+    void refreshLabelPlanet();
 
     QLabel* createPlanetsLabel(std::vector<int> indexPlanets);
     void createPlanetLifeFormChoice(QTableWidget* tableWidget, Planet *planet, int& row, int column);
@@ -56,7 +58,9 @@ public:
     void createFleetUnit(QTableWidget* tableWidget, MovingUnitType unitType, int& row, int column);
     void createPlanetDefenses(QTableWidget* tableWidget, FixUnitType unitType, Planet* planet, int& row, int column);
 
-    void buildResumeOutputs(QTableWidget* tableWidget);
+    void buildResumeOutputs();
+    void buildResumeGeneralOutputs(float factor);
+    void buildResumePlanetOutputs(int indexPlanet, float factor);
     void buildRentaOutputs();
     void buildGeneralImputs(QTableWidget* tableWidget, int column);
     void buildResearchImputs(QTableWidget* tableWidget, int column);
@@ -96,6 +100,7 @@ private:
 
     QComboBox*    _rentabilityType;
     QComboBox*    _planetType;
+    QComboBox*    _unitProd;
 
     std::optional<QString> saveFilePath;
 };

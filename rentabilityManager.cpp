@@ -200,9 +200,9 @@ Ressources<float> RentabilityManager::getGainMines(const Planet& planet) const
     int levelDeut       = planet.getTechLevel(TechType::CommonBuilding, indexDeut);
 
     Ressources<float> gainMinesRaw;
-    gainMinesRaw.metal     = planet.getProductionMine(CommonBuildingType::MineMetal, levelMetal);
-    gainMinesRaw.cristal   = planet.getProductionMine(CommonBuildingType::MineCristal, levelCristal);
-    gainMinesRaw.deut      = planet.getProductionMine(CommonBuildingType::MineDeut, levelDeut);
+    gainMinesRaw.metal     = planet.getProduction(CommonBuildingType::MineMetal, levelMetal).metal;
+    gainMinesRaw.cristal   = planet.getProduction(CommonBuildingType::MineCristal, levelCristal).cristal;
+    gainMinesRaw.deut      = planet.getProduction(CommonBuildingType::MineDeut, levelDeut).deut;
     return gainMinesRaw + gainMinesRaw * bonusPercent * 0.01f;
 }
 
@@ -555,12 +555,12 @@ void RentabilityManager::addMinesRentability(int indexPlanet)
 
     Ressources<float> prodMinesLevelUp;
 
-    prodMinesLevelUp.metal = planet->getProductionMine(CommonBuildingType::MineMetal, levelMetal)
-        - planet->getProductionMine(CommonBuildingType::MineMetal, levelMetal - 1);
-    prodMinesLevelUp.cristal = planet->getProductionMine(CommonBuildingType::MineCristal, levelCristal)
-        - planet->getProductionMine(CommonBuildingType::MineCristal, levelCristal - 1);
-    prodMinesLevelUp.deut = planet->getProductionMine(CommonBuildingType::MineDeut, levelDeut)
-        - planet->getProductionMine(CommonBuildingType::MineDeut, levelDeut - 1);
+    prodMinesLevelUp.metal = planet->getProduction(CommonBuildingType::MineMetal, levelMetal).metal
+        - planet->getProduction(CommonBuildingType::MineMetal, levelMetal - 1).metal;
+    prodMinesLevelUp.cristal = planet->getProduction(CommonBuildingType::MineCristal, levelCristal).cristal
+        - planet->getProduction(CommonBuildingType::MineCristal, levelCristal - 1).cristal;
+    prodMinesLevelUp.deut = planet->getProduction(CommonBuildingType::MineDeut, levelDeut).deut
+        - planet->getProduction(CommonBuildingType::MineDeut, levelDeut - 1).deut;
 
     Ressources<float> bonusPercent;
     bonusPercent += planet->getProductionStatPercent(Planet::ProductionStatPercent::BuildingLifeFormPercent);

@@ -13,14 +13,13 @@ public:
         Mines,
         Crawlers,
         BuildingLifeForm,
-        Count
-    };
-
-    enum class EnergyStat{
-        BaseProd,
-        ProdLifeFormBuilding,
-        MinesConsumption,
-        LifeFormBuildingConsumption,
+        Ingenior,
+        Geolog,
+        Council,
+        Class,
+        AllianceClass,
+        LifeFormResearch,
+        Total,
         Count
     };
 
@@ -48,6 +47,7 @@ public:
     inline int              getTemperatureMax() const {return _temperatureMax;}
     inline int              getNumberTech(TechType type) const {return _techs.at(type).size();}
     inline int              getTechLevel(TechType type, int index) const {return _techs.at(type).at(index)._level;}
+    inline Ressources<float> getTechProduction(TechType type, int index) const {return _techs.at(type).at(index)._production;}
     inline Ressources<float> getBonusMine() const {return _bonusProdPositionCoeff;}
     inline PlanetPosition   getPosition() const {return _position;}
     inline const Ressources<int>& getProductionStat(ProductionStat stat) const {return _productionStats.at(stat);}
@@ -63,9 +63,8 @@ public:
     Species                 getChoiceLifeFormResearch(int index) const;
     int                     getLevelLifeFormResearch(Species species, int index) const;
     Ressources<float>       getLifeFormProdBonus() const;
-    int                     getProductionMine(CommonBuildingType mineType, int level) const;
     Ressources<int>         getProduction(CommonBuildingType mineType, int level) const;
-    int                     getConsommation(CommonBuildingType mineType, int level) const;
+    Ressources<int>         getConsumption(CommonBuildingType mineType, int level) const;
 
     int                     getSatelliteProduction() const;
 
@@ -74,12 +73,14 @@ public:
     int                     getDefense(FixUnitType unitType) const;
     Ressources<float>       getAllBuildingCost() const;
     Ressources<float>       getAllBuildingCostUpgrade(const Planet& planet) const;
+    float                   getConsumptionReductionFactor() const;
     bool                    hasWorkingLab() const {return _workingLab;}
 
     void                    refresh();
     void                    computeLifeFormResearch(const std::map<Species, int>& levelSpecies);
     void                    computeBonusPos();
-    void                    computeLifeFormBuildingBonus();
+    void                    computeLifeFormBonus();
+    void                    computeLifeFormBuildingProduction();
     void                    computeBaseProduction();
     void                    computeProduction();
 
