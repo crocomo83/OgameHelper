@@ -254,7 +254,7 @@ void DiscoveryManager::computeRentability()
 
     const Discovery& shipDiscovery = dataDiscoveries.at(DiscoveryType::Fleat);
     float factorShip = (float)shipDiscovery.count / (float)globalCount * discoveryPerDay;
-    float scrapFactor = (float)PlayerManager::instance().getScrapRate() / 100.0f;
+    float scrapFactor = (float)GeneralManager::instance().getScrapRate() / 100.0f;
     summary.meanShipFound = scrapFactor * factorShip * shipDiscovery.mean;
 
     const Discovery& combatDiscovery = dataDiscoveries.at(DiscoveryType::Combat);
@@ -277,8 +277,8 @@ void DiscoveryManager::computeRentability()
 void DiscoveryManager::computeDiscoverySpeed()
 {
     int levelPropCombustion = GeneralManager::instance().getResearchLevel(ResearchType::PropCombusion);
-    Class classPlayer = PlayerManager::instance().getClass();
-    AllianceClass allianceClass = PlayerManager::instance().getAllianceClass();
+    Class classPlayer = GeneralManager::instance().getClass();
+    AllianceClass allianceClass = GeneralManager::instance().getAllianceClass();
 
     _bonusSpeedPercent = PlayerManager::instance().getLifeFormBonus(BonusLifeForm::LargeCargoUpdate);
     _bonusSpeedPercent += PlayerManager::instance().getLifeFormBonus(BonusLifeForm::SpeedCivilianShips);

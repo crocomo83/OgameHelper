@@ -210,7 +210,7 @@ Ressources<float> RentabilityManager::getGainMines(const Planet& planet) const
 Ressources<float> RentabilityManager::getGainBuilding(const Planet* planet, const LifeFormBuilding* tech, int numberOfLevels) const
 {
     Ressources<float> bonusRessources;
-    Ressources<float> prodMines = planet->getProductionStat(Planet::ProductionStat::Mines);
+    Ressources<float> prodMines = planet->getRefRawProduction();
     for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
     {
         switch(itr->first)
@@ -248,7 +248,7 @@ Ressources<float> RentabilityManager::getGainResearch(const LifeFormTech* tech, 
 {
     Ressources<float> bonusRessources;
 
-    int levelSpecies = PlayerManager::instance().getSpecies(tech->species);
+    int levelSpecies = GeneralManager::instance().getLevelSpecies(tech->species);
     float factorSpecies = 1.0f + levelSpecies / 1000.0f;
     Ressources<float> prodMines = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Mines);
 
@@ -319,7 +319,7 @@ float RentabilityManager::getGainTimePercent(const LifeFormBuilding* tech) const
 
 float RentabilityManager::getGainTimePercent(const LifeFormTech* tech, BonusLifeForm bonusType) const
 {
-    int levelSpecies = PlayerManager::instance().getSpecies(tech->species);
+    int levelSpecies = GeneralManager::instance().getLevelSpecies(tech->species);
     float factorSpecies = 1.0f + levelSpecies / 1000.0f;
 
     float bonusTime = 0.0f;
@@ -338,7 +338,7 @@ float RentabilityManager::getGainTimePercent(const LifeFormTech* tech, BonusLife
 
 void RentabilityManager::addNewLevelUp(std::unique_ptr<LevelUp> levelUp, std::optional<int> indexPlanet)
 {
-    levelUp->computeRenta(PlayerManager::instance().getConversionRate());
+    levelUp->computeRenta(GeneralManager::instance().getConversionRate());
 
     auto it = std::find_if(rentaLevelUp.begin(), rentaLevelUp.end(), [this, &levelUp](const std::unique_ptr<LevelUp>& current)
     {
@@ -391,8 +391,6 @@ void RentabilityManager::addReasearchRentability()
 void RentabilityManager::addAstroRentability(PlayerManager::Planification* planif)
 {
     Planet& planet = planif->planet;
-    planet.computeLifeFormResearch(PlayerManager::instance().getAllSpecies());
-    planet.refresh();
     Ressources<float> globalCost, globalGain;
 
     globalGain += getGainMines(planet);
@@ -471,9 +469,6 @@ void RentabilityManager::addPlanifChgtSpecies(PlayerManager::Planification* plan
 
     if (planifPlanet.getSpecies() == planet->getSpecies() || planifPlanet.getSpecies() == Species::None)
         return;
-
-    planifPlanet.computeLifeFormResearch(PlayerManager::instance().getAllSpecies());
-    planifPlanet.refresh();
 
     Ressources<float> globalCost, globalGain;
     float time = 0.0f;
@@ -759,7 +754,7 @@ void RentabilityManager::addSpeedResearchForResearch()
         globalLabLevel++;
         levelLab++;
         cumulCost += TechManager::instance().getCost(TechType::CommonBuilding, indexLab, levelLab);
-        float newPercentCost = cumulCost.getEquivalentDeut(PlayerManager::instance().getConversionRate()) / percentGain;
+        float newPercentCost = cumulCost.getEquivalentDeut(GeneralManager::instance().getConversionRate()) / percentGain;
         if (newPercentCost > currentPercentCost)
         {
             break;

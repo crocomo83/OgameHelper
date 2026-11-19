@@ -103,7 +103,7 @@
              <bool>true</bool>
             </property>
             <property name="rowCount">
-             <number>20</number>
+             <number>30</number>
             </property>
             <property name="columnCount">
              <number>5</number>
@@ -120,6 +120,16 @@
             <attribute name="verticalHeaderHighlightSections">
              <bool>false</bool>
             </attribute>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
+            <row/>
             <row/>
             <row/>
             <row/>

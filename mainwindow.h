@@ -38,6 +38,7 @@ public:
     bool saveDirectoryAs();
     void refresh();
     void initTable(QTableWidget* tableWidget);
+    void initTableScrollable(QTableWidget* tableWidget);
 
 private:
     QLabel* addLabel(QTableWidget* tableWidget, QString str, int row, int column);

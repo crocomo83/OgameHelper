@@ -50,24 +50,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     _rentaTable->setRowCount(NUMBER_RENTA_MAX + 1);
     _rentaTable->setColumnWidth(0, 140);
-    initTable(_overviewTable);
+
+    initTableScrollable(_overviewTable);
+    _overviewTable->setColumnWidth(0, 150);
+
     initTable(_generalTable);
-
-    _planificationTab->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    _planificationTab->horizontalHeader()->setStretchLastSection(false);
-    _planificationTab->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    _planificationTab->verticalHeader()->setStretchLastSection(false);
-    _planificationTab->setFrameShape(QFrame::NoFrame);
-    _planificationTab->setSelectionMode(QAbstractItemView::NoSelection);
-    _planificationTab->setFocusPolicy(Qt::NoFocus);
-
-    _planetTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    _planetTable->horizontalHeader()->setStretchLastSection(false);
-    _planetTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-    _planetTable->verticalHeader()->setStretchLastSection(false);
-    _planetTable->setFrameShape(QFrame::NoFrame);
-    _planetTable->setSelectionMode(QAbstractItemView::NoSelection);
-    _planetTable->setFocusPolicy(Qt::NoFocus);
+    initTableScrollable(_planificationTab);
+    initTableScrollable(_planetTable);
 
     _fleetTab->setColumnWidth(0, 250);
 
@@ -269,6 +258,17 @@ void MainWindow::initTable(QTableWidget* tableWidget)
     tableWidget->verticalHeader()->setVisible(false);
     tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    tableWidget->setFrameShape(QFrame::NoFrame);
+    tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
+    tableWidget->setFocusPolicy(Qt::NoFocus);
+}
+
+void MainWindow::initTableScrollable(QTableWidget* tableWidget)
+{
+    tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    tableWidget->horizontalHeader()->setStretchLastSection(false);
+    tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    tableWidget->verticalHeader()->setStretchLastSection(false);
     tableWidget->setFrameShape(QFrame::NoFrame);
     tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
     tableWidget->setFocusPolicy(Qt::NoFocus);
@@ -643,6 +643,34 @@ void MainWindow::buildResumePlanetOutputs(int indexPlanet, float factor)
     // Crawlers
     Ressources<int> prodCrawlers = planet->getProductionStat(Planet::ProductionStat::Crawlers);
     addProdLabel("Foreuses : " + QString::number(planet->getMaxActiveCrawler()), prodCrawlers);
+
+    // Plasma
+    Ressources<int> prodPlasma = planet->getProductionStat(Planet::ProductionStat::Plasma);
+    addProdLabel("Plasma : " + QString::number(GeneralManager::instance().getResearchLevel(ResearchType::Plasma)), prodPlasma);
+
+    // Ingenior
+    Ressources<int> prodIngenior = planet->getProductionStat(Planet::ProductionStat::Ingenior);
+    addProdLabel("Ingenior : ", prodIngenior);
+
+    // Geolog
+    Ressources<int> prodGeolog = planet->getProductionStat(Planet::ProductionStat::Geolog);
+    addProdLabel("Geolog : ", prodGeolog);
+
+    // Council
+    Ressources<int> prodCouncil = planet->getProductionStat(Planet::ProductionStat::Council);
+    addProdLabel("Council : ", prodCouncil);
+
+    // Class
+    Ressources<int> prodClass = planet->getProductionStat(Planet::ProductionStat::Class);
+    addProdLabel("Class : ", prodClass);
+
+    // Alliance class
+    Ressources<int> prodAllianceClass = planet->getProductionStat(Planet::ProductionStat::AllianceClass);
+    addProdLabel("Alliance class : ", prodAllianceClass);
+
+    // Total
+    Ressources<int> prodTotal = planet->getProductionStat(Planet::ProductionStat::Total);
+    addProdLabel("Total : ", prodTotal);
 }
 
 void MainWindow::buildRentaOutputs()
@@ -718,24 +746,24 @@ void MainWindow::buildGeneralImputs(QTableWidget* tableWidget, int column)
 {
     addLabel(tableWidget, "General : ", 0, column);
 
-    int speed = PlayerManager::instance().getUniverseSpecific(UniverseSpecifics::EconnomicSpeed);
+    int speed = GeneralManager::instance().getUniverseSpecific(UniverseSpecifics::EconnomicSpeed);
     Item* universeSpeed = addSpinBoxItem(tableWidget, "Vitesse univers", 1, column, 1, speed);
     universeSpeed->setOnValueChanged([](int value) {
-        PlayerManager::instance().setUniverseSpecific(UniverseSpecifics::EconnomicSpeed, value);
+        GeneralManager::instance().setUniverseSpecific(UniverseSpecifics::EconnomicSpeed, value);
     });
 
-    int researchSpeedValue = PlayerManager::instance().getUniverseSpecific(UniverseSpecifics::ResearchBoost);
+    int researchSpeedValue = GeneralManager::instance().getUniverseSpecific(UniverseSpecifics::ResearchBoost);
     Item* researchSpeed = addSpinBoxItem(tableWidget, "Vitesse recherches", 2, column, 1, researchSpeedValue);
     researchSpeed->setOnValueChanged([](int value) {
-        PlayerManager::instance().setUniverseSpecific(UniverseSpecifics::ResearchBoost, value);
+        GeneralManager::instance().setUniverseSpecific(UniverseSpecifics::ResearchBoost, value);
     });
 
     addLabel(tableWidget, "Niveaux races : ", 4, column);
     for (int i = 1; i < static_cast<int>(Species::Count); ++i) {
-        int levelRace = PlayerManager::instance().getSpecies(static_cast<Species>(i));
+        int levelRace = GeneralManager::instance().getLevelSpecies(static_cast<Species>(i));
         Item* speciesLevel = addSpinBoxItem(tableWidget, "Niveau " + speciesToString[i], i+5, column, levelRace, 0, 100);
         speciesLevel->setOnValueChanged([this, i](int value) {
-            PlayerManager::instance().setSpecies(static_cast<Species>(i), value);
+            GeneralManager::instance().setSpecies(static_cast<Species>(i), value);
             emit techChanged();
         });
     }
@@ -766,17 +794,17 @@ void MainWindow::buildSpecialisationImputs(QTableWidget* tableWidget, int column
     int currentRow = 0;
     addLabel(tableWidget, "Classes : ", currentRow++, column);
 
-    int indexClass = static_cast<int>(PlayerManager::instance().getClass());
+    int indexClass = static_cast<int>(GeneralManager::instance().getClass());
     ComboBoxItem* classBox = addComboBoxItem(tableWidget, "Classe", classToString, currentRow++, column, indexClass);
     classBox->setOnValueChanged([this](int index) {
-        PlayerManager::instance().setClass(static_cast<Class>(index));
+        GeneralManager::instance().setClass(static_cast<Class>(index));
         emit techChanged();
     });
 
-    int indexAllianceClass = static_cast<int>(PlayerManager::instance().getAllianceClass());
+    int indexAllianceClass = static_cast<int>(GeneralManager::instance().getAllianceClass());
     ComboBoxItem* alliClassBox = addComboBoxItem(tableWidget, "Classe alli", allianceClassToString, currentRow++, column, indexAllianceClass);
     alliClassBox->setOnValueChanged([this](int index) {
-        PlayerManager::instance().setAllianceClass(static_cast<AllianceClass>(index));
+        GeneralManager::instance().setAllianceClass(static_cast<AllianceClass>(index));
         emit techChanged();
     });
 
@@ -788,10 +816,10 @@ void MainWindow::buildSpecialisationImputs(QTableWidget* tableWidget, int column
     for (int i = 0; i < static_cast<int>(Officers::Count); ++i)
     {
         Officers officer = static_cast<Officers>(i);
-        bool initValue = PlayerManager::instance().getOfficerValue(officer);
+        bool initValue = GeneralManager::instance().getOfficerValue(officer);
         CheckBoxItem* officerCheckBox = addCheckBoxItem(tableWidget, officerToString[i], currentRow++, column, initValue);
         officerCheckBox->addOnValueChanged([this, officer](bool value) {
-            PlayerManager::instance().setOfficerActivated(officer, value);
+            GeneralManager::instance().setOfficerActivated(officer, value);
             emit techChanged();
         });
         officerWidgets[officer] = officerCheckBox;
@@ -806,7 +834,7 @@ void MainWindow::buildSpecialisationImputs(QTableWidget* tableWidget, int column
                 if (value)
                 {
                     officerWidgets.at(officer)->setValue(true);
-                    PlayerManager::instance().setOfficerActivated(officer, true);
+                    GeneralManager::instance().setOfficerActivated(officer, true);
                 }
                 officerWidgets.at(officer)->setEnabled(!value);
             }
@@ -825,31 +853,31 @@ void MainWindow::buildTradeImputs(QTableWidget* tableWidget, int column)
 {
     addLabel(tableWidget, "Taux de conversion : ", 0, column);
 
-    double metalRateValue = PlayerManager::instance().getConversionRate().metal;
+    double metalRateValue = GeneralManager::instance().getConversionRate().metal;
     DoubleSpinBoxItem* metalRate = addDoubleSpinBoxItem(tableWidget, "Métal", 1, column, metalRateValue, 1.0);
     metalRate->setOnValueChanged([this](double value) {
-        PlayerManager::instance().setConversionRateAt(RessourceType::Metal, value);
+        GeneralManager::instance().setConversionRateAt(RessourceType::Metal, value);
         emit techChanged();
     });
 
-    double cristalRateValue = PlayerManager::instance().getConversionRate().cristal;
+    double cristalRateValue = GeneralManager::instance().getConversionRate().cristal;
     DoubleSpinBoxItem* cristalRate = addDoubleSpinBoxItem(tableWidget, "Cristal", 2, column, cristalRateValue, 1.0);
     cristalRate->setOnValueChanged([this](double value) {
-        PlayerManager::instance().setConversionRateAt(RessourceType::Cristal, value);
+        GeneralManager::instance().setConversionRateAt(RessourceType::Cristal, value);
         emit techChanged();
     });
 
-    double deutRateValue = PlayerManager::instance().getConversionRate().deut;
+    double deutRateValue = GeneralManager::instance().getConversionRate().deut;
     DoubleSpinBoxItem* deutRate = addDoubleSpinBoxItem(tableWidget, "Deut", 3, column, deutRateValue, 1.0);
     deutRate->setOnValueChanged([this](double value) {
-        PlayerManager::instance().setConversionRateAt(RessourceType::Deut, value);
+        GeneralManager::instance().setConversionRateAt(RessourceType::Deut, value);
         emit techChanged();
     });
 
-    int rate = PlayerManager::instance().getScrapRate();
+    int rate = GeneralManager::instance().getScrapRate();
     Item* scrapRate = addSpinBoxItem(tableWidget, "Taux ferraille (%)", 5, column, rate, 35, 100);
     scrapRate->setOnValueChanged([this](int value) {
-        PlayerManager::instance().setScrapRate(value);
+        GeneralManager::instance().setScrapRate(value);
         emit techChanged();
     });
 }

@@ -20,13 +20,6 @@ PlayerManager& PlayerManager::instance()
 
 PlayerManager::PlayerManager()
 {
-    //QString path = getSavePath();
-    //if (QFileInfo::exists(path)) {
-    //    loadSave(path);
-    //} else {
-    //    loadInitSave();
-    //}
-
     clear();
     refresh();
 }
@@ -60,11 +53,6 @@ bool PlayerManager::loadSave(const QString& path)
 
     QJsonObject root = doc.object();
 
-    readUniverses(root);
-    readSpecies(root);
-    readClassData(root);
-    readOfficersData(root);
-    readConversionData(root);
     readAllPlanetData(root);
     readFleetData(root);
     readDiscoveries(root);
@@ -78,17 +66,17 @@ float PlayerManager::getResearchTime(int indexTech, int level) const
 {
     float timeDays = TechManager::instance().getBaseTime(TechType::CommonResearch, indexTech, level);
     timeDays /= (float)(1 + _labsLevel);
-    timeDays /= (float)_universeSpecifics.at(UniverseSpecifics::ResearchBoost);
+    timeDays /= (float)GeneralManager::instance().getUniverseSpecific(UniverseSpecifics::ResearchBoost);
 
     float factorTimeReduction = 1.0f - _lifeFormBonuses.at(BonusLifeForm::ResearchDuration) / 100.0f;
     factorTimeReduction = std::max(0.0f, factorTimeReduction);
     timeDays *= factorTimeReduction;
 
-    if (_class == Class::Explorer)
+    if (GeneralManager::instance().getClass() == Class::Explorer)
     {
         timeDays *= 0.75f;
     }
-    if (_officers.at(Officers::Technocrat))
+    if (GeneralManager::instance().getOfficerValue(Officers::Technocrat))
     {
         timeDays *= 0.75f;
     }
@@ -132,12 +120,6 @@ PlayerManager::Planification* PlayerManager::getPlanif(int index)
     }
 }
 
-Ressources<float> PlayerManager::getPlasmaBonus() const
-{
-    float levelPlasma = (float)GeneralManager::instance().getResearchLevel(ResearchType::Plasma);
-    return Ressources<float>(levelPlasma, 0.66f * levelPlasma, 0.33f * levelPlasma);
-}
-
 Ressources<float> PlayerManager::getLifeFormProdBonus() const
 {
     float metalBonus    = _lifeFormBonuses.at(BonusLifeForm::Metal);
@@ -146,59 +128,12 @@ Ressources<float> PlayerManager::getLifeFormProdBonus() const
     return Ressources<float>(metalBonus, cristalBonus, deutBonus);
 }
 
-Ressources<float> PlayerManager::getGeologBonus() const
-{
-    if (_officers.at(Officers::Concil))
-    {
-        return Ressources<float>(12.0f, 12.0f, 12.0f);
-    }
-    else if (_officers.at(Officers::Geolog))
-    {
-        return Ressources<float>(10.0f, 10.0f, 10.0f);
-    }
-    else
-    {
-        return Ressources<float>();
-    }
-}
-Ressources<float> PlayerManager::getClassBonus() const
-{
-    if (_class == Class::Collector)
-    {
-        return Ressources<float>(25.0f, 25.0f, 25.0f);
-    }
-    else
-    {
-        return Ressources<float>();
-    }
-}
-Ressources<float> PlayerManager::getAllianceClassBonus() const
-{
-    if (_allianceClass == AllianceClass::Merchand)
-    {
-        return Ressources<float>(5.0f, 5.0f, 5.0f);
-    }
-    else
-    {
-        return Ressources<float>();
-    }
-}
-
 void PlayerManager::refresh()
 {
-    computeLifeFormResearch();
-
     if (_planetToRemove)
     {
         _planets.erase(_planets.begin() + *_planetToRemove);
         _planetToRemove = std::nullopt;
-    }
-
-    int numberPlanet = getNumberPlanets();
-    for (int i = 0; i < numberPlanet; ++i)
-    {
-        Planet* planet = getPlanet(i);
-        planet->refresh();
     }
 
     if (_planifToRemove)
@@ -207,11 +142,20 @@ void PlayerManager::refresh()
         _planifToRemove = std::nullopt;
     }
 
+    computeLifeFormResearch(); //needed for computing planets productions, must be computed first
+
+    int numberPlanet = getNumberPlanets();
+    for (int i = 0; i < numberPlanet; ++i)
+    {
+        Planet* planet = getPlanet(i);
+        planet->refresh(getLifeFormProdBonus());
+    }
+
     int numberPlanif = getNumberPlanifs();
     for (int i = 0; i < numberPlanif; ++i)
     {
         Planification* planif = getPlanif(i);
-        planif->planet.refresh();
+        planif->planet.refresh(getLifeFormProdBonus());
     }
 
     computeProduction();
@@ -234,7 +178,15 @@ void PlayerManager::computeLifeFormResearch()
     for (int i = 0; i < numberPlanet; ++i)
     {
         Planet* planet = getPlanet(i);
-        planet->computeLifeFormResearch(_levelSpecies);
+        planet->computeLifeFormResearch();
+    }
+
+    // Compute for each planif
+    int numberPlanif = getNumberPlanifs();
+    for (int i = 0; i < numberPlanif; ++i)
+    {
+        Planification* planif = getPlanif(i);
+        planif->planet.computeLifeFormResearch();
     }
 
     // Factorise
@@ -251,40 +203,30 @@ void PlayerManager::computeLifeFormResearch()
 
 void PlayerManager::computeProduction()
 {
+    _productionStats.clear();
     int numberPlanet = getNumberPlanets();
-    Ressources<int> base, prodMines, prodCrawler, prodBuildingLifeForm;
     for (int i = 0; i < numberPlanet; ++i)
     {
         const Planet* planet = getPlanet(i);
 
-        base                    += planet->getProductionStat(Planet::ProductionStat::Base);
-        prodMines               += planet->getProductionStat(Planet::ProductionStat::Mines);
-        prodBuildingLifeForm    += planet->getProductionStat(Planet::ProductionStat::BuildingLifeForm);
-        prodCrawler             += planet->getProductionStat(Planet::ProductionStat::Crawlers);
+        _productionStats[ProductionStat::Base]                  += planet->getProductionStat(Planet::ProductionStat::Base);
+        _productionStats[ProductionStat::Mines]                 += planet->getProductionStat(Planet::ProductionStat::Mines);
+        _productionStats[ProductionStat::BuildingLifeFormTotal] += planet->getProductionStat(Planet::ProductionStat::BuildingLifeForm);
+        _productionStats[ProductionStat::CrawlersTotal]         += planet->getProductionStat(Planet::ProductionStat::Crawlers);
+        _productionStats[ProductionStat::Plasma]                += planet->getProductionStat(Planet::ProductionStat::Plasma);
+        _productionStats[ProductionStat::Geolog]                += planet->getProductionStat(Planet::ProductionStat::Geolog);
+        _productionStats[ProductionStat::Council]               += planet->getProductionStat(Planet::ProductionStat::Council);
+        _productionStats[ProductionStat::ClassBonus]            += planet->getProductionStat(Planet::ProductionStat::Class);
+        _productionStats[ProductionStat::AllianceBonus]         += planet->getProductionStat(Planet::ProductionStat::AllianceClass);
+        _productionStats[ProductionStat::LifeFormBonus]         += planet->getProductionStat(Planet::ProductionStat::LifeFormResearch);
+        _productionStats[ProductionStat::Total]                 += planet->getProductionStat(Planet::ProductionStat::Total);
     }
 
-    _productionStats[ProductionStat::Base]                  = base;
-    _productionStats[ProductionStat::Mines]                 = prodMines;
-    _productionStats[ProductionStat::BuildingLifeFormTotal] = prodBuildingLifeForm;
-    _productionStats[ProductionStat::CrawlersTotal]         = prodCrawler;
-    _productionStats[ProductionStat::Plasma]                = Ressources<float>(prodMines) * getPlasmaBonus() * 0.01f;
-    _productionStats[ProductionStat::LifeFormBonus]         = Ressources<float>(prodMines) * getLifeFormProdBonus() * 0.01f;
-    _productionStats[ProductionStat::Geolog]                = Ressources<float>(prodMines) * getGeologBonus() * 0.01f;
-    _productionStats[ProductionStat::ClassBonus]            = Ressources<float>(prodMines) * getClassBonus() * 0.01f;
-    _productionStats[ProductionStat::AllianceBonus]         = Ressources<float>(prodMines) * getAllianceClassBonus() * 0.01f;
-
-    _productionStats[ProductionStat::Total] = Ressources<float>();
-    for (int i = 0; i < static_cast<int>(ProductionStat::Total); i++)
-    {
-        ProductionStat stat = static_cast<ProductionStat>(i);
-        _productionStats[ProductionStat::Total] +=_productionStats.at(stat);
-    }
-
-    _productionStatsPercent[ProductionStatPercent::PlasmaPercent]         = getPlasmaBonus();
+    _productionStatsPercent[ProductionStatPercent::PlasmaPercent]         = GeneralManager::instance().getPlasmaBonus();
     _productionStatsPercent[ProductionStatPercent::LifeFormBonusPercent]  = getLifeFormProdBonus();
-    _productionStatsPercent[ProductionStatPercent::GeologPercent]         = getGeologBonus();
-    _productionStatsPercent[ProductionStatPercent::ClassBonusPercent]     = getClassBonus();
-    _productionStatsPercent[ProductionStatPercent::AllianceBonusPercent]  = getAllianceClassBonus();
+    _productionStatsPercent[ProductionStatPercent::GeologPercent]         = GeneralManager::instance().getGeologBonus();
+    _productionStatsPercent[ProductionStatPercent::ClassBonusPercent]     = GeneralManager::instance().getClassBonus();
+    _productionStatsPercent[ProductionStatPercent::AllianceBonusPercent]  = GeneralManager::instance().getAllianceClassBonus();
 }
 
 void PlayerManager::computeLabsLevel()
@@ -334,7 +276,11 @@ void PlayerManager::computeConversionRate()
     int costFullMetal = 42000;
     float benefMetal = getProduction(PlayerManager::ProductionStat::Total).metal;
     float amToMetal = (float)costFullMetal / benefMetal;
-    _conversionRates.antimatter = amToMetal / _conversionRates.deut * _conversionRates.metal;
+    Ressources<float> conversionRate = GeneralManager::instance().getConversionRate();
+
+    conversionRate.antimatter = amToMetal / conversionRate.deut * conversionRate.metal;
+
+    GeneralManager::instance().setConversionRate(conversionRate);
 }
 
 void PlayerManager::computeScrapValue()
@@ -345,37 +291,20 @@ void PlayerManager::computeScrapValue()
         Unit unit = TechManager::instance().getMovingUnit(unitType);
         _scrapValue += numberShip * unit.cost;
     }
-    _scrapValue *= _scrapRate / 100.0f;
+    _scrapValue *= GeneralManager::instance().getScrapRate() / 100.0f;
 }
 
 bool PlayerManager::clear()
 {
-    for (int i = 0; i < static_cast<int>(UniverseSpecifics::Count); ++i) {
-        _universeSpecifics[static_cast<UniverseSpecifics>(i)] = 1;
-    }
-
-    for (int i = 1; i < static_cast<int>(Species::Count); ++i) {
-        _levelSpecies[static_cast<Species>(i)] = 0;
-    }
-
-    for (int i = 0; i < static_cast<int>(Officers::Count); ++i) {
-        _officers[static_cast<Officers>(i)] = false;
-    }
-
     _planets.clear();
     _planifPlanets.clear();
     _lifeFormBonuses.clear();
     _fleet.clear();
     _scrapFleet.clear();
-    _class = Class::None;
-    _allianceClass = AllianceClass::None;
-    _scrapRate = 35;
     _discoveryPerDay = 0.0f;
     _deutConsumption = 0;
     _positionDiscovery = 1;
     _additionalBonusRessources = 0;
-
-    setConversionRate(Ressources(3.0f, 2.0f, 1.0f));
 
     addPlanet("Planète mère", {1, 1, 1}, 0, Species::None);
 
@@ -393,105 +322,6 @@ void PlayerManager::duplicatePlanet()
 {
     Planet* planet = new Planet(_planets.back());
     _planets.push_back(planet);
-}
-
-void PlayerManager::readUniverses(const QJsonObject &parent)
-{
-    QJsonArray universes = parent["universe"].toArray();
-
-    int indexUniverse = 0;
-    for (const QJsonValue& value : universes) {
-        QJsonObject universe = value.toObject();
-        int level = universe["level"].toInt();
-
-        _universeSpecifics[static_cast<UniverseSpecifics>(indexUniverse)] = level;
-        indexUniverse++;
-    }
-}
-
-void PlayerManager::readSpecies(const QJsonObject& parent)
-{
-    _levelSpecies.clear();
-    QJsonArray species = parent["species"].toArray();
-
-    int indexSpecies = 1;
-    for (const QJsonValue& value : species) {
-        QJsonObject race = value.toObject();
-        int level = race["level"].toInt();
-
-        _levelSpecies[static_cast<Species>(indexSpecies)] = level;
-        indexSpecies++;
-    }
-}
-
-void PlayerManager:: readClassData(const QJsonObject& parent)
-{
-    QJsonArray classDatas = parent["classData"].toArray();
-
-    QJsonObject classData = classDatas[0].toObject();
-    QJsonObject allianceData = classDatas[1].toObject();
-
-    int indexClass = classData["index"].toInt();
-    int indexAlliance = allianceData["index"].toInt();
-
-    _class = static_cast<Class>(indexClass);
-    _allianceClass = static_cast<AllianceClass>(indexAlliance);
-}
-
-void PlayerManager:: readOfficersData(const QJsonObject& parent)
-{
-    _officers.clear();
-    QJsonArray officers = parent["officers"].toArray();
-
-    int indexOfficers = 0;
-    for (const QJsonValue& value : officers) {
-        QJsonObject research = value.toObject();
-        bool activated = research["active"].toBool();
-
-        _officers[static_cast<Officers>(indexOfficers)] = activated;
-        indexOfficers++;
-    }
-}
-
-void PlayerManager::readConversionData(const QJsonObject& parent)
-{
-    QJsonArray merchandsRate = parent["merchandsRate"].toArray();
-
-    int index = 0;
-    Ressources<float> conversionRate;
-    for (const QJsonValue& value : merchandsRate) {
-        QJsonObject rate = value.toObject();
-        double level = rate["level"].toDouble();
-        QString name = rate["label"].toString();
-
-        if (name == "Métal")
-        {
-            conversionRate.metal = level;
-        }
-        else if (name == "Cristal")
-        {
-            conversionRate.cristal = level;
-        }
-        else if (name == "Deut")
-        {
-            conversionRate.deut = level;
-        }
-        else
-        {
-            qWarning() << "'" << name << "' is not a valid ressource name";
-        }
-
-        index++;
-    }
-
-    setConversionRate(conversionRate);
-
-    QJsonArray scrapDatas = parent["scrapRate"].toArray();
-
-    QJsonObject scrapData = scrapDatas[0].toObject();
-
-    int level = scrapData["level"].toInt();
-    _scrapRate = level;
 }
 
 void PlayerManager:: readAllPlanetData(const QJsonObject& parent)
@@ -589,103 +419,11 @@ QJsonDocument PlayerManager::generateGameDataJson()
 {
     QJsonObject root;
 
-    writeUniverses(root);
-    writeSpecies(root);
-    writeClassData(root);
-    writeOfficersData(root);
-    writeConversionData(root);
     writeAllPlanetData(root);
     writeFleetData(root);
     writeDiscoveries(root);
 
     return QJsonDocument(root);
-}
-
-void PlayerManager::writeUniverses(QJsonObject& parent)
-{
-    QJsonArray universeStats;
-
-    int index = 0;
-    for (auto itr = _universeSpecifics.begin(); itr != _universeSpecifics.end(); ++itr) {
-        QJsonObject obj;
-        obj["label"] = universeSpecificsToString[index];
-        obj["level"] = itr->second;
-        universeStats.append(obj);
-        index++;
-    }
-
-    parent["universe"] = universeStats;
-}
-
-void PlayerManager::writeSpecies(QJsonObject& parent)
-{
-    QJsonArray speciesLevel;
-
-    int index = 0;
-    for (auto itr = _levelSpecies.begin(); itr != _levelSpecies.end(); ++itr) {
-        QJsonObject obj;
-        obj["label"] = speciesToString[index];
-        obj["level"] = itr->second;
-        speciesLevel.append(obj);
-        index++;
-    }
-
-    parent["species"] = speciesLevel;
-}
-
-void PlayerManager::writeClassData(QJsonObject& parent)
-{
-    QJsonArray classData;
-
-    QJsonObject classe;
-    classe["label"] = "Classe";
-    classe["index"] = static_cast<int>(_class);
-    classData.append(classe);
-
-    QJsonObject allianceClass;
-    allianceClass["label"] = "Classe alli";
-    allianceClass["index"] = static_cast<int>(_allianceClass);
-    classData.append(allianceClass);
-
-    parent["classData"] = classData;
-}
-
-void PlayerManager::writeOfficersData(QJsonObject& parent)
-{
-    QJsonArray officerArray;
-
-    int index = 0;
-    for (auto itr = _officers.begin(); itr != _officers.end(); ++itr) {
-        QJsonObject obj;
-        obj["label"] = officerToString[index];
-        obj["active"] = itr->second;
-        officerArray.append(obj);
-        index++;
-    }
-
-    parent["officers"] = officerArray;
-}
-
-void PlayerManager::writeConversionData(QJsonObject& parent)
-{
-    QJsonArray conversionArray;
-
-    for (int index = 0; index < 3; ++index)
-    {
-        QJsonObject obj;
-        obj["label"] = ressourceToString[index];
-        obj["level"] = _conversionRates.getRessource(static_cast<RessourceType>(index));
-        conversionArray.append(obj);
-    }
-    parent["merchandsRate"] = conversionArray;
-
-    QJsonArray scrapParent;
-    QJsonObject scrapRate;
-    scrapRate["label"] = "scrapRate";
-    scrapRate["level"] = _scrapRate;
-    scrapParent.append(scrapRate);
-
-    parent["scrapRate"] = scrapParent;
 }
 
 void PlayerManager::writeAllPlanetData(QJsonObject& parent)

@@ -115,6 +115,15 @@ struct Ressources {
         return rhs;
     }
 
+    void clear()
+    {
+        metal = 0.0f;
+        cristal = 0.0f;
+        deut = 0.0f;
+        energy = 0.0f;
+        antimatter = 0.0f;
+    }
+
     bool empty() const
     {
         return metal == 0.0f && cristal == 0.0f && deut == 0.0f && energy == 0.0f && antimatter == 0.0f;

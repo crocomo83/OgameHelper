@@ -13,6 +13,7 @@ public:
         Mines,
         Crawlers,
         BuildingLifeForm,
+        Plasma,
         Ingenior,
         Geolog,
         Council,
@@ -50,9 +51,11 @@ public:
     inline Ressources<float> getTechProduction(TechType type, int index) const {return _techs.at(type).at(index)._production;}
     inline Ressources<float> getBonusMine() const {return _bonusProdPositionCoeff;}
     inline PlanetPosition   getPosition() const {return _position;}
+    inline const Ressources<int>& getRefRawProduction() const { return _rawRefProduction;}
     inline const Ressources<int>& getProductionStat(ProductionStat stat) const {return _productionStats.at(stat);}
     inline const Ressources<float>& getProductionStatPercent(ProductionStatPercent stat) const {return _productionStatsPercent.at(stat);}
     inline float            getLifeFormBuildingBonus(BonusLifeFormBuilding bonus) const {return _lifeFormBuildingBonuses.at(bonus);}
+    inline const Ressources<int>& getUsefullInvestedRessources() const {return _usefullInvestedRessources;}
 
     float                   getLifeFormBonus(BonusLifeForm bonus) const;
     int                     getMaxActiveCrawler() const;
@@ -76,13 +79,13 @@ public:
     float                   getConsumptionReductionFactor() const;
     bool                    hasWorkingLab() const {return _workingLab;}
 
-    void                    refresh();
-    void                    computeLifeFormResearch(const std::map<Species, int>& levelSpecies);
+    void                    refresh(const Ressources<float> &lifeFormBonuses);
+    void                    computeLifeFormResearch();
     void                    computeBonusPos();
     void                    computeLifeFormBonus();
-    void                    computeLifeFormBuildingProduction();
     void                    computeBaseProduction();
-    void                    computeProduction();
+    void                    computeLifeFormBuildingProduction();
+    void                    computeProduction(const Ressources<float> &lifeFormBonuses);
 
     inline void             setName(QString name) {_name = name;}
     inline void             setTemperatureMax(int tempMax) {_temperatureMax = tempMax;}
@@ -107,6 +110,8 @@ private:
     bool                                        _workingLab {false};
 
     std::map<ProductionStat, Ressources<int>>   _productionStats;
+    Ressources<int>                             _rawRefProduction;
+    Ressources<int>                             _usefullInvestedRessources;
     std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;
     std::map<BonusLifeFormBuilding, float>      _lifeFormBuildingBonuses;
 };

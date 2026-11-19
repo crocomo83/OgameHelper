@@ -24,6 +24,7 @@ public:
         Plasma,
         LifeFormBonus,
         Geolog,
+        Council,
         ClassBonus,
         AllianceBonus,
         Total,
@@ -88,23 +89,11 @@ public:
     inline int              getNumberPlanifs() const {return _planifPlanets.size();}
     inline const QString&   getPlanetName(int index) const {return _planets.at(index).getName();}
     inline float            getLifeFormBonus(BonusLifeForm bonus) const {return _lifeFormBonuses.at(bonus);}
-    inline Class            getClass() const {return _class;}
-    inline AllianceClass    getAllianceClass() const {return _allianceClass;}
-    inline int              getScrapRate() const {return _scrapRate;}
-    inline int              getUniverseSpecific(UniverseSpecifics universeSpecific) const { return _universeSpecifics.at(universeSpecific);}
-    inline bool             getOfficerValue(Officers officer) const {return _officers.at(officer);}
-    inline Ressources<float> getConversionRate() const {return _conversionRates;}
-    inline const std::map<Species, int>& getAllSpecies() const {return _levelSpecies;}
-    inline int              getSpecies(Species species) const {return _levelSpecies.at(species);}
     inline Ressources<float> getScrapValue() const {return _scrapValue;}
 
     Planet*                 getPlanet(int index);
     Planification*          getPlanif(int index);
-    Ressources<float>       getPlasmaBonus() const;
     Ressources<float>       getLifeFormProdBonus() const;
-    Ressources<float>       getGeologBonus() const;
-    Ressources<float>       getClassBonus() const;
-    Ressources<float>       getAllianceClassBonus() const;
     float                   getResearchTime(int indexTech, int level) const;
     int                     getShip(MovingUnitType unitType) const;
     int                     getScrapShip(MovingUnitType unitType) const;
@@ -125,15 +114,6 @@ public:
     inline const Ressources<float>& getProductionPercent(ProductionStatPercent stat) const {return _productionStatsPercent.at(stat);}
     inline const QString& getProductionStr(ProductionStat stat) const {return _prods[static_cast<int>(stat)];}
 
-    // TODO : make a database somehow
-    inline void     setClass(Class globalClass) {_class = globalClass;}
-    inline void     setAllianceClass(AllianceClass allianceClass) {_allianceClass = allianceClass;}
-    inline void     setScrapRate(int scrapRate) {_scrapRate = scrapRate;}
-    inline void     setUniverseSpecific(UniverseSpecifics universeSpecific, int speed) {_universeSpecifics[universeSpecific] = speed;}
-    inline void     setOfficerActivated(Officers officer, bool activated) {_officers[officer] = activated;}
-    inline void     setConversionRate(Ressources<float> conversionRate) {_conversionRates = conversionRate;}
-    inline void     setConversionRateAt(RessourceType type, float conversionRate) {_conversionRates.setRessource(type, conversionRate);}
-    inline void     setSpecies(Species species, int level) {_levelSpecies[species] = level;}
     inline void     setShip(MovingUnitType unitType, int value) {_fleet[unitType] = value;}
     inline void     setScrapShip(MovingUnitType unitType, int value) {_scrapFleet[unitType] = value;}
     inline void     setDiscoveryPerDay(float value) {_discoveryPerDay = value;}
@@ -151,21 +131,11 @@ public:
     bool            clear();
 
 private:
-    void            readUniverses(const QJsonObject& parent);
-    void            readSpecies(const QJsonObject& parent);
-    void            readClassData(const QJsonObject& parent);
-    void            readOfficersData(const QJsonObject& parent);
-    void            readConversionData(const QJsonObject& parent);
     void            readAllPlanetData(const QJsonObject& parent);
     void            readFleetData(const QJsonObject& parent);
     Planet          readPlanetData(const QJsonObject& planetObj);
     void            readDiscoveries(const QJsonObject& parent);
 
-    void            writeUniverses(QJsonObject& parent);
-    void            writeSpecies(QJsonObject& parent);
-    void            writeClassData(QJsonObject& parent);
-    void            writeOfficersData(QJsonObject& parent);
-    void            writeConversionData(QJsonObject& parent);
     void            writeAllPlanetData(QJsonObject& parent);
     void            writeFleetData(QJsonObject& parent);
     QJsonObject     writePlanetData(const Planet& planet);
@@ -180,15 +150,6 @@ private:
     PlayerManager(const PlayerManager&) = delete;
     PlayerManager& operator=(const PlayerManager&) = delete;
 
-    Class                               _class {Class::None};
-    AllianceClass                       _allianceClass {AllianceClass::None};
-    int                                 _scrapRate {35};
-    int                                 _labsLevel {0};
-
-    std::map<UniverseSpecifics, int>    _universeSpecifics;
-    std::map<Officers, bool>            _officers;
-    Ressources<float>                   _conversionRates;
-    std::map<Species, int>              _levelSpecies;
     std::vector<Planet>                 _planets;
     std::vector<Planification>          _planifPlanets;
     std::optional<int>                  _planetToRemove;
@@ -197,6 +158,7 @@ private:
     std::map<MovingUnitType, int>       _fleet;
     std::map<MovingUnitType, int>       _scrapFleet;
     Ressources<float>                   _scrapValue;
+    int                                 _labsLevel {0};
 
     std::map<ProductionStat, Ressources<float>> _productionStats;
     std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;

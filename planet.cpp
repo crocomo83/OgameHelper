@@ -54,8 +54,6 @@ Planet::Planet(const Planet* planet)
     {
         _choicesLifeFormResearch.push_back(planet->getChoiceLifeFormResearch(i));
     }
-
-    refresh();
 }
 
 void Planet::initEmptyPlanet()
@@ -71,8 +69,6 @@ void Planet::initEmptyPlanet()
     }
     int numberLifeFormReseach = TechManager::instance().getNumberTechs(TechType::HumanResearch);
     _choicesLifeFormResearch.assign(numberLifeFormReseach, Species::None);
-
-    refresh();
 }
 
 void Planet::computeBonusPos()
@@ -105,16 +101,16 @@ void Planet::computeBonusPos()
     }
 }
 
-void Planet::refresh()
+void Planet::refresh(const Ressources<float> &lifeFormBonuses)
 {
     computeBonusPos();
     computeLifeFormBonus();
     computeBaseProduction();
     computeLifeFormBuildingProduction();
-    computeProduction();
+    computeProduction(lifeFormBonuses);
 }
 
-void Planet::computeLifeFormResearch(const std::map<Species, int> &levelSpecies)
+void Planet::computeLifeFormResearch()
 {
     _lifeFormBonuses.clear();
     int lifeFormBuildingNumber = TechManager::instance().getNumberTechs(TechType::HumanResearch);
@@ -129,7 +125,8 @@ void Planet::computeLifeFormResearch(const std::map<Species, int> &levelSpecies)
             const LifeFormTech* lifeFormTech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(lifeFormReasearch, j));
             for (auto itr = lifeFormTech->bonuses.begin(); itr != lifeFormTech->bonuses.end(); ++itr)
             {
-                float bonusLevelSpecies = 1.0f + (float)levelSpecies.at(lifeFormTech->species) * 0.001f;
+                int levelSpecies = GeneralManager::instance().getLevelSpecies(lifeFormTech->species);
+                float bonusLevelSpecies = 1.0f + (float)levelSpecies * 0.001f;
                 float bonus = level * itr->second * bonusLevelSpecies;
                 _lifeFormBonuses[itr->first] += bonus;
             }
@@ -160,13 +157,45 @@ void Planet::computeLifeFormBonus()
     }
 }
 
+void Planet::computeBaseProduction()
+{
+    _productionStats.clear();
+    _rawRefProduction.clear();
+
+    // Base
+    Ressources<int> baseProd;
+    baseProd.metal = (int)(_bonusProdPositionCoeff.metal * 30.0f) * 24;
+    baseProd.cristal = (int)(_bonusProdPositionCoeff.cristal * 15.0f) * 24;
+    baseProd.deut = 0;
+    _productionStats[ProductionStat::Base] = baseProd;
+
+    // Common buildings
+    int numberTech = getNumberTech(TechType::CommonBuilding);
+    for (int i = 0; i < numberTech; ++i)
+    {
+        Building& building = _techs.at(TechType::CommonBuilding).at(i);
+
+        CommonBuildingType buildingType = static_cast<CommonBuildingType>(i);
+
+        const Ressources<int>& production = getProduction(buildingType, building._level);
+        const Ressources<int>& consumption = getConsumption(buildingType, building._level);
+        building._production = production - consumption;
+        _productionStats[ProductionStat::Mines] += building._production;
+        _rawRefProduction += production;
+    }
+
+    _productionStats[ProductionStat::Mines].energy += getSatelliteProduction();
+    _rawRefProduction.energy += getSatelliteProduction();
+}
+
 void Planet::computeLifeFormBuildingProduction()
 {
-    const Ressources<float> minesProduction = _productionStats[ProductionStat::Mines];
+    Ressources<float> refProduction(_rawRefProduction);
 
     TechType typeBuilding = speciesToBuildingLifeForm.at(_species);
     int lifeFormBuildingNumber = typeBuilding == TechType::None ? 0 : TechManager::instance().getNumberTechs(typeBuilding);
 
+    _productionStats[ProductionStat::BuildingLifeForm] = 0;
     for (int j = 0; j < lifeFormBuildingNumber; j++)
     {
         int level = getTechLevel(typeBuilding, j);
@@ -193,53 +222,26 @@ void Planet::computeLifeFormBuildingProduction()
         }
 
         Building& building = _techs.at(typeBuilding).at(j);
-        building._production = factorMineBonus * minesProduction;
+        building._production = factorMineBonus * refProduction;
 
         float energyCost = building._level * lifeFormTech->baseCost.energy * std::pow(lifeFormTech->energieFactor,building._level);
         energyCost *= getConsumptionReductionFactor();
         building._production.energy -= energyCost;
+
+        _productionStats[ProductionStat::BuildingLifeForm] += building._production;
     }
 }
 
-void Planet::computeBaseProduction()
+void Planet::computeProduction(const Ressources<float> &lifeFormBonuses)
 {
-    _productionStats.clear();
-
-    // Base
-    Ressources<int> baseProd;
-    baseProd.metal = (int)(_bonusProdPositionCoeff.metal * 30.0f) * 24;
-    baseProd.cristal = (int)(_bonusProdPositionCoeff.cristal * 15.0f) * 24;
-    baseProd.deut = 0;
-    _productionStats[ProductionStat::Base] = baseProd;
-
-    // Common buildings
-    int numberTech = getNumberTech(TechType::CommonBuilding);
-    for (int i = 0; i < numberTech; ++i)
-    {
-        Building& building = _techs.at(TechType::CommonBuilding).at(i);
-
-        CommonBuildingType buildingType = static_cast<CommonBuildingType>(i);
-
-        const Ressources<int>& production = getProduction(buildingType, building._level);
-        const Ressources<int>& consumption = getConsumption(buildingType, building._level);
-        building._production = production - consumption;
-        _productionStats[ProductionStat::Mines] += production;
-    }
-
-    _productionStats[ProductionStat::Mines].energy += getSatelliteProduction();
-}
-
-void Planet::computeProduction()
-{
-    const Ressources<int> minesProduction = _productionStats[ProductionStat::Mines];
-
+    Ressources<float> refProduction(_rawRefProduction);
     // Crawlers percent
     float crawlerBonus = getCrawlerBonus();
     Ressources<float> crawlersPercent = Ressources(crawlerBonus, crawlerBonus, crawlerBonus);
     _productionStatsPercent[ProductionStatPercent::CrawlersPercent] = crawlersPercent;
 
     // Crawlers
-    Ressources<int> crawlerProd = static_cast<Ressources<float>>(minesProduction) * crawlersPercent / 100.0f;
+    Ressources<int> crawlerProd = refProduction * crawlersPercent / 100.0f;
     crawlerProd.energy = (int)(-50.f * (float)getMaxActiveCrawler() * getConsumptionReductionFactor());
     _productionStats[ProductionStat::Crawlers] = crawlerProd;
 
@@ -247,17 +249,21 @@ void Planet::computeProduction()
     Ressources<float> lifeFormBuildingPercent = getLifeFormProdBonus();
     _productionStatsPercent[ProductionStatPercent::BuildingLifeFormPercent] = lifeFormBuildingPercent;
 
-    // Buildings life form
-    Ressources<int> lifeFormBuilding = static_cast<Ressources<float>>(minesProduction) * lifeFormBuildingPercent / 100.0f;
-    _productionStats[ProductionStat::BuildingLifeForm] = lifeFormBuilding;
+    _productionStats[ProductionStat::Plasma]            = refProduction * GeneralManager::instance().getPlasmaBonus() * 0.01f;
+    _productionStats[ProductionStat::Ingenior]          = refProduction * GeneralManager::instance().getIngeniorBonus() * 0.01f;
+    _productionStats[ProductionStat::Geolog]            = refProduction * GeneralManager::instance().getGeologBonus() * 0.01f;
+    _productionStats[ProductionStat::Council]           = refProduction * GeneralManager::instance().getCouncilBonus() * 0.01f;
+    _productionStats[ProductionStat::Class]             = refProduction * GeneralManager::instance().getClassBonus() * 0.01f;
+    _productionStats[ProductionStat::AllianceClass]     = refProduction * GeneralManager::instance().getAllianceClassBonus() * 0.01f;
+    _productionStats[ProductionStat::LifeFormResearch]  = refProduction * lifeFormBonuses * 0.01f;
 
-    // Ingenior
-    // Geolog
-    // Council
-    // Class
-    // AllianceClass
-    // LifeFormResearch
     // Total
+    _productionStats[ProductionStat::Total] = Ressources<float>();
+    for (int i = 0; i < static_cast<int>(ProductionStat::Total); i++)
+    {
+        ProductionStat stat = static_cast<ProductionStat>(i);
+        _productionStats[ProductionStat::Total] += _productionStats.at(stat);
+    }
 } 
 
 Ressources<float> Planet::getLifeFormProdBonus() const
@@ -314,7 +320,7 @@ Ressources<int> Planet::getConsumption(CommonBuildingType mineType, int level) c
         break;
     case CommonBuildingType::CentraleFusion:
     {
-        prodHours.deut = -10.0f * (float)level * std::pow(1.1, level);
+        prodHours.deut = 10.0f * (float)level * std::pow(1.1, level);
         break;
     }
     }
@@ -476,7 +482,6 @@ float Planet::getConsumptionReductionFactor() const
 void Planet::setTechLevel(TechType type, int index, int level)
 {
     _techs[type][index]._level = level;
-    computeProduction();
 }
 
 float Planet::getLifeFormBonus(BonusLifeForm bonus) const
@@ -504,7 +509,7 @@ float Planet::getCrawlerBonus() const
 Ressources<float> Planet::getLifeFormBuildingProduction() const
 {
     Ressources<float> bonus = 0.01f * static_cast<Ressources<float>>(_productionStatsPercent.at(ProductionStatPercent::BuildingLifeFormPercent));
-    Ressources<float> prodMines = _productionStats.at(ProductionStat::Mines);
+    Ressources<float> prodMines = _rawRefProduction;
     return Ressources<float>(bonus.metal * prodMines.metal, bonus.cristal * prodMines.cristal, bonus.deut * prodMines.deut);
 }
 
