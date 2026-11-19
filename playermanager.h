@@ -109,10 +109,14 @@ public:
     void                    computeLabsLevel();
     void                    computeConversionRate();
     void                    computeScrapValue();
+    void                    computePoints();
 
     inline const Ressources<float>& getProduction(ProductionStat stat) const {return _productionStats.at(stat);}
     inline const Ressources<float>& getProductionPercent(ProductionStatPercent stat) const {return _productionStatsPercent.at(stat);}
     inline const QString& getProductionStr(ProductionStat stat) const {return _prods[static_cast<int>(stat)];}
+    inline const Ressources<int>& getAllInvestedRessources() const {return _allInvestedPoints;}
+    inline const Ressources<int>& getUsefullInvestedRessources() const {return _usefullInvestedPoints;}
+    inline const Ressources<int>& getFleetRessources() const {return _fleetPoints;}
 
     inline void     setShip(MovingUnitType unitType, int value) {_fleet[unitType] = value;}
     inline void     setScrapShip(MovingUnitType unitType, int value) {_scrapFleet[unitType] = value;}
@@ -162,6 +166,9 @@ private:
 
     std::map<ProductionStat, Ressources<float>> _productionStats;
     std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;
+    Ressources<int>                      _allInvestedPoints;
+    Ressources<int>                      _usefullInvestedPoints;
+    Ressources<int>                      _fleetPoints;
 
     // Discoveries
     float _discoveryPerDay {0.0f};

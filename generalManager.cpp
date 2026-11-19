@@ -152,8 +152,23 @@ Ressources<float> GeneralManager::getAllianceClassBonus() const
     }
 }
 
+void GeneralManager::computePoints()
+{
+    _investedPoints.clear();
+
+    // Common research
+    for (auto itr =_levelResearch.begin(); itr != _levelResearch.end(); ++itr)
+    {
+        int level = itr->second;
+        int indexResearch = static_cast<int>(itr->first);
+        Ressources<float> cumulCost = TechManager::instance().getCumulativeCost(TechType::CommonResearch, indexResearch, level);
+        _investedPoints += cumulCost / 1000;
+    }
+}
+
 void GeneralManager::refresh()
 {
+    computePoints();
 }
 
 bool GeneralManager::clear()

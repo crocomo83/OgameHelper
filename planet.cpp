@@ -108,6 +108,7 @@ void Planet::refresh(const Ressources<float> &lifeFormBonuses)
     computeBaseProduction();
     computeLifeFormBuildingProduction();
     computeProduction(lifeFormBonuses);
+    computePoints();
 }
 
 void Planet::computeLifeFormResearch()
@@ -264,7 +265,90 @@ void Planet::computeProduction(const Ressources<float> &lifeFormBonuses)
         ProductionStat stat = static_cast<ProductionStat>(i);
         _productionStats[ProductionStat::Total] += _productionStats.at(stat);
     }
-} 
+}
+
+void Planet::computePoints()
+{
+    _allInvestedPoints.clear();
+    _usefullInvestedPoints.clear();
+
+    // Common buildings
+    int numberTech = getNumberTech(TechType::CommonBuilding);
+    for (int i = 0; i < numberTech; ++i)
+    {
+
+        int level = getTechLevel(TechType::CommonBuilding, i);
+        Ressources<float> cumulPoints = TechManager::instance().getCumulativeCost(TechType::CommonBuilding, i, level) / 1000;
+
+        _allInvestedPoints += cumulPoints;
+        _usefullInvestedPoints += cumulPoints;
+    }
+
+    // Life form buildings
+    TechType typeBuilding = speciesToBuildingLifeForm.at(_species);
+    int lifeFormBuildingNumber = TechManager::instance().getNumberTechs(TechType::HumanBuilding);
+
+    static std::array<TechType, 4> buildingTypes = {
+        TechType::HumanBuilding,
+        TechType::MechBuilding,
+        TechType::KaeleshBuilding,
+        TechType::RoctasBuilding
+    };
+
+    for (int j = 0; j < 4; ++j)
+    {
+        TechType currentTechType = buildingTypes.at(j);
+        for (int i = 0; i < lifeFormBuildingNumber; i++)
+        {
+            int level = getTechLevel(currentTechType, i);
+            Ressources<float> cumulPoints = TechManager::instance().getCumulativeCost(currentTechType, i, level) / 1000;
+            _allInvestedPoints += cumulPoints;
+
+            if (currentTechType == typeBuilding)
+            {
+                _usefullInvestedPoints += cumulPoints;
+            }
+        }
+    }
+
+    // Life form researches
+    int lifeFormResearchNumber = TechManager::instance().getNumberTechs(TechType::HumanResearch);
+
+    static std::array<TechType, 4> researchTypes = {
+        TechType::HumanResearch,
+        TechType::MechResearch,
+        TechType::KaeleshResearch,
+        TechType::RoctasResearch
+    };
+
+    for (int j = 0; j < 4; ++j)
+    {
+        TechType currentTechType = researchTypes.at(j);
+        for (int i = 0; i < lifeFormResearchNumber; i++)
+        {
+            int level = getTechLevel(currentTechType, i);
+            Ressources<float> cumulPoints = TechManager::instance().getCumulativeCost(currentTechType, i, level) / 1000;
+            _allInvestedPoints += cumulPoints;
+
+            if (currentTechType == speciesToTechLifeForm.at(_choicesLifeFormResearch.at(i)))
+            {
+                _usefullInvestedPoints += cumulPoints;
+            }
+        }
+    }
+
+    // Defenses
+    for (auto itr = _defenses.begin(); itr != _defenses.end(); ++itr)
+    {
+        FixUnitType unitType = itr->first;
+        int number = itr->second;
+
+        const Unit& unit = TechManager::instance().getFixUnit(unitType);
+        Ressources<float> points = number * unit.cost / 1000;
+        _allInvestedPoints += points;
+        _usefullInvestedPoints += points;
+    }
+}
 
 Ressources<float> Planet::getLifeFormProdBonus() const
 {

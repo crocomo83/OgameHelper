@@ -18,6 +18,7 @@ public:
     int getNumberTechs(TechType techType) const;
     const CommonTech* getTech(TechType techType, int type) const;
     Ressources<float> getCost(TechType techType, int indexTech, int level) const;
+    Ressources<float> getCumulativeCost(TechType techType, int indexTech, int level) const;
     float getBaseTime(TechType techType, int indexTech, int level) const;
     bool isLifeFormBuilding(TechType techType) const;
     bool isLifeFormResearch(TechType techType) const;

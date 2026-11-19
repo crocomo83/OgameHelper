@@ -27,6 +27,7 @@ public:
     inline Ressources<float> getConversionRate() const {return _conversionRates;}
     inline const std::map<Species, int>& getAllSpecies() const {return _levelSpecies;}
     int                     getLevelSpecies(Species species) const;
+    inline const Ressources<int>& getInvestedRessources() const {return _investedPoints;}
 
     Ressources<float>       getPlasmaBonus() const;
     Ressources<float>       getIngeniorBonus() const;
@@ -46,6 +47,7 @@ public:
     inline void             setResearchLevel(ResearchType researchType, int level) {_levelResearch[researchType] = level;}
 
     bool                    saveGameData(const QString &path);
+    void                    computePoints();
     void                    refresh();
     bool                    clear();
 
@@ -82,4 +84,6 @@ private:
     Ressources<float>                   _conversionRates;
     std::map<Species, int>              _levelSpecies;
     std::map<ResearchType, int>         _levelResearch;
+
+    Ressources<int>                     _investedPoints;
 };

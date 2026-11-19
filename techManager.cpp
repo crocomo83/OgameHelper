@@ -1,4 +1,5 @@
 #include "techManager.h"
+#include "utils.h"
 
 #include <QFile>
 #include <QDebug>
@@ -209,15 +210,41 @@ const CommonTech* TechManager::getTech(TechType techType, int type) const
     return tech;
 }
 
-
 Ressources<float> TechManager::getCost(TechType techType, int indexTech, int level) const
+{
+    const CommonTech* commonTech = getTech(techType, indexTech);
+    switch (techType)
+    {
+    case TechType::CommonBuilding:
+    case TechType::CommonResearch:
+        return commonTech->baseCost * std::pow(commonTech->increaseFactor, level - 1);
+    case TechType::HumanBuilding:
+    case TechType::MechBuilding:
+    case TechType::KaeleshBuilding:
+    case TechType::RoctasBuilding:
+    case TechType::HumanResearch:
+    case TechType::MechResearch:
+    case TechType::KaeleshResearch:
+    case TechType::RoctasResearch:
+        return level * commonTech->baseCost * std::pow(commonTech->increaseFactor, level - 1);
+    default:
+        return Ressources<float>();
+    }
+}
+
+Ressources<float> TechManager::getCumulativeCost(TechType techType, int indexTech, int level) const
 {
     const CommonTech* commonTech = getTech(techType, indexTech);
     switch (techType)
     {
         case TechType::CommonBuilding:
         case TechType::CommonResearch:
-            return commonTech->baseCost * std::pow(commonTech->increaseFactor, level - 1);
+        {
+            float costMetal     = utils::cumulativeCost(commonTech->baseCost.metal, commonTech->increaseFactor, level);
+            float costCristal   = utils::cumulativeCost(commonTech->baseCost.cristal, commonTech->increaseFactor, level);
+            float costDeut      = utils::cumulativeCost(commonTech->baseCost.deut, commonTech->increaseFactor, level);
+            return Ressources<float>(costMetal, costCristal, costDeut);
+        }
         case TechType::HumanBuilding:
         case TechType::MechBuilding:
         case TechType::KaeleshBuilding:
@@ -226,7 +253,12 @@ Ressources<float> TechManager::getCost(TechType techType, int indexTech, int lev
         case TechType::MechResearch:
         case TechType::KaeleshResearch:
         case TechType::RoctasResearch:
-            return level * commonTech->baseCost * std::pow(commonTech->increaseFactor, level - 1);
+        {
+            float costMetal     = utils::cumulativeWeightedCost(commonTech->baseCost.metal, commonTech->increaseFactor, level);
+            float costCristal   = utils::cumulativeWeightedCost(commonTech->baseCost.cristal, commonTech->increaseFactor, level);
+            float costDeut      = utils::cumulativeWeightedCost(commonTech->baseCost.deut, commonTech->increaseFactor, level);
+            return Ressources<float>(costMetal, costCristal, costDeut);
+        }
         default:
             return Ressources<float>();
     }

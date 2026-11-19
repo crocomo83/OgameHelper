@@ -551,26 +551,55 @@ void MainWindow::buildResumeGeneralOutputs(float factor)
     addLabel(_overviewTable, "Deuterium", index, 3);
     index++;
 
-    const Ressources<float>& productionStat = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Total);
-    addLabel(_overviewTable, "Mines", index, 0);
-    addLabel(_overviewTable, utils::ressourceToString(productionStat.metal * factor), index, 1);
-    addLabel(_overviewTable, utils::ressourceToString(productionStat.cristal * factor), index, 2);
-    addLabel(_overviewTable, utils::ressourceToString(productionStat.deut * factor), index, 3);
+    auto addProdLabel = [this, &index, &factor](const QString& label, const Ressources<int>& prod)
+    {
+        addLabel(_overviewTable, label, index, 0);
+        addLabel(_overviewTable, utils::ressourceToString((int)((float)prod.metal    * factor)), index, 1);
+        addLabel(_overviewTable, utils::ressourceToString((int)((float)prod.cristal  * factor)), index, 2);
+        addLabel(_overviewTable, utils::ressourceToString((int)((float)prod.deut     * factor)), index, 3);
+        index++;
+    };
+
+    auto addPointLabel = [this, &index, &factor](const QString& label, const Ressources<int>& points)
+    {
+        addLabel(_overviewTable, label, index, 0);
+        addLabel(_overviewTable, utils::ressourceToString(points.metal), index, 1);
+        addLabel(_overviewTable, utils::ressourceToString(points.cristal), index, 2);
+        addLabel(_overviewTable, utils::ressourceToString(points.deut), index, 3);
+
+        int pointsTotal = points.metal + points.cristal + points.deut;
+        addLabel(_overviewTable, utils::ressourceToString(pointsTotal), index, 4);
+        index++;
+    };
+
+    Ressources<int> productionStat = PlayerManager::instance().getProduction(PlayerManager::ProductionStat::Total);
+    addProdLabel("Mines : ", productionStat);
+
+    Ressources<int> discoveryRessources = DiscoveryManager::instance().getSummary().globalMean;
+    addProdLabel("Discovery : ", discoveryRessources);
+
+    Ressources<int> totalRessources = productionStat + discoveryRessources;
+    addProdLabel("Total : ", totalRessources);
+
+    index++; //blank
+
+    addLabel(_overviewTable, "Points", index, 0);
+    addLabel(_overviewTable, "Métal", index, 1);
+    addLabel(_overviewTable, "Cristal", index, 2);
+    addLabel(_overviewTable, "Deuterium", index, 3);
     index++;
 
-    const Ressources<float>& discoveryRessources = DiscoveryManager::instance().getSummary().globalMean;
-    addLabel(_overviewTable, "Discovery", index, 0);
-    addLabel(_overviewTable, utils::ressourceToString(discoveryRessources.metal * factor), index, 1);
-    addLabel(_overviewTable, utils::ressourceToString(discoveryRessources.cristal * factor), index, 2);
-    addLabel(_overviewTable, utils::ressourceToString(discoveryRessources.deut * factor), index, 3);
-    index++;
+    addPointLabel("Recherches : ", GeneralManager::instance().getInvestedRessources());
+    addPointLabel("Fleet : ", PlayerManager::instance().getFleetRessources());
 
-    const Ressources<float>& totalRessources = productionStat + discoveryRessources;
-    addLabel(_overviewTable, "Total", index, 0);
-    addLabel(_overviewTable, utils::ressourceToString(totalRessources.metal * factor), index, 1);
-    addLabel(_overviewTable, utils::ressourceToString(totalRessources.cristal * factor), index, 2);
-    addLabel(_overviewTable, utils::ressourceToString(totalRessources.deut * factor), index, 3);
-    index++;
+    int numberPlanet = PlayerManager::instance().getNumberPlanets();
+    for (int i = 0; i < numberPlanet; ++i)
+    {
+        const Planet* planet = PlayerManager::instance().getPlanet(i);
+        addPointLabel(planet->getName() +  " : ", planet->getAllInvestedRessources());
+    }
+
+    addPointLabel("Total : ", PlayerManager::instance().getAllInvestedRessources());
 }
 
 void MainWindow::buildResumePlanetOutputs(int indexPlanet, float factor)

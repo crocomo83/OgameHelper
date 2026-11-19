@@ -55,7 +55,8 @@ public:
     inline const Ressources<int>& getProductionStat(ProductionStat stat) const {return _productionStats.at(stat);}
     inline const Ressources<float>& getProductionStatPercent(ProductionStatPercent stat) const {return _productionStatsPercent.at(stat);}
     inline float            getLifeFormBuildingBonus(BonusLifeFormBuilding bonus) const {return _lifeFormBuildingBonuses.at(bonus);}
-    inline const Ressources<int>& getUsefullInvestedRessources() const {return _usefullInvestedRessources;}
+    inline const Ressources<int>& getAllInvestedRessources() const {return _allInvestedPoints;}
+    inline const Ressources<int>& getUsefullInvestedRessources() const {return _usefullInvestedPoints;}
 
     float                   getLifeFormBonus(BonusLifeForm bonus) const;
     int                     getMaxActiveCrawler() const;
@@ -86,6 +87,7 @@ public:
     void                    computeBaseProduction();
     void                    computeLifeFormBuildingProduction();
     void                    computeProduction(const Ressources<float> &lifeFormBonuses);
+    void                    computePoints();
 
     inline void             setName(QString name) {_name = name;}
     inline void             setTemperatureMax(int tempMax) {_temperatureMax = tempMax;}
@@ -111,7 +113,8 @@ private:
 
     std::map<ProductionStat, Ressources<int>>   _productionStats;
     Ressources<int>                             _rawRefProduction;
-    Ressources<int>                             _usefullInvestedRessources;
+    Ressources<int>                             _allInvestedPoints;
+    Ressources<int>                             _usefullInvestedPoints;
     std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;
     std::map<BonusLifeFormBuilding, float>      _lifeFormBuildingBonuses;
 };

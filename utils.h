@@ -2,6 +2,7 @@
 
 #include <QString>
 #include <QLocale>
+#include <cmath>
 
 namespace utils
 {
@@ -57,5 +58,32 @@ namespace utils
         {
             return QString::number(value);
         }
+    }
+
+    inline double cumulativeCost(double cste, double increaseFactor, int n)
+    {
+        if (n <= 0)
+            return 0.0;
+
+        if (increaseFactor == 1.0)
+            return cste * n;
+
+        double r = increaseFactor;
+
+        return cste * (std::pow(r, n) - 1.0) / (r - 1.0);
+    }
+
+    inline double cumulativeWeightedCost(double cste, double increaseFactor, int n)
+    {
+        if (n <= 0)
+            return 0.0;
+
+        if (increaseFactor == 1.0)
+            return cste * n * (n + 1) / 2.0;
+
+        double r = increaseFactor;
+        double rn = std::pow(r, n);
+
+        return cste * (1.0 - (n + 1) * rn + n * rn * r) / std::pow(1.0 - r, 2);
     }
 }

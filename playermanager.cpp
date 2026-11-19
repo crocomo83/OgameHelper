@@ -162,6 +162,7 @@ void PlayerManager::refresh()
     computeLabsLevel();
     computeConversionRate();
     computeScrapValue();
+    computePoints();
 }
 
 void PlayerManager::computeLifeFormResearch()
@@ -292,6 +293,37 @@ void PlayerManager::computeScrapValue()
         _scrapValue += numberShip * unit.cost;
     }
     _scrapValue *= GeneralManager::instance().getScrapRate() / 100.0f;
+}
+
+void PlayerManager::computePoints()
+{
+    _allInvestedPoints.clear();
+    _usefullInvestedPoints.clear();
+    _fleetPoints.clear();
+
+    const Ressources<int>& researchPoints = GeneralManager::instance().getInvestedRessources();
+    _allInvestedPoints += researchPoints;
+    _usefullInvestedPoints += researchPoints;
+
+    int numberPlanet = getNumberPlanets();
+    for (int i = 0; i < numberPlanet; ++i)
+    {
+        const Planet* planet = getPlanet(i);
+        _allInvestedPoints += planet->getAllInvestedRessources();
+        _usefullInvestedPoints += planet->getUsefullInvestedRessources();
+    }
+
+    for (auto itr = _fleet.begin(); itr != _fleet.end(); ++itr)
+    {
+        MovingUnitType unitType = itr->first;
+        int number = itr->second;
+
+        const Unit& unit = TechManager::instance().getMovingUnit(unitType);
+        Ressources<float> points = number * unit.cost / 1000;
+        _allInvestedPoints += points;
+        _usefullInvestedPoints += points;
+        _fleetPoints += points;
+    }
 }
 
 bool PlayerManager::clear()
