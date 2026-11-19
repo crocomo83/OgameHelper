@@ -51,6 +51,18 @@ public:
         }
     };
 
+    struct EnergyLevelUp : LevelUp
+    {
+        using LevelUp::LevelUp;
+
+        float _energyGain;
+
+        void computeRenta(Ressources<float> tradeRate)
+        {
+            _score = cost.getEquivalentDeut(tradeRate) / _energyGain;
+        }
+    };
+
     enum class TypeFilter
     {
         BuildingFilter,
@@ -64,6 +76,7 @@ public:
     enum class RentabilityType
     {
         Ressources,
+        Energy,
         BuildingSpeed,
         ResearchSpeed,
         LifeFormResearchSpeed,
@@ -76,6 +89,7 @@ public:
 
     int refresh();
     void refreshRessources();
+    void refreshEnergy();
     void refreshBuildingSpeed();
     void refreshResearchSpeed();
     void refreshLifeFormResearchSpeed();
@@ -108,6 +122,10 @@ private:
     void addLifeFormBuilding(int indexPlanet);
     void addLifeFormResearch(int indexPlanet);
     void addLevelUpLifeForm(PlayerManager::Planification *planif, int indexPlanet);
+
+    // Energy gains
+    void addBuildingForEnergy(int indexPlanet);
+    void addResearchForEnergy();
 
     // Time gains
     void addSpeedBuildingForBuilding(int indexPlanet);

@@ -37,6 +37,9 @@ int RentabilityManager::refresh()
     case RentabilityType::Ressources:
         refreshRessources();
         break;
+    case RentabilityType::Energy:
+        refreshEnergy();
+        break;
     case RentabilityType::BuildingSpeed:
         refreshBuildingSpeed();
         break;
@@ -109,6 +112,23 @@ void RentabilityManager::refreshRessources()
             {
                 qCritical() << "Planif " << j << " not found";
             }
+        }
+    }
+}
+
+void RentabilityManager::refreshEnergy()
+{
+    if (_typeFilter.at(TypeFilter::ResearchFilter))
+        addResearchForEnergy();
+
+    int nbPlanet = PlayerManager::instance().getNumberPlanets();
+    for (int i = 0; i < nbPlanet; ++i)
+    {
+        if (!_filterPlanet.at(i)) continue;
+
+        if (_typeFilter.at(TypeFilter::BuildingFilter))
+        {
+            addBuildingForEnergy(i);
         }
     }
 }
@@ -535,10 +555,8 @@ void RentabilityManager::addPlanifChgtSpecies(PlayerManager::Planification* plan
 
 void RentabilityManager::addMinesRentability(int indexPlanet)
 {
-    const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
-
-    int temperatureMax = planet->getTemperatureMax();
-    Ressources<float> bonus = planet->getBonusMine();
+    //const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
+    Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
 
     int indexMetal = static_cast<int>(CommonBuildingType::MineMetal);
     int indexCristal = static_cast<int>(CommonBuildingType::MineCristal);
@@ -565,6 +583,20 @@ void RentabilityManager::addMinesRentability(int indexPlanet)
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::GeologPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::ClassBonusPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::AllianceBonusPercent);
+
+    if (planet->getName() == "Coruscant")
+    {
+        qDebug() << "new deut prod : " << planet->getProduction(CommonBuildingType::MineDeut, levelDeut).deut / 24;
+        qDebug() << "gain deut prod : " << prodMinesLevelUp.deut / 24;
+
+        qDebug() << "bonus life form building percent : " << QString::number(planet->getProductionStatPercent(Planet::ProductionStatPercent::BuildingLifeFormPercent).deut);
+        qDebug() << "bonus crawler percent : " << QString::number(planet->getProductionStatPercent(Planet::ProductionStatPercent::CrawlersPercent).deut);
+        qDebug() << "bonus plasma percent : " << QString::number(PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::PlasmaPercent).deut);
+        qDebug() << "bonus life form percent : " << QString::number(PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::LifeFormBonusPercent).deut);
+        qDebug() << "bonus geolog percent : " << QString::number(PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::GeologPercent).deut);
+        qDebug() << "bonus class percent : " << QString::number(PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::ClassBonusPercent).deut);
+        qDebug() << "bonus alli class percent : " << QString::number(PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::AllianceBonusPercent).deut);
+    }
 
     prodMinesLevelUp += prodMinesLevelUp * bonusPercent * 0.01f;
 
@@ -696,6 +728,61 @@ void RentabilityManager::addLevelUpLifeForm(PlayerManager::Planification* planif
     addNewLevelUp(std::make_unique<ProductionLevelUp>(levelUpLifeForm), indexPlanet);
 }
 
+void RentabilityManager::addBuildingForEnergy(int indexPlanet)
+{
+    const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
+
+    int indexSolarCentral = static_cast<int>(CommonBuildingType::CentraleSolaire);
+    int indexFusionCentral = static_cast<int>(CommonBuildingType::CentraleFusion);
+
+    int levelSolarCentral = planet->getTechLevel(TechType::CommonBuilding, indexSolarCentral) + 1;
+    int levelFusionCentral = planet->getTechLevel(TechType::CommonBuilding, indexFusionCentral) + 1;
+
+    int solarCentralProd = planet->getProduction(CommonBuildingType::CentraleSolaire, levelSolarCentral).energy
+        - planet->getProduction(CommonBuildingType::CentraleSolaire, levelSolarCentral - 1).energy;
+
+    int fusionCentralProd = planet->getProduction(CommonBuildingType::CentraleFusion, levelFusionCentral).energy
+        - planet->getProduction(CommonBuildingType::CentraleFusion, levelFusionCentral - 1).energy;
+
+    EnergyLevelUp solarCentralLevelUp("Solar powerplant", levelSolarCentral);
+    solarCentralLevelUp._energyGain = solarCentralProd;
+    solarCentralLevelUp.cost = planet->getCost(TechType::CommonBuilding, indexSolarCentral, levelSolarCentral);
+    solarCentralLevelUp.timeToCompleteDay = planet->getTime(TechType::CommonBuilding, indexSolarCentral, levelSolarCentral);
+    addNewLevelUp(std::make_unique<EnergyLevelUp>(solarCentralLevelUp), indexPlanet);
+
+    EnergyLevelUp fusionCentralLevelUp("Fusion powerplant", levelFusionCentral);
+    fusionCentralLevelUp._energyGain = fusionCentralProd;
+    fusionCentralLevelUp.cost = planet->getCost(TechType::CommonBuilding, indexFusionCentral, levelFusionCentral);
+    fusionCentralLevelUp.timeToCompleteDay = planet->getTime(TechType::CommonBuilding, indexFusionCentral, levelFusionCentral);
+    addNewLevelUp(std::make_unique<EnergyLevelUp>(fusionCentralLevelUp), indexPlanet);
+}
+
+void RentabilityManager::addResearchForEnergy()
+{
+    int indexEnergy = static_cast<int>(ResearchType::Energie);
+    int indexFusionCentral = static_cast<int>(CommonBuildingType::CentraleFusion);
+
+    int levelTargetEnergy = GeneralManager::instance().getResearchLevel(ResearchType::Energie) + 1;
+
+    int gainEnergy = 0;
+    int numberPlanet = PlayerManager::instance().getNumberPlanets();
+    for (int i = 0; i < numberPlanet; ++i)
+    {
+        const Planet* planet = PlayerManager::instance().getPlanet(i);
+
+        int levelFusion = planet->getTechLevel(TechType::CommonBuilding, indexFusionCentral);
+        int currentGain = TechManager::instance().getProductionFusionPowerplant(levelFusion, levelTargetEnergy)
+            - TechManager::instance().getProductionFusionPowerplant(levelFusion, levelTargetEnergy - 1);
+        gainEnergy += currentGain;
+    }
+
+    EnergyLevelUp energyLevelUp("Energy", levelTargetEnergy);
+    energyLevelUp._energyGain = gainEnergy;
+    energyLevelUp.cost = TechManager::instance().getCost(TechType::CommonResearch, indexEnergy, levelTargetEnergy);
+    energyLevelUp.timeToCompleteDay = PlayerManager::instance().getResearchTime(indexEnergy, levelTargetEnergy);
+    addNewLevelUp(std::make_unique<EnergyLevelUp>(energyLevelUp));
+}
+
 void RentabilityManager::addSpeedBuildingForBuilding(int indexPlanet)
 {
     const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
@@ -743,7 +830,7 @@ void RentabilityManager::addSpeedResearchForResearch()
     int levelReseau = GeneralManager::instance().getResearchLevel(ResearchType::Reseau);
     int globalLabLevel = PlayerManager::instance().getGlobalLabLevel();
 
-    Ressources<float> cumulCost = TechManager::instance().getCost(TechType::CommonResearch, indexReseau, levelReseau);
+    Ressources<float> cumulCost = TechManager::instance().getCost(TechType::CommonResearch, indexReseau, levelReseau + 1);
     float percentGain = 0.0f;
     float currentPercentCost = std::numeric_limits<float>::max();
     int levelLab = 0;

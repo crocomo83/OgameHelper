@@ -381,6 +381,11 @@ const Unit& TechManager::getFixUnit(FixUnitType type) const
     return _fixUnits.at(type);
 }
 
+int TechManager::getProductionFusionPowerplant(int level, int levelEnergy) const
+{
+    return 30.0f * (float)level * std::pow(1.05f + 0.01f * (float)levelEnergy, level);
+}
+
 std::map<BonusLifeFormBuilding, double> TechManager::extractBonusesBuilding(const QJsonObject& obj) const
 {
     std::map<BonusLifeFormBuilding, double> result;

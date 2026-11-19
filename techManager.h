@@ -27,6 +27,7 @@ public:
     TechType getResearchTech(Species species) const;
     const Unit& getMovingUnit(MovingUnitType type) const;
     const Unit& getFixUnit(FixUnitType type) const;
+    int getProductionFusionPowerplant(int level, int levelEnergy) const;
 
     std::map<BonusLifeFormBuilding, double> extractBonusesBuilding(const QJsonObject& obj) const;
     std::map<BonusLifeForm, double> extractBonuses(const QJsonObject& obj) const;

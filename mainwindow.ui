@@ -51,7 +51,7 @@
       <item>
        <widget class="QTabWidget" name="tabGeneral">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="overview">
          <attribute name="title">
@@ -171,6 +171,11 @@
               <item>
                <property name="text">
                 <string>Ressources</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Energie</string>
                </property>
               </item>
               <item>

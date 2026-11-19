@@ -587,6 +587,7 @@ void MainWindow::buildResumeGeneralOutputs(float factor)
     addLabel(_overviewTable, "Métal", index, 1);
     addLabel(_overviewTable, "Cristal", index, 2);
     addLabel(_overviewTable, "Deuterium", index, 3);
+    addLabel(_overviewTable, "Total", index, 4);
     index++;
 
     addPointLabel("Recherches : ", GeneralManager::instance().getInvestedRessources());
@@ -714,6 +715,10 @@ void MainWindow::buildRentaOutputs()
     if (rentabilityType == RentabilityManager::RentabilityType::Ressources)
     {
         addLabel(tableWidget, "Temps de recouvrement", 0, 2);
+    }
+    else if (rentabilityType == RentabilityManager::RentabilityType::Energy)
+    {
+        addLabel(tableWidget, "Eq deut per energy", 0, 2);
     }
     else
     {
