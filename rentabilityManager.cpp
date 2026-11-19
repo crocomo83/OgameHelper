@@ -584,6 +584,8 @@ void RentabilityManager::addMinesRentability(int indexPlanet)
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::ClassBonusPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::AllianceBonusPercent);
 
+    prodMinesLevelUp += prodMinesLevelUp * bonusPercent * 0.01f;
+
     if (planet->getName() == "Coruscant")
     {
         qDebug() << "new deut prod : " << planet->getProduction(CommonBuildingType::MineDeut, levelDeut).deut / 24;
@@ -596,9 +598,10 @@ void RentabilityManager::addMinesRentability(int indexPlanet)
         qDebug() << "bonus geolog percent : " << QString::number(PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::GeologPercent).deut);
         qDebug() << "bonus class percent : " << QString::number(PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::ClassBonusPercent).deut);
         qDebug() << "bonus alli class percent : " << QString::number(PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::AllianceBonusPercent).deut);
-    }
 
-    prodMinesLevelUp += prodMinesLevelUp * bonusPercent * 0.01f;
+        qDebug() << "RENTA : " << prodMinesLevelUp.deut;
+        qDebug() << "COST : " << planet->getCost(TechType::CommonBuilding, indexDeut, levelDeut).toString();
+    }
 
     ProductionLevelUp levelUpMetal("Mine de métal", levelMetal);
     levelUpMetal.rentaPerDay = Ressources<float>(prodMinesLevelUp.metal, 0, 0);
