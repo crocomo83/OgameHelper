@@ -37,16 +37,16 @@ MainWindow::MainWindow(QWidget *parent)
     Q_ASSERT(ui->planificationTab);
     Q_ASSERT(ui->rentabiltyType);
 
-    _overviewTable = ui->overviewTab;
-    _rentaTable = ui->renta;
-    _generalTable = ui->commonTab;
-    _planetTable = ui->planetsTab;
-    _discoveryTab = ui->discoveryTab;
-    _planificationTab = ui->planificationTab;
-    _fleetTab = ui->fleetTab;
-    _rentabilityType = ui->rentabiltyType;
-    _planetType = ui->planetType;
-    _unitProd = ui->unitProd;
+    _overviewTable      = ui->overviewTab;
+    _rentaTable         = ui->renta;
+    _generalTable       = ui->commonTab;
+    _planetTable        = ui->planetsTab;
+    _discoveryTab       = ui->discoveryTab;
+    _planificationTab   = ui->planificationTab;
+    _fleetTab           = ui->fleetTab;
+    _rentabilityType    = ui->rentabiltyType;
+    _planetType         = ui->planetType;
+    _unitProd           = ui->unitProd;
 
     _rentaTable->setRowCount(NUMBER_RENTA_MAX + 1);
     _rentaTable->setColumnWidth(0, 140);
@@ -672,7 +672,7 @@ void MainWindow::buildResumePlanetOutputs(int indexPlanet, float factor)
 
     // Crawlers
     Ressources<int> prodCrawlers = planet->getProductionStat(Planet::ProductionStat::Crawlers);
-    addProdLabel("Foreuses : " + QString::number(planet->getMaxActiveCrawler()), prodCrawlers);
+    addProdLabel("Foreuses : " + QString::number(planet->getActiveCrawler()) + " / " + QString::number(planet->getMaxActiveCrawler()), prodCrawlers);
 
     // Plasma
     Ressources<int> prodPlasma = planet->getProductionStat(Planet::ProductionStat::Plasma);
@@ -700,7 +700,14 @@ void MainWindow::buildResumePlanetOutputs(int indexPlanet, float factor)
 
     // Total
     Ressources<int> prodTotal = planet->getProductionStat(Planet::ProductionStat::Total);
-    addProdLabel("Total : ", prodTotal);
+    int consumption = planet->getGlobalConsumption();
+    //addProdLabel("Total : ", prodTotal);
+    addLabel(_overviewTable, "Total : ", index, 0);
+    addLabel(_overviewTable, utils::ressourceToString((int)((float)prodTotal.metal    * factor)), index, 1);
+    addLabel(_overviewTable, utils::ressourceToString((int)((float)prodTotal.cristal  * factor)), index, 2);
+    addLabel(_overviewTable, utils::ressourceToString((int)((float)prodTotal.deut     * factor)), index, 3);
+    addLabel(_overviewTable, utils::ressourceToString(prodTotal.energy) + " / " + QString::number(consumption), index, 4);
+    index++;
 }
 
 void MainWindow::buildRentaOutputs()
@@ -921,6 +928,8 @@ void MainWindow::buildPlanetImputs(QTableWidget* tableWidget, int column)
     int currentRow = 0;
     Planet* planet = PlayerManager::instance().getPlanet(column);
 
+    if (!planet) return;
+
     // Name + delete
     PlanetItem* planetItem = new PlanetItem(planet->getName(), tableWidget);
     planetItem->setOnValueChanged([this, &planet](const QString &text){
@@ -936,14 +945,15 @@ void MainWindow::buildPlanetImputs(QTableWidget* tableWidget, int column)
 
     // Position
     PositionItem* positionItem = addPositionItem(tableWidget, currentRow++, column, planet->getPosition());
-    positionItem->setOnValueChanged([this, &planet](int g, int s, int p) {
-        planet->setPosition(PlanetPosition(g, s, p));
+    positionItem->setOnValueChanged([this, planet](int g, int s, int p) {
+        PlanetPosition newPos(g, s, p);
+        planet->setPosition(newPos);
         emit techChanged();
     });
 
     // Temperature
-    Item* temperatureItem = addSpinBoxItem(tableWidget, "Temp max : ", currentRow++, column, planet->getTemperatureMax(), -99, 99);
-    temperatureItem->setOnValueChanged([this, &planet](int value){
+    Item* temperatureItem = addSpinBoxItem(tableWidget, "Temp max : ", currentRow++, column, planet->getTemperatureMax(), -999, 999);
+    temperatureItem->setOnValueChanged([this, planet](int value){
         planet->setTemperatureMax(value);
         emit techChanged();
     });

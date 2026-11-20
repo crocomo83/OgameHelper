@@ -226,6 +226,7 @@ void PlayerManager::computeProduction()
     _productionStatsPercent[ProductionStatPercent::PlasmaPercent]         = GeneralManager::instance().getPlasmaBonus();
     _productionStatsPercent[ProductionStatPercent::LifeFormBonusPercent]  = getLifeFormProdBonus();
     _productionStatsPercent[ProductionStatPercent::GeologPercent]         = GeneralManager::instance().getGeologBonus();
+    _productionStatsPercent[ProductionStatPercent::CouncilPercent]        = GeneralManager::instance().getCouncilBonus();
     _productionStatsPercent[ProductionStatPercent::ClassBonusPercent]     = GeneralManager::instance().getClassBonus();
     _productionStatsPercent[ProductionStatPercent::AllianceBonusPercent]  = GeneralManager::instance().getAllianceClassBonus();
 }

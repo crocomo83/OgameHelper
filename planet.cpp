@@ -162,6 +162,7 @@ void Planet::computeBaseProduction()
 {
     _productionStats.clear();
     _rawRefProduction.clear();
+    _globalConsumption = 0;
 
     // Base
     Ressources<int> baseProd;
@@ -183,6 +184,7 @@ void Planet::computeBaseProduction()
         building._production = production - consumption;
         _productionStats[ProductionStat::Mines] += building._production;
         _rawRefProduction += production;
+        _globalConsumption += consumption.energy;
     }
 
     _productionStats[ProductionStat::Mines].energy += getSatelliteProduction();
@@ -228,6 +230,7 @@ void Planet::computeLifeFormBuildingProduction()
         float energyCost = building._level * lifeFormTech->baseCost.energy * std::pow(lifeFormTech->energieFactor,building._level);
         energyCost *= getConsumptionReductionFactor();
         building._production.energy -= energyCost;
+        _globalConsumption += energyCost;
 
         _productionStats[ProductionStat::BuildingLifeForm] += building._production;
     }
@@ -243,8 +246,10 @@ void Planet::computeProduction(const Ressources<float> &lifeFormBonuses)
 
     // Crawlers
     Ressources<int> crawlerProd = refProduction * crawlersPercent / 100.0f;
-    crawlerProd.energy = (int)(-50.f * (float)getMaxActiveCrawler() * getConsumptionReductionFactor());
+    float consumtion = (int)(50.f * (float)getActiveCrawler() * getConsumptionReductionFactor());
+    crawlerProd.energy = -consumtion;
     _productionStats[ProductionStat::Crawlers] = crawlerProd;
+    _globalConsumption += consumtion;
 
     // Buildings life form percent
     Ressources<float> lifeFormBuildingPercent = getLifeFormProdBonus();
@@ -583,9 +588,15 @@ int Planet::getMaxActiveCrawler() const
     return 8 * (levelMetal + levelCristal + levelDeut);
 }
 
-float Planet::getCrawlerBonus() const
+int Planet::getActiveCrawler() const
 {
     int maxCrawler = getMaxActiveCrawler();
+    return std::min(maxCrawler, getDefense(FixUnitType::Crawler));
+}
+
+float Planet::getCrawlerBonus() const
+{
+    int maxCrawler = getActiveCrawler();
     int activeCrawlers = std::min(maxCrawler, getDefense(FixUnitType::Crawler));
     return std::min(50.0f, 0.02f * activeCrawlers);
 }

@@ -130,6 +130,11 @@ void RentabilityManager::refreshEnergy()
         {
             addBuildingForEnergy(i);
         }
+
+        if (_typeFilter.at(TypeFilter::LifeFormBuildingFilter))
+        {
+            addLifeFormBuildingEnergy(i);
+        }
     }
 }
 
@@ -208,6 +213,7 @@ Ressources<float> RentabilityManager::getGainMines(const Planet& planet) const
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::PlasmaPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::LifeFormBonusPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::GeologPercent);
+    bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::CouncilPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::ClassBonusPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::AllianceBonusPercent);
 
@@ -322,22 +328,20 @@ Ressources<float> RentabilityManager::getGainResearch(const LifeFormTech* tech, 
     return bonusRessources;
 }
 
-float RentabilityManager::getGainTimePercent(const LifeFormBuilding* tech) const
+float RentabilityManager::getGain(const LifeFormBuilding* tech, BonusLifeFormBuilding bonusType) const
 {
-    float bonusTime = 0.0f;
+    float bonus = 0.0f;
     for (auto itr = tech->bonuses.begin(); itr != tech->bonuses.end(); ++itr)
     {
-        switch(itr->first)
+        if (itr->first == bonusType)
         {
-        case BonusLifeFormBuilding::ReducLifeFormResearchDurationPercent:
-            bonusTime += itr->second;
-            break;
+            bonus += itr->second;
         }
     }
-    return bonusTime;
+    return bonus;
 }
 
-float RentabilityManager::getGainTimePercent(const LifeFormTech* tech, BonusLifeForm bonusType) const
+float RentabilityManager::getGain(const LifeFormTech* tech, BonusLifeForm bonusType) const
 {
     int levelSpecies = GeneralManager::instance().getLevelSpecies(tech->species);
     float factorSpecies = 1.0f + levelSpecies / 1000.0f;
@@ -581,27 +585,11 @@ void RentabilityManager::addMinesRentability(int indexPlanet)
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::PlasmaPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::LifeFormBonusPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::GeologPercent);
+    bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::CouncilPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::ClassBonusPercent);
     bonusPercent += PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::AllianceBonusPercent);
 
     prodMinesLevelUp += prodMinesLevelUp * bonusPercent * 0.01f;
-
-    if (planet->getName() == "Coruscant")
-    {
-        qDebug() << "new deut prod : " << planet->getProduction(CommonBuildingType::MineDeut, levelDeut).deut / 24;
-        qDebug() << "gain deut prod : " << prodMinesLevelUp.deut / 24;
-
-        qDebug() << "bonus life form building percent : " << QString::number(planet->getProductionStatPercent(Planet::ProductionStatPercent::BuildingLifeFormPercent).deut);
-        qDebug() << "bonus crawler percent : " << QString::number(planet->getProductionStatPercent(Planet::ProductionStatPercent::CrawlersPercent).deut);
-        qDebug() << "bonus plasma percent : " << QString::number(PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::PlasmaPercent).deut);
-        qDebug() << "bonus life form percent : " << QString::number(PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::LifeFormBonusPercent).deut);
-        qDebug() << "bonus geolog percent : " << QString::number(PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::GeologPercent).deut);
-        qDebug() << "bonus class percent : " << QString::number(PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::ClassBonusPercent).deut);
-        qDebug() << "bonus alli class percent : " << QString::number(PlayerManager::instance().getProductionPercent(PlayerManager::ProductionStatPercent::AllianceBonusPercent).deut);
-
-        qDebug() << "RENTA : " << prodMinesLevelUp.deut;
-        qDebug() << "COST : " << planet->getCost(TechType::CommonBuilding, indexDeut, levelDeut).toString();
-    }
 
     ProductionLevelUp levelUpMetal("Mine de métal", levelMetal);
     levelUpMetal.rentaPerDay = Ressources<float>(prodMinesLevelUp.metal, 0, 0);
@@ -760,6 +748,36 @@ void RentabilityManager::addBuildingForEnergy(int indexPlanet)
     addNewLevelUp(std::make_unique<EnergyLevelUp>(fusionCentralLevelUp), indexPlanet);
 }
 
+void RentabilityManager::addLifeFormBuildingEnergy(int indexPlanet)
+{
+    const Planet* planet = PlayerManager::instance().getPlanet(indexPlanet);
+
+    Species planetSpecies = planet->getSpecies();
+    if (planetSpecies == Species::None) return;
+
+    TechType buildingType = speciesToBuildingLifeForm.at(planetSpecies);
+    int numberBuildingLifeForm = TechManager::instance().getNumberTechs(buildingType);
+    for (int i = 0; i < numberBuildingLifeForm; i++)
+    {
+        const LifeFormBuilding* tech = dynamic_cast<const LifeFormBuilding*>(TechManager::instance().getTech(buildingType, i));
+        float bonusEnergy = getGain(tech, BonusLifeFormBuilding::Energy);
+        float bonusEnergyConsumption = getGain(tech, BonusLifeFormBuilding::ReducEnergyConsumptionPercent);
+        if (bonusEnergy > 0 || bonusEnergyConsumption > 0)
+        {
+            int levelUpBatiment = planet->getTechLevel(buildingType, i) + 1;
+
+            float energyGain = 0.01f * bonusEnergy * planet->getRefRawProduction().energy;
+            float energyGainConsumption = 0.01f * bonusEnergyConsumption * planet->getGlobalConsumption();
+
+            EnergyLevelUp levelUpBuilding(tech->name, levelUpBatiment);
+            levelUpBuilding._energyGain = energyGain + energyGainConsumption;
+            levelUpBuilding.cost = planet->getCost(buildingType, i, levelUpBatiment);
+            levelUpBuilding.timeToCompleteDay = planet->getTime(buildingType, i, levelUpBatiment);
+            addNewLevelUp(std::make_unique<EnergyLevelUp>(levelUpBuilding), indexPlanet);
+        }
+    }
+}
+
 void RentabilityManager::addResearchForEnergy()
 {
     int indexEnergy = static_cast<int>(ResearchType::Energie);
@@ -876,7 +894,7 @@ void RentabilityManager::addSpeedBuildingLifeFormForResearchLifeForm(int indexPl
     for (int i = 0; i < numberBuildingLifeForm; i++)
     {
         const LifeFormBuilding* tech = dynamic_cast<const LifeFormBuilding*>(TechManager::instance().getTech(buildingType, i));
-        float bonusTime = getGainTimePercent(tech);
+        float bonusTime = getGain(tech, BonusLifeFormBuilding::ReducLifeFormResearchDurationPercent);
         if (bonusTime > 0.0f)
         {
             int levelUpBatiment = planet->getTechLevel(buildingType, i) + 1;
@@ -906,7 +924,7 @@ void RentabilityManager::addSpeedResearchLifeFormForResearch(int indexPlanet, Bo
         TechType researchLifeFormType = speciesToTechLifeForm.at(speciesLifeForm);
         const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));
 
-        float bonusTime = getGainTimePercent(tech, bonusType);
+        float bonusTime = getGain(tech, bonusType);
         if (bonusTime > 0.0f)
         {
             const LifeFormTech* tech = dynamic_cast<const LifeFormTech*>(TechManager::instance().getTech(researchLifeFormType, i));

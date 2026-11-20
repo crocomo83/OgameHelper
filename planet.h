@@ -52,6 +52,7 @@ public:
     inline Ressources<float> getBonusMine() const {return _bonusProdPositionCoeff;}
     inline PlanetPosition   getPosition() const {return _position;}
     inline const Ressources<int>& getRefRawProduction() const { return _rawRefProduction;}
+    inline int                    getGlobalConsumption() const { return _globalConsumption;}
     inline const Ressources<int>& getProductionStat(ProductionStat stat) const {return _productionStats.at(stat);}
     inline const Ressources<float>& getProductionStatPercent(ProductionStatPercent stat) const {return _productionStatsPercent.at(stat);}
     inline float            getLifeFormBuildingBonus(BonusLifeFormBuilding bonus) const {return _lifeFormBuildingBonuses.at(bonus);}
@@ -60,6 +61,7 @@ public:
 
     float                   getLifeFormBonus(BonusLifeForm bonus) const;
     int                     getMaxActiveCrawler() const;
+    int                     getActiveCrawler() const;
     float                   getCrawlerBonus() const;
     Ressources<float>       getLifeFormBuildingProduction() const;
     std::vector<TechType>   getAvailableBuildings() const;
@@ -113,6 +115,7 @@ private:
 
     std::map<ProductionStat, Ressources<int>>   _productionStats;
     Ressources<int>                             _rawRefProduction;
+    int                                         _globalConsumption;
     Ressources<int>                             _allInvestedPoints;
     Ressources<int>                             _usefullInvestedPoints;
     std::map<ProductionStatPercent, Ressources<float>> _productionStatsPercent;

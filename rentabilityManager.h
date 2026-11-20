@@ -100,8 +100,8 @@ public:
     Ressources<float> getGainMines(const Planet& planet) const;
     Ressources<float> getGainBuilding(const Planet *planet, const LifeFormBuilding* tech, int numberOfLevels = 1) const;
     Ressources<float> getGainResearch(const LifeFormTech* tech, int numberOfLevels = 1) const;
-    float getGainTimePercent(const LifeFormBuilding* tech) const;
-    float getGainTimePercent(const LifeFormTech* tech, BonusLifeForm bonusType) const;
+    float getGain(const LifeFormBuilding* tech, BonusLifeFormBuilding bonusType) const;
+    float getGain(const LifeFormTech* tech, BonusLifeForm bonusType) const;
     inline int getNbLevelUp() const {return rentaLevelUp.size();}
     inline RentabilityType getRentabilityType() const {return _type;}
 
@@ -125,6 +125,7 @@ private:
 
     // Energy gains
     void addBuildingForEnergy(int indexPlanet);
+    void addLifeFormBuildingEnergy(int indexPlanet);
     void addResearchForEnergy();
 
     // Time gains
