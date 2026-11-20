@@ -35,6 +35,7 @@ public:
         PlasmaPercent,
         LifeFormBonusPercent,
         GeologPercent,
+        CouncilPercent,
         ClassBonusPercent,
         AllianceBonusPercent,
         Count
